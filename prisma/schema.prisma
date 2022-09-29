@@ -17,9 +17,9 @@ model Ticket {
     updatedAt    DateTime     @default(now()) @updatedAt
     ticketStatus TicketStatus
     description  String?
-    assignment   String
-    location     String
-    resolution   String
+    assignment   String?
+    location     String?
+    resolution   String?
 
     userId  String
     queueId String

@@ -6,16 +6,25 @@ import { trpc } from "../utils/trpc";
 import { useEffect, useState } from "react";
 import { configureAbly } from "@ably-labs/react-hooks";
 import { clientEnv } from "../env/schema.mjs";
+import { UserRole } from "@prisma/client";
+import CreateTicket from "../components/CreateTicket";
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string>("");
   const [isAblyConnected, setIsAblyConnected] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>();
+
+  const { refetch: fetchUserRole } = trpc.useQuery(
+    ["user.getUserRole", { id: userId }],
+    { enabled: false }
+  );
 
   useEffect(() => {
     if (session) {
       setUserId(session.user?.id!);
 
+      // Maybe better way to do this?
       new Promise((resolve) => {
         configureAbly({
           key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
@@ -26,9 +35,20 @@ const Home: NextPage = () => {
     }
   }, [session]);
 
+  useEffect(() => {
+    if (userId) {
+      fetchUserRole().then((res) => {
+        setUserRole(res.data);
+      });
+    }
+  }, [userId]);
+
   return (
     <Layout>
-	  {isAblyConnected && <Text>Ably Connected</Text>}
+	  {userRole === UserRole.STUDENT && <CreateTicket />}
+	  <div style={{ height: '500px'}}>
+		<Text>Queue</Text>
+	  </div>
     </Layout>
   );
 };
