@@ -8,6 +8,7 @@ import { configureAbly } from "@ably-labs/react-hooks";
 import { clientEnv } from "../env/schema.mjs";
 import { UserRole } from "@prisma/client";
 import CreateTicket from "../components/CreateTicket";
+import TicketQueue from "../components/TicketQueue";
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
@@ -45,10 +46,12 @@ const Home: NextPage = () => {
 
   return (
     <Layout>
-	  {userRole === UserRole.STUDENT && <CreateTicket />}
-	  <div style={{ height: '500px'}}>
-		<Text>Queue</Text>
-	  </div>
+      {userRole && (
+        <>
+          {userRole === UserRole.STUDENT && <CreateTicket />}
+          <TicketQueue userRole={userRole} />
+        </>
+      )}
     </Layout>
   );
 };

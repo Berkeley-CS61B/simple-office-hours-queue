@@ -9,12 +9,15 @@ import {
   useToast,
   Text,
 } from "@chakra-ui/react";
+import { trpc } from "../utils/trpc";
 
 const CreateTicketForm = () => {
   const [description, setDescription] = useState<string>("");
   const [assignment, setAssignment] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const toast = useToast();
+
+  const createTicketMutation = trpc.useMutation("ticket.createTicket");
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,18 +34,21 @@ const CreateTicketForm = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(description, assignment, location);
-    setDescription("");
-    setAssignment("");
-    setLocation("");
-    toast({
-      title: "Ticket created",
-      description: "Your help request is on the queue",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "top-right",
-    });
+    createTicketMutation
+      .mutateAsync({ description, assignment, location })
+      .then(() => {
+        setDescription("");
+        setAssignment("");
+        setLocation("");
+        toast({
+          title: "Ticket created",
+          description: "Your help request is pending approval",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
   };
 
   return (
@@ -93,17 +99,17 @@ const CreateTicket = () => {
   const endOfForm: any = useRef<HTMLSpanElement>();
 
   return (
-    <Flex width="full" align="center" flexDir="column" p={10}>
+    <Flex width="full" align="left" flexDir="column" p={10}>
       <Text fontSize="2xl" mb={5}>
         Welcome back. Create a ticket to get started or{" "}
         <Box
           as="span"
           className="hover-cursor"
           border="1px"
-		  borderRadius={8}
+          borderRadius={8}
           p="3px"
-		  pl="5px"
-		  pr="5px"
+          pl="5px"
+          pr="5px"
           onClick={() => endOfForm.current.scrollIntoView()}
         >
           view the queue
