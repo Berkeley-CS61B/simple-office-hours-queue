@@ -19,6 +19,8 @@ model Ticket {
   assignment  String
   location    String
   resolution  String       @default("")
+  taNotes     String?  
+
   userId      String
 }
 

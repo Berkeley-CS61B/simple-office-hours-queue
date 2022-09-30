@@ -40,19 +40,48 @@ export const ticketRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { id } = input;
-      const ticket = await ctx.prisma.ticket.update({
-        where: {
-          id,
-        },
-        data: {
-          status: TicketStatus.OPEN,
-        },
-      }).then(() => {
-		// console.log("changed")
-		const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-		const channel = ably.channels.get("tickets"); // Change to include queue id
-		channel.publish("ticket-approved", { id });
-	  });
+      const ticket = await ctx.prisma.ticket
+        .update({
+          where: {
+            id,
+          },
+          data: {
+            status: TicketStatus.OPEN,
+          },
+        })
+        .then((ticket) => {
+          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+          const channel = ably.channels.get("tickets"); // Change to include queue id
+          channel.publish("ticket-approved", ticket);
+        });
+      return ticket;
+    },
+  })
+  .query("editInfo", {
+    input: z.object({
+      id: z.number(),
+      description: z.string().min(1).max(1000),
+      assignment: z.string().min(1).max(250),
+      location: z.string().min(1).max(250),
+    }),
+    async resolve({ input, ctx }) {
+      const { id, description, assignment, location } = input;
+      const ticket = await ctx.prisma.ticket
+        .update({
+          where: {
+            id,
+          },
+          data: {
+            description,
+            assignment,
+            location,
+          },
+        })
+        .then((ticket) => {
+          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+          const channel = ably.channels.get("tickets"); // Change to include queue id
+          channel.publish("ticket-edited", ticket);
+        });
       return ticket;
     },
   })

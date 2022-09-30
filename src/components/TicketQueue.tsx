@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TicketStatus, UserRole } from "@prisma/client";
 import {
+  Button,
   Flex,
   Skeleton,
   Tab,
@@ -13,7 +14,8 @@ import {
 import { trpc } from "../utils/trpc";
 import type { Ticket } from "@prisma/client";
 import TicketList from "./TicketList";
-import { useChannel } from '@ably-labs/react-hooks';
+import { useChannel } from "@ably-labs/react-hooks";
+import { uppercaseFirstLetter } from "../utils";
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -60,43 +62,38 @@ const TicketQueue = (props: TicketQueueProps) => {
       },
     }
   );
-
-  useChannel("tickets", "new-ticket", (ticketData) => {
-	const ticket : Ticket = ticketData.data;
-	 console.log("added ticket", ticket)
-	if (ticket.status === TicketStatus.OPEN) {
-	//   setOpenTickets((prev) => [...prev, ticket]); // TODO figure out why adding a pending ticket adds it to open 
-	} else if (ticket.status === TicketStatus.ASSIGNED) {
-		setAssignedTickets((prev) => [...prev, ticket]);
-	} else if (ticket.status === TicketStatus.PENDING) {
-		setPendingTickets((prev) => [...prev, ticket]);
-	} else {
-		console.error('Incoming ticket status is not OPEN, ASSIGNED, or PENDING');
-	}
+  // TODO add option to edit ticket
+  useChannel("tickets", (ticketData) => {
+    const ticket: Ticket = ticketData.data;
+    const message = ticketData.name;
+    console.log(message);
+    if (message === "new-ticket") {
+      // Add new ticket to the pending tickets list
+      setPendingTickets((prev) => [...prev, ticket]);
+    } else if (message === "ticket-approved") {
+      // Remove ticket from pendingTickets and add to openTickets
+      setPendingTickets((prev) => prev.filter((t) => t.id !== ticket.id));
+      setOpenTickets((prev) => [...prev, ticket]);
+    }
   });
 
-  useChannel("tickets", (res) => {
-	const ticketId: number = res.data.id;
-	//  Remove ticket from pendingTickets and add to openTickets
-	setPendingTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
-	setOpenTickets((prev) => [...prev, res.data]);
-  })
-
-  const uppercaseFirstLetter = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
-
-  const getTickets = (status: TicketStatus): [Ticket[], boolean] => {
+  const getTickets = (
+    status: TicketStatus
+  ): [
+    Ticket[],
+    React.Dispatch<React.SetStateAction<Ticket[]>> | null, // Setter
+    boolean
+  ] => {
     if (status === TicketStatus.OPEN) {
-      return [openTickets, isGetOpenTicketsLoading];
+      return [openTickets, setOpenTickets, isGetOpenTicketsLoading];
     } else if (status === TicketStatus.ASSIGNED) {
-      return [assignedTickets, isGetAssignedTicketsLoading];
+      return [assignedTickets, setAssignedTickets, isGetAssignedTicketsLoading];
     } else if (status === TicketStatus.PENDING) {
-      return [pendingTickets, isGetPendingTicketsLoading];
+      return [pendingTickets, setPendingTickets, isGetPendingTicketsLoading];
     }
-    return [[], false];
+    return [[], null, false];
   };
-
+  
   return (
     <Flex width="full" align="left" flexDir="column" p={10}>
       <Text fontSize="2xl" mb={5}>
@@ -105,19 +102,28 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Tabs isFitted variant="enclosed" isLazy>
         <TabList>
           {tabs.map((tab) => (
-            <Tab key={tab}>{uppercaseFirstLetter(tab)}</Tab>
+            <Tab key={tab}>
+              {uppercaseFirstLetter(tab) +
+                " (" +
+                getTickets(tab)[0].length +
+                ")"}
+            </Tab>
           ))}
         </TabList>
         <TabPanels>
           {tabs.map((tab) => {
-            const [tickets, isLoading] = getTickets(tab);
+            const [tickets, setTickets, isLoading] = getTickets(tab);
             return (
               <div key={tab}>
                 {isLoading ? (
-				  <Skeleton height='40px' />
+                  <Skeleton height="40px" />
                 ) : (
-                  <TabPanel padding='20px 0' key={tab}>
-                    <TicketList tickets={tickets} />
+                  <TabPanel padding="20px 0" key={tab}>
+                    <TicketList
+                      tickets={tickets}
+                      setTickets={setTickets!}
+                      ticketStatus={tab}
+                    />
                   </TabPanel>
                 )}
               </div>
