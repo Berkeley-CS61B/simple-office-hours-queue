@@ -42,6 +42,31 @@ const TicketList = (props: TicketListProps) => {
     });
   };
 
+  /** Helper method to return appropriate buttons (approve, help, resolve)
+   * Note: We can't use isGrouped here because that applies to the entire list
+   */
+  const getButton = (tickets: Ticket[], inGroupedView: boolean) => {
+    if (ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF) {
+      return (
+        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
+          Approve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+        </Button>
+      );
+    } else if (ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF) {
+      return (
+        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
+          Help all {inGroupedView && 'for ' + tickets[0]?.assignment}
+        </Button>
+      );
+    } else if (ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF) {
+      return (
+        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
+          Resolve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+        </Button>
+      );
+    }
+  };
+
   const GroupedView = () => {
     return (
       <Flex flexDirection='column'>
@@ -50,21 +75,7 @@ const TicketList = (props: TicketListProps) => {
             <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
               {assignment}
             </Tag>
-            {ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF && (
-              <Button onClick={() => handleApproveTickets(groupedTickets[assignment]!)}>
-                Approve all for {assignment}
-              </Button>
-            )}
-            {ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF && (
-              <Button onClick={() => handleAssignTickets(groupedTickets[assignment]!)}>
-                Help all for {assignment}
-              </Button>
-            )}
-            {ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
-              <Button onClick={() => handleResolveTickets(groupedTickets[assignment]!)}>
-                Resolve all for {assignment}
-              </Button>
-            )}
+            {getButton(groupedTickets[assignment]!, true)}
             <Box>
               {groupedTickets[assignment]!.map((ticket: Ticket) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
@@ -104,21 +115,7 @@ const TicketList = (props: TicketListProps) => {
             <Button onClick={handleGroupTickets} mb={4}>
               {isGrouped ? 'Ungroup' : 'Group'} By Assignment
             </Button>
-            {ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF && (
-              <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
-                Approve All
-              </Button>
-            )}
-            {ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF && (
-              <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
-                Help All
-              </Button>
-            )}
-            {ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
-              <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
-                Resolve All
-              </Button>
-            )}
+            {getButton(tickets, false)}
           </Flex>
           {isGrouped ? (
             <GroupedView />
