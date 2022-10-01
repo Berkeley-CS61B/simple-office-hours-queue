@@ -1,4 +1,4 @@
-import type { Ticket, TicketStatus } from "@prisma/client";
+import type { Ticket, TicketStatus, UserRole } from "@prisma/client";
 import TicketCard from "./TicketCard";
 import {
   Text,
@@ -12,18 +12,18 @@ import { useEffect, useState } from "react";
 
 interface TicketListProps {
   tickets: Ticket[];
-  setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>; // Maybe I dont need this
   ticketStatus: TicketStatus;
+  userRole: UserRole;
 }
 
 interface GroupedTicket {
-	  [key: string]: Ticket[];
+	[key: string]: Ticket[];
 }
 
 const TicketList = (props: TicketListProps) => {
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
-  const { tickets, ticketStatus } = props;
+  const { tickets, ticketStatus, userRole } = props;
   
   const GroupedView = () => {
     return (
@@ -35,7 +35,7 @@ const TicketList = (props: TicketListProps) => {
           </Tag>
             <Box>
               {groupedTickets[assignment]!.map((ticket: Ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} />
+                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
               ))}
             </Box>
           </Box>
@@ -75,7 +75,7 @@ const TicketList = (props: TicketListProps) => {
       ) : (
         <>
           {tickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} />
+            <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
           ))}
         </>
       )}

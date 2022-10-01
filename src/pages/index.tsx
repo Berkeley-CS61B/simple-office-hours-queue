@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import { Text } from "@chakra-ui/react";
 import Layout from "../components/Layout";
 import { useSession } from "next-auth/react";
 import { trpc } from "../utils/trpc";
@@ -18,7 +17,7 @@ const Home: NextPage = () => {
 
   const { refetch: fetchUserRole } = trpc.useQuery(
     ["user.getUserRole", { id: userId }],
-    { enabled: false }
+    { enabled: false, refetchOnWindowFocus: false }
   );
 
   useEffect(() => {
@@ -46,7 +45,7 @@ const Home: NextPage = () => {
 
   return (
     <Layout>
-      {userRole && (
+      {userRole && isAblyConnected && (
         <>
           {userRole === UserRole.STUDENT && <CreateTicket />}
           <TicketQueue userRole={userRole} />

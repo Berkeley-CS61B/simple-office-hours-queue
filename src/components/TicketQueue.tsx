@@ -66,36 +66,32 @@ const TicketQueue = (props: TicketQueueProps) => {
   useChannel("tickets", (ticketData) => {
     const ticket: Ticket = ticketData.data;
     const message = ticketData.name;
-    console.log(message);
     if (message === "new-ticket") {
       // Add new ticket to the pending tickets list
       setPendingTickets((prev) => [...prev, ticket]);
-	  console.log('added pending tickets')
     } else if (message === "ticket-approved") {
       // Remove ticket from pendingTickets and add to openTickets
       setPendingTickets((prev) => prev.filter((t) => t.id !== ticket.id));
       setOpenTickets((prev) => [...prev, ticket]);
+    } else if (message === "ticket-assigned") {
+		console.log('has been helped')
+      // Remove ticket from openTickets and add to assignedTickets
+      setOpenTickets((prev) => prev.filter((t) => t.id !== ticket.id));
+      setAssignedTickets((prev) => [...prev, ticket]);
     }
   });
 
-  const getTickets = (
-    status: TicketStatus
-  ): [
-    Ticket[],
-    React.Dispatch<React.SetStateAction<Ticket[]>> | null, // Setter
-    boolean
-  ] => {
+  const getTickets = (status: TicketStatus): [Ticket[], boolean] => {
     if (status === TicketStatus.OPEN) {
-      return [openTickets, setOpenTickets, isGetOpenTicketsLoading];
+      return [openTickets, isGetOpenTicketsLoading];
     } else if (status === TicketStatus.ASSIGNED) {
-      return [assignedTickets, setAssignedTickets, isGetAssignedTicketsLoading];
+      return [assignedTickets, isGetAssignedTicketsLoading];
     } else if (status === TicketStatus.PENDING) {
-      return [pendingTickets, setPendingTickets, isGetPendingTicketsLoading];
+      return [pendingTickets, isGetPendingTicketsLoading];
     }
-    return [[], null, false];
+    return [[], false];
   };
-  
-  // TODO move grouped view to this component 
+
   return (
     <Flex width="full" align="left" flexDir="column" p={10}>
       <Text fontSize="2xl" mb={5}>
@@ -114,7 +110,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         </TabList>
         <TabPanels>
           {tabs.map((tab) => {
-            const [tickets, setTickets, isLoading] = getTickets(tab);
+            const [tickets, isLoading] = getTickets(tab);
             return (
               <div key={tab}>
                 {isLoading ? (
@@ -123,8 +119,8 @@ const TicketQueue = (props: TicketQueueProps) => {
                   <TabPanel padding="20px 0" key={tab}>
                     <TicketList
                       tickets={tickets}
-                      setTickets={setTickets!}
                       ticketStatus={tab}
+                      userRole={userRole}
                     />
                   </TabPanel>
                 )}
