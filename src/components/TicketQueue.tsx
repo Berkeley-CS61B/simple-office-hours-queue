@@ -69,16 +69,16 @@ const TicketQueue = (props: TicketQueueProps) => {
 	  const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
       // Add new ticket to the pending tickets list
       setPendingTickets((prev) => [...prev, ticket]);
-    } else if (message === "ticket-approved") {
+    } else if (message === "tickets-approved") {
 	  const tickets: Ticket[] = ticketData.data;
-      // Remove ticket from pendingTickets and add to openTickets, filtering by ticket id
+      // Remove tickets from pendingTickets and add to openTickets, filtering by ticket id
 	  setPendingTickets((prev) => prev.filter((ticket) => !tickets.map((t) => t.id).includes(ticket.id)))
 	  setOpenTickets((prev) => [...prev, ...tickets])
-    } else if (message === "ticket-assigned") {
-	  const ticket: Ticket = ticketData.data;
-      // Remove ticket from openTickets and add to assignedTickets
-      setOpenTickets((prev) => prev.filter((t) => t.id !== ticket.id));
-      setAssignedTickets((prev) => [...prev, ticket]);
+    } else if (message === "tickets-assigned") {
+	  const tickets: Ticket[] = ticketData.data;
+      // Remove tickets from openTickets and add to assignedTickets, filtering by ticket id
+	  setOpenTickets((prev) => prev.filter((ticket) => !tickets.map((t) => t.id).includes(ticket.id)))
+	  setAssignedTickets((prev) => [...prev, ...tickets])
     }
   });
 

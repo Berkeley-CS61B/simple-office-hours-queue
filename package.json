@@ -9,7 +9,7 @@
 	"arrowParens": "avoid",
 	"printWidth": 120,
 	"tabWidth": 2,
-	"semi": false,
+	"semi": true,
 	"bracketSpacing": true,
 	"jsxBracketSameLine": false,
 	"jsxSingleQuote": true

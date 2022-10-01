@@ -1,7 +1,7 @@
 import { createRouter } from './context'
 import { z } from 'zod'
 import Ably from 'ably/promises'
-import { TicketStatus } from '@prisma/client'
+import { Ticket, TicketStatus } from '@prisma/client'
 
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
@@ -21,7 +21,6 @@ export const ticketRouter = createRouter()
         .max(250),
     }),
     async resolve({ input, ctx }) {
-      console.log('createTicket', ctx.session?.user?.id)
       const { description, assignment, location } = input
       const ticket = await ctx.prisma.ticket
         .create({
@@ -50,10 +49,10 @@ export const ticketRouter = createRouter()
       ticketIds: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      const approvedTickets = []
+      const approvedTickets: Ticket[] = []
 
       for (const ticketId of input.ticketIds) {
-        const ticket = await ctx.prisma.ticket.update({
+        const ticket: Ticket = await ctx.prisma.ticket.update({
           where: { id: ticketId },
           data: { status: TicketStatus.OPEN },
         })
@@ -62,33 +61,38 @@ export const ticketRouter = createRouter()
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
       const channel = ably.channels.get('tickets') // Change to include queue id
-      channel.publish('ticket-approved', approvedTickets)
+      channel.publish('tickets-approved', approvedTickets)
 
       return approvedTickets
     },
   })
-  .mutation('helpTicket', {
+  .mutation('assignTickets', {
     input: z.object({
-      id: z.number(),
+      ticketIds: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      const { id } = input
-      const ticket = await ctx.prisma.ticket
-        .update({
-          where: { id },
+      const assignedTickets: Ticket[] = []
+
+      for (const ticketId of input.ticketIds) {
+        const ticket: Ticket = await ctx.prisma.ticket.update({
+          where: { id: ticketId },
           data: {
             status: TicketStatus.ASSIGNED,
             helpedBy: {
-              connect: { id: ctx.session?.user?.id },
+              connect: {
+                id: ctx.session?.user?.id,
+              },
             },
           },
         })
-        .then(ticket => {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-          const channel = ably.channels.get('tickets') // Change to include queue id
-          channel.publish('ticket-assigned', ticket)
-        })
-      return ticket
+        assignedTickets.push(ticket)
+      }
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
+      const channel = ably.channels.get('tickets') // Change to include queue id
+      channel.publish('tickets-assigned', assignedTickets)
+
+      return assignedTickets 
     },
   })
   .mutation('resolveTicket', {

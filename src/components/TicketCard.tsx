@@ -1,27 +1,27 @@
-import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react'
-import { Ticket, TicketStatus, UserRole } from '@prisma/client'
-import Router from 'next/router'
-import { trpc } from '../utils/trpc'
+import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
+import { Ticket, TicketStatus, UserRole } from '@prisma/client';
+import Router from 'next/router';
+import { trpc } from '../utils/trpc';
 
 interface TicketCardProps {
-  ticket: Ticket
-  userRole: UserRole
+  ticket: Ticket;
+  userRole: UserRole;
 }
 
 const TicketCard = (props: TicketCardProps) => {
-  const { ticket, userRole } = props
-  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets')
-  const helpTicketMuation = trpc.useMutation('ticket.helpTicket')
+  const { ticket, userRole } = props;
+  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
+  const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
 
   const handleApproveTicket = async () => {
-    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] })
-  }
+    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+  };
 
   const handleHelpTicket = async () => {
-    await helpTicketMuation.mutateAsync({ id: ticket.id }).then(() => {
-      Router.push(`/ticket/${ticket.id}`)
-    })
-  }
+    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
+      Router.push(`/ticket/${ticket.id}`);
+    });
+  };
 
   return (
     <Box
@@ -56,7 +56,7 @@ const TicketCard = (props: TicketCardProps) => {
         </Box>
       </Flex>
     </Box>
-  )
-}
+  );
+};
 
-export default TicketCard
+export default TicketCard;
