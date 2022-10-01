@@ -70,6 +70,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     if (message === "new-ticket") {
       // Add new ticket to the pending tickets list
       setPendingTickets((prev) => [...prev, ticket]);
+	  console.log('added pending tickets')
     } else if (message === "ticket-approved") {
       // Remove ticket from pendingTickets and add to openTickets
       setPendingTickets((prev) => prev.filter((t) => t.id !== ticket.id));
@@ -94,6 +95,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     return [[], null, false];
   };
   
+  // TODO move grouped view to this component 
   return (
     <Flex width="full" align="left" flexDir="column" p={10}>
       <Text fontSize="2xl" mb={5}>

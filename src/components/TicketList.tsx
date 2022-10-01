@@ -4,12 +4,8 @@ import {
   Text,
   Button,
   Flex,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
   Box,
-  AccordionIcon,
-  AccordionPanel,
+  Tag,
 } from "@chakra-ui/react";
 import { uppercaseFirstLetter } from "../utils";
 import { useEffect, useState } from "react";
@@ -20,40 +16,40 @@ interface TicketListProps {
   ticketStatus: TicketStatus;
 }
 
+interface GroupedTicket {
+	  [key: string]: Ticket[];
+}
+
 const TicketList = (props: TicketListProps) => {
   const [isGrouped, setIsGrouped] = useState(false);
-  const [groupedTickets, setGroupedTickets] = useState<any>({});
+  const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
   const { tickets, ticketStatus } = props;
-
+  
   const GroupedView = () => {
     return (
-      <Accordion allowToggle>
-        {Object.keys(groupedTickets).map((key) => (
-          <AccordionItem key={key}>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">
-                  {key}
-                </Box>
-                <AccordionIcon />
-              </AccordionButton>
-            <AccordionPanel pb={4}>
-              {groupedTickets[key].map((ticket: Ticket) => (
+      <Flex flexDirection="column">
+        {Object.keys(groupedTickets).map((assignment) => (
+          <Box key={assignment}>
+            <Tag p={2.5} size="lg" mr={3} colorScheme="blue" borderRadius={5}>
+            {assignment}
+          </Tag>
+            <Box>
+              {groupedTickets[assignment]!.map((ticket: Ticket) => (
                 <TicketCard key={ticket.id} ticket={ticket} />
               ))}
-            </AccordionPanel>
-          </AccordionItem>
+            </Box>
+          </Box>
         ))}
-      </Accordion>
+      </Flex>
     );
   };
 
   const handleGroupTickets = () => {
-	setIsGrouped(!isGrouped);
+    setIsGrouped(!isGrouped);
   };
 
-  // TODO make sure adding ticket also adds to grouped tickets
   useEffect(() => {
-    if (!isGrouped) {
+    if (isGrouped) {
       const groupedTickets = tickets.reduce((acc: any, ticket) => {
         const key = ticket.assignment;
         if (!acc[key]) {
@@ -64,7 +60,7 @@ const TicketList = (props: TicketListProps) => {
       }, {});
       setGroupedTickets(groupedTickets);
     }
-  }, [isGrouped]);
+  }, [isGrouped, tickets]);
 
   return (
     <Flex flexDir="column">
@@ -75,7 +71,7 @@ const TicketList = (props: TicketListProps) => {
         <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text>
       )}
       {isGrouped ? (
-        <GroupedView />
+		<GroupedView />
       ) : (
         <>
           {tickets.map((ticket) => (
