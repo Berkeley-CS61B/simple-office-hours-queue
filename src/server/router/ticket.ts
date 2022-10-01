@@ -11,8 +11,10 @@ export const ticketRouter = createRouter()
       location: z.string().min(1).max(250),
     }),
     async resolve({ input, ctx }) {
+	  console.log("createTicket", ctx.session?.user?.id);
       const { description, assignment, location } = input;
-      const ticket = await ctx.prisma.ticket.create({
+      const ticket = await ctx.prisma.ticket
+        .create({
           data: {
             description,
             assignment,
@@ -39,20 +41,20 @@ export const ticketRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { id } = input;
-      const ticket = await ctx.prisma.ticket.update({
+      const ticket = await ctx.prisma.ticket
+        .update({
           where: {
             id,
           },
           data: {
-            status: TicketStatus.ASSIGNED,
-			// TODO add helpedBy	
+            status: TicketStatus.OPEN,
           },
         })
         .then((ticket) => {
           const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
           const channel = ably.channels.get("tickets"); // Change to include queue id
-          channel.publish("ticket-assigned", ticket);
-        });
+          channel.publish("ticket-approved", ticket);
+        })
       return ticket;
     },
   })
@@ -62,12 +64,18 @@ export const ticketRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { id } = input;
-      const ticket = await ctx.prisma.ticket.update({
+      const ticket = await ctx.prisma.ticket
+        .update({
           where: {
             id,
           },
           data: {
             status: TicketStatus.ASSIGNED,
+            helpedBy: {
+              connect: {
+                id: ctx.session?.user?.id,
+              },
+            },
           },
         })
         .then((ticket) => {

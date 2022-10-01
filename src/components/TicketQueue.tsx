@@ -74,7 +74,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       setPendingTickets((prev) => prev.filter((t) => t.id !== ticket.id));
       setOpenTickets((prev) => [...prev, ticket]);
     } else if (message === "ticket-assigned") {
-		console.log('has been helped')
       // Remove ticket from openTickets and add to assignedTickets
       setOpenTickets((prev) => prev.filter((t) => t.id !== ticket.id));
       setAssignedTickets((prev) => [...prev, ticket]);

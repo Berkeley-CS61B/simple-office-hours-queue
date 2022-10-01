@@ -34,6 +34,7 @@ const CreateTicketForm = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+	console.log(description, assignment, location);
     createTicketMutation
       .mutateAsync({ description, assignment, location })
       .then(() => {
