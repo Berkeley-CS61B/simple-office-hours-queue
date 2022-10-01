@@ -1,14 +1,9 @@
-import type { Ticket, TicketStatus, UserRole } from "@prisma/client";
+import { Ticket, TicketStatus, UserRole } from "@prisma/client";
 import TicketCard from "./TicketCard";
-import {
-  Text,
-  Button,
-  Flex,
-  Box,
-  Tag,
-} from "@chakra-ui/react";
+import { Text, Button, Flex, Box, Tag } from "@chakra-ui/react";
 import { uppercaseFirstLetter } from "../utils";
 import { useEffect, useState } from "react";
+import { trpc } from "../utils/trpc";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -17,25 +12,36 @@ interface TicketListProps {
 }
 
 interface GroupedTicket {
-	[key: string]: Ticket[];
+  [key: string]: Ticket[];
 }
 
 const TicketList = (props: TicketListProps) => {
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
   const { tickets, ticketStatus, userRole } = props;
-  
+  const approveTicketsMutation = trpc.useMutation("ticket.approveTickets");
+
+  const handleApproveTickets = async (tickets: Ticket[]) => {
+    await approveTicketsMutation.mutateAsync({
+      ticketIds: tickets.map((ticket) => ticket.id),
+    });
+  };
+
   const GroupedView = () => {
     return (
       <Flex flexDirection="column">
         {Object.keys(groupedTickets).map((assignment) => (
           <Box key={assignment}>
-            <Tag p={2.5} size="lg" mr={3} colorScheme="blue" borderRadius={5}>
-            {assignment}
-          </Tag>
+            <Tag p={2.5} size="lg" mb={3} colorScheme="blue" borderRadius={5}>
+              {assignment}
+            </Tag>
             <Box>
               {groupedTickets[assignment]!.map((ticket: Ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+                <TicketCard
+                  key={ticket.id}
+                  ticket={ticket}
+                  userRole={userRole}
+                />
               ))}
             </Box>
           </Box>
@@ -64,19 +70,26 @@ const TicketList = (props: TicketListProps) => {
 
   return (
     <Flex flexDir="column">
-      <Button onClick={handleGroupTickets} mb={4} alignSelf="flex-end">
-        Group By Assignment
-      </Button>
-      {tickets.length === 0 && (
-        <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text>
-      )}
-      {isGrouped ? (
-		<GroupedView />
-      ) : (
+      {tickets.length === 0 ? <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text> : (
         <>
-          {tickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
-          ))}
+          <Button onClick={handleGroupTickets} mb={4} alignSelf="flex-end">Group By Assignment</Button>
+          {ticketStatus === TicketStatus.PENDING &&
+            userRole === UserRole.STAFF && (
+              <Button mb={4} alignSelf="flex-end" onClick={() => handleApproveTickets(tickets)}>
+                Approve All
+              </Button>
+            )}
+          {isGrouped ? <GroupedView /> : (
+            <>
+              {tickets.map((ticket) => (
+                <TicketCard
+                  key={ticket.id}
+                  ticket={ticket}
+                  userRole={userRole}
+                />
+              ))}
+            </>
+          )}
         </>
       )}
     </Flex>

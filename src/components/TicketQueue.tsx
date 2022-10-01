@@ -62,18 +62,20 @@ const TicketQueue = (props: TicketQueueProps) => {
       },
     }
   );
-  // TODO add option to edit ticket
+  
   useChannel("tickets", (ticketData) => {
-    const ticket: Ticket = ticketData.data;
     const message = ticketData.name;
     if (message === "new-ticket") {
+	  const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
       // Add new ticket to the pending tickets list
       setPendingTickets((prev) => [...prev, ticket]);
     } else if (message === "ticket-approved") {
-      // Remove ticket from pendingTickets and add to openTickets
-      setPendingTickets((prev) => prev.filter((t) => t.id !== ticket.id));
-      setOpenTickets((prev) => [...prev, ticket]);
+	  const tickets: Ticket[] = ticketData.data;
+      // Remove ticket from pendingTickets and add to openTickets, filtering by ticket id
+	  setPendingTickets((prev) => prev.filter((ticket) => !tickets.map((t) => t.id).includes(ticket.id)))
+	  setOpenTickets((prev) => [...prev, ...tickets])
     } else if (message === "ticket-assigned") {
+	  const ticket: Ticket = ticketData.data;
       // Remove ticket from openTickets and add to assignedTickets
       setOpenTickets((prev) => prev.filter((t) => t.id !== ticket.id));
       setAssignedTickets((prev) => [...prev, ticket]);

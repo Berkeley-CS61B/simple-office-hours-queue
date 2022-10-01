@@ -19,11 +19,11 @@ interface TicketCardProps {
 
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole } = props;
-  const approveTicketMutation = trpc.useMutation("ticket.approveTicket");
+  const approveTicketsMutation = trpc.useMutation("ticket.approveTickets");
   const helpTicketMuation = trpc.useMutation("ticket.helpTicket");
 
   const handleApproveTicket = async () => {
-    await approveTicketMutation.mutateAsync({ id: ticket.id });
+    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
   const handleHelpTicket = async () => {

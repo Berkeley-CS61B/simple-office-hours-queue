@@ -64,15 +64,14 @@ const TicketPage: NextPage = () => {
       });
     }
   }, [userId]);
-
   return (
     <Layout>
-      {userRole && isAblyConnected && ticket && (
+      {userRole && isAblyConnected && (
         <>
 		  {isInvalidTicket ? (
-			<Text>Invalid Ticket</Text>
+			<Text>Invalid ticket</Text>
 		  ) : (
-			<Text>Valid Ticket {ticket.status}</Text>
+			<Text>Valid Ticket {ticket!.status}</Text>
 		  )}
         </>
       )}
