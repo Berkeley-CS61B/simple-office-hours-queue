@@ -21,6 +21,7 @@ const TicketList = (props: TicketListProps) => {
   const { tickets, ticketStatus, userRole } = props;
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
+  const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
 
   // TODO add loading state
   const handleApproveTickets = async (tickets: Ticket[]) => {
@@ -35,6 +36,12 @@ const TicketList = (props: TicketListProps) => {
     });
   };
 
+  const handleResolveTickets = async (tickets: Ticket[]) => {
+    await resolveTicketsMutation.mutateAsync({
+      ticketIds: tickets.map(ticket => ticket.id),
+    });
+  };
+
   const GroupedView = () => {
     return (
       <Flex flexDirection='column'>
@@ -43,16 +50,21 @@ const TicketList = (props: TicketListProps) => {
             <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
               {assignment}
             </Tag>
-			{ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF && (
-				<Button onClick={() => handleApproveTickets(groupedTickets[assignment]!)}>
-				Approve all for {assignment}
-				</Button>
-			)}
-			{ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF && (
-				<Button onClick={() => handleAssignTickets(groupedTickets[assignment]!)}>
-				Help all for {assignment}
-				</Button>
-			)}
+            {ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF && (
+              <Button onClick={() => handleApproveTickets(groupedTickets[assignment]!)}>
+                Approve all for {assignment}
+              </Button>
+            )}
+            {ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF && (
+              <Button onClick={() => handleAssignTickets(groupedTickets[assignment]!)}>
+                Help all for {assignment}
+              </Button>
+            )}
+            {ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
+              <Button onClick={() => handleResolveTickets(groupedTickets[assignment]!)}>
+                Resolve all for {assignment}
+              </Button>
+            )}
             <Box>
               {groupedTickets[assignment]!.map((ticket: Ticket) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
@@ -100,6 +112,11 @@ const TicketList = (props: TicketListProps) => {
             {ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF && (
               <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
                 Help All
+              </Button>
+            )}
+            {ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
+              <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
+                Resolve All
               </Button>
             )}
           </Flex>

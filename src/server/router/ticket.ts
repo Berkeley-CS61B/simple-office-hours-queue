@@ -1,7 +1,7 @@
-import { createRouter } from './context'
-import { z } from 'zod'
-import Ably from 'ably/promises'
-import { Ticket, TicketStatus } from '@prisma/client'
+import { createRouter } from './context';
+import { z } from 'zod';
+import Ably from 'ably/promises';
+import { Ticket, TicketStatus } from '@prisma/client';
 
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
@@ -21,7 +21,7 @@ export const ticketRouter = createRouter()
         .max(250),
     }),
     async resolve({ input, ctx }) {
-      const { description, assignment, location } = input
+      const { description, assignment, location } = input;
       const ticket = await ctx.prisma.ticket
         .create({
           data: {
@@ -36,11 +36,11 @@ export const ticketRouter = createRouter()
           },
         })
         .then(ticket => {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-          const channel = ably.channels.get('tickets') // Change to include queue id
-          channel.publish('new-ticket', ticket)
-        })
-      return ticket
+          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+          const channel = ably.channels.get('tickets'); // Change to include queue id
+          channel.publish('new-ticket', ticket);
+        });
+      return ticket;
     },
   })
   // Concierge can approve a ticket
@@ -49,21 +49,21 @@ export const ticketRouter = createRouter()
       ticketIds: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      const approvedTickets: Ticket[] = []
+      const approvedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
         const ticket: Ticket = await ctx.prisma.ticket.update({
           where: { id: ticketId },
           data: { status: TicketStatus.OPEN },
-        })
-        approvedTickets.push(ticket)
+        });
+        approvedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-      const channel = ably.channels.get('tickets') // Change to include queue id
-      channel.publish('tickets-approved', approvedTickets)
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-approved', approvedTickets);
 
-      return approvedTickets
+      return approvedTickets;
     },
   })
   .mutation('assignTickets', {
@@ -71,7 +71,7 @@ export const ticketRouter = createRouter()
       ticketIds: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      const assignedTickets: Ticket[] = []
+      const assignedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
         const ticket: Ticket = await ctx.prisma.ticket.update({
@@ -84,34 +84,37 @@ export const ticketRouter = createRouter()
               },
             },
           },
-        })
-        assignedTickets.push(ticket)
+        });
+        assignedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-      const channel = ably.channels.get('tickets') // Change to include queue id
-      channel.publish('tickets-assigned', assignedTickets)
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-assigned', assignedTickets);
 
-      return assignedTickets 
+      return assignedTickets;
     },
   })
-  .mutation('resolveTicket', {
+  .mutation('resolveTickets', {
     input: z.object({
-      id: z.number(),
+      ticketIds: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      const { id } = input
-      const ticket = await ctx.prisma.ticket
-        .update({
-          where: { id },
+      const resolvedTickets: Ticket[] = [];
+
+      for (const ticketId of input.ticketIds) {
+        const ticket: Ticket = await ctx.prisma.ticket.update({
+          where: { id: ticketId },
           data: { status: TicketStatus.RESOLVED },
-        })
-        .then(ticket => {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-          const channel = ably.channels.get('tickets') // Change to include queue id
-          channel.publish('ticket-resolved', ticket)
-        })
-      return ticket
+        });
+        resolvedTickets.push(ticket);
+      }
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-resolved', resolvedTickets);
+
+      return resolvedTickets;
     },
   })
   .mutation('editInfo', {
@@ -131,7 +134,7 @@ export const ticketRouter = createRouter()
         .max(250),
     }),
     async resolve({ input, ctx }) {
-      const { id, description, assignment, location } = input
+      const { id, description, assignment, location } = input;
       const ticket = await ctx.prisma.ticket
         .update({
           where: {
@@ -144,11 +147,11 @@ export const ticketRouter = createRouter()
           },
         })
         .then(ticket => {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!)
-          const channel = ably.channels.get('tickets') // Change to include queue id
-          channel.publish('ticket-edited', ticket)
-        })
-      return ticket
+          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+          const channel = ably.channels.get('tickets'); // Change to include queue id
+          channel.publish('ticket-edited', ticket);
+        });
+      return ticket;
     },
   })
   .query('getTicket', {
@@ -160,9 +163,9 @@ export const ticketRouter = createRouter()
         where: {
           id: input.id,
         },
-      })
+      });
 
-      return ticket
+      return ticket;
     },
   })
   .query('getTicketsWithStatus', {
@@ -174,6 +177,6 @@ export const ticketRouter = createRouter()
         where: {
           status: input.status,
         },
-      })
+      });
     },
-  })
+  });

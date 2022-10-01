@@ -1,21 +1,10 @@
-import { useState } from "react";
-import { TicketStatus, UserRole } from "@prisma/client";
-import {
-  Button,
-  Flex,
-  Skeleton,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Text,
-} from "@chakra-ui/react";
-import { trpc } from "../utils/trpc";
-import type { Ticket } from "@prisma/client";
-import TicketList from "./TicketList";
-import { useChannel } from "@ably-labs/react-hooks";
-import { uppercaseFirstLetter } from "../utils";
+import { useState } from 'react';
+import { TicketStatus, UserRole, Ticket } from '@prisma/client';
+import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { trpc } from '../utils/trpc';
+import TicketList from './TicketList';
+import { useChannel } from '@ably-labs/react-hooks';
+import { uppercaseFirstLetter } from '../utils';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -34,51 +23,55 @@ const TicketQueue = (props: TicketQueueProps) => {
   const [assignedTickets, setAssignedTickets] = useState<Ticket[]>([]);
 
   const { isLoading: isGetOpenTicketsLoading } = trpc.useQuery(
-    ["ticket.getTicketsWithStatus", { status: TicketStatus.OPEN }],
+    ['ticket.getTicketsWithStatus', { status: TicketStatus.OPEN }],
     {
       refetchOnWindowFocus: false,
       onSuccess: (data: Ticket[]) => {
         setOpenTickets(data);
       },
-    }
+    },
   );
 
   const { isLoading: isGetAssignedTicketsLoading } = trpc.useQuery(
-    ["ticket.getTicketsWithStatus", { status: TicketStatus.ASSIGNED }],
+    ['ticket.getTicketsWithStatus', { status: TicketStatus.ASSIGNED }],
     {
       refetchOnWindowFocus: false,
       onSuccess: (data: Ticket[]) => {
         setAssignedTickets(data);
       },
-    }
+    },
   );
 
   const { isLoading: isGetPendingTicketsLoading } = trpc.useQuery(
-    ["ticket.getTicketsWithStatus", { status: TicketStatus.PENDING }],
+    ['ticket.getTicketsWithStatus', { status: TicketStatus.PENDING }],
     {
       refetchOnWindowFocus: false,
       onSuccess: (data: Ticket[]) => {
         setPendingTickets(data);
       },
-    }
+    },
   );
-  
-  useChannel("tickets", (ticketData) => {
+
+  useChannel('tickets', ticketData => {
     const message = ticketData.name;
-    if (message === "new-ticket") {
-	  const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
+    if (message === 'new-ticket') {
+      const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
       // Add new ticket to the pending tickets list
-      setPendingTickets((prev) => [...prev, ticket]);
-    } else if (message === "tickets-approved") {
-	  const tickets: Ticket[] = ticketData.data;
+      setPendingTickets(prev => [...prev, ticket]);
+    } else if (message === 'tickets-approved') {
+      const tickets: Ticket[] = ticketData.data;
       // Remove tickets from pendingTickets and add to openTickets, filtering by ticket id
-	  setPendingTickets((prev) => prev.filter((ticket) => !tickets.map((t) => t.id).includes(ticket.id)))
-	  setOpenTickets((prev) => [...prev, ...tickets])
-    } else if (message === "tickets-assigned") {
-	  const tickets: Ticket[] = ticketData.data;
+      setPendingTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+      setOpenTickets(prev => [...prev, ...tickets]);
+    } else if (message === 'tickets-assigned') {
+      const tickets: Ticket[] = ticketData.data;
       // Remove tickets from openTickets and add to assignedTickets, filtering by ticket id
-	  setOpenTickets((prev) => prev.filter((ticket) => !tickets.map((t) => t.id).includes(ticket.id)))
-	  setAssignedTickets((prev) => [...prev, ...tickets])
+      setOpenTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+      setAssignedTickets(prev => [...prev, ...tickets]);
+    } else if (message === 'tickets-resolved') {
+      const tickets: Ticket[] = ticketData.data;
+      // Remove tickets from assignedTickets, filtering by ticket id
+      setAssignedTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
     }
   });
 
@@ -94,35 +87,26 @@ const TicketQueue = (props: TicketQueueProps) => {
   };
 
   return (
-    <Flex width="full" align="left" flexDir="column" p={10}>
-      <Text fontSize="2xl" mb={5}>
+    <Flex width='full' align='left' flexDir='column' p={10}>
+      <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs isFitted variant="enclosed" isLazy>
+      <Tabs isFitted variant='enclosed' isLazy>
         <TabList>
-          {tabs.map((tab) => (
-            <Tab key={tab}>
-              {uppercaseFirstLetter(tab) +
-                " (" +
-                getTickets(tab)[0].length +
-                ")"}
-            </Tab>
+          {tabs.map(tab => (
+            <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab)[0].length + ')'}</Tab>
           ))}
         </TabList>
         <TabPanels>
-          {tabs.map((tab) => {
+          {tabs.map(tab => {
             const [tickets, isLoading] = getTickets(tab);
             return (
               <div key={tab}>
                 {isLoading ? (
-                  <Skeleton height="40px" />
+                  <Skeleton height='40px' />
                 ) : (
-                  <TabPanel padding="20px 0" key={tab}>
-                    <TicketList
-                      tickets={tickets}
-                      ticketStatus={tab}
-                      userRole={userRole}
-                    />
+                  <TabPanel padding='20px 0' key={tab}>
+                    <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
                   </TabPanel>
                 )}
               </div>

@@ -12,6 +12,7 @@ const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole } = props;
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
+  const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
@@ -21,6 +22,10 @@ const TicketCard = (props: TicketCardProps) => {
     await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
       Router.push(`/ticket/${ticket.id}`);
     });
+  };
+
+  const handleResolveTicket = async () => {
+    await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
   return (
@@ -52,6 +57,10 @@ const TicketCard = (props: TicketCardProps) => {
 
           {ticket.status === TicketStatus.OPEN && userRole === UserRole.STAFF && (
             <Button onClick={handleHelpTicket}>Help</Button>
+          )}
+
+          {ticket.status === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
+            <Button onClick={handleResolveTicket}>Resolve</Button>
           )}
         </Box>
       </Flex>
