@@ -67,6 +67,7 @@ const TicketList = (props: TicketListProps) => {
     }
   };
 
+  // TODO experiment with Accordion
   const GroupedView = () => {
     return (
       <Flex flexDirection='column'>

@@ -25,20 +25,25 @@ const CreateTicketForm = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(description, assignment, location);
-    createTicketMutation.mutateAsync({ description, assignment, location }).then(() => {
-      setDescription('');
-      setAssignment('');
-      setLocation('');
-      toast({
-        title: 'Ticket created',
-        description: 'Your help request is pending approval',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-        position: 'top-right',
+    createTicketMutation
+      .mutateAsync({
+        description: description.trim(),
+        assignment: assignment.trim(),
+        location: location.trim(),
+      })
+      .then(() => {
+        setDescription('');
+        setAssignment('');
+        setLocation('');
+        toast({
+          title: 'Ticket created',
+          description: 'Your help request is pending approval',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
       });
-    });
   };
 
   return (

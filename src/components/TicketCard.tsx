@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
 import { Ticket, TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
@@ -13,6 +14,10 @@ const TicketCard = (props: TicketCardProps) => {
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
+  const [helpedByUserName, setHelpedByUserName] = useState<string>('');
+  const { data: helpedByName } = trpc.useQuery(['user.getUserName', { id: ticket.helpedByUserId! }], {
+    enabled: ticket.status === TicketStatus.ASSIGNED,
+  });
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
@@ -49,20 +54,24 @@ const TicketCard = (props: TicketCardProps) => {
             {ticket.location}
           </Tag>
         </Box>
+        <Flex flexDirection='column'>
+          <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
+            Being helped by {helpedByName}
+          </Text>
+          <Box textAlign='right'>
+            {ticket.status === TicketStatus.PENDING && userRole === UserRole.STAFF && (
+              <Button onClick={handleApproveTicket}>Approve</Button>
+            )}
 
-        <Box>
-          {ticket.status === TicketStatus.PENDING && userRole === UserRole.STAFF && (
-            <Button onClick={handleApproveTicket}>Approve</Button>
-          )}
+            {ticket.status === TicketStatus.OPEN && userRole === UserRole.STAFF && (
+              <Button onClick={handleHelpTicket}>Help</Button>
+            )}
 
-          {ticket.status === TicketStatus.OPEN && userRole === UserRole.STAFF && (
-            <Button onClick={handleHelpTicket}>Help</Button>
-          )}
-
-          {ticket.status === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
-            <Button onClick={handleResolveTicket}>Resolve</Button>
-          )}
-        </Box>
+            {ticket.status === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
+              <Button onClick={handleResolveTicket}>Resolve</Button>
+            )}
+          </Box>
+        </Flex>
       </Flex>
     </Box>
   );
