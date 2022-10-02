@@ -10,6 +10,10 @@ interface TicketQueueProps {
   userRole: UserRole;
 }
 
+/**
+ * TicketQueue component that displays the tabs for the different ticket statuses
+ * and renders the TicketList component for each tab 
+ */
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole } = props;
 
@@ -52,38 +56,48 @@ const TicketQueue = (props: TicketQueueProps) => {
     },
   );
 
+  /**
+   * Ably channel to receive updates on ticket status.
+   * This is used to update the ticket queue in real time.
+   */
   useChannel('tickets', ticketData => {
     const message = ticketData.name;
     if (message === 'new-ticket') {
       const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
-      // Add new ticket to the pending tickets list
       setPendingTickets(prev => [...prev, ticket]);
-    } else if (message === 'tickets-approved') {
-      const tickets: Ticket[] = ticketData.data;
-      // Remove tickets from pendingTickets and add to openTickets, filtering by ticket id
-      setPendingTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
-      setOpenTickets(prev => [...prev, ...tickets]);
-    } else if (message === 'tickets-assigned') {
-      const tickets: Ticket[] = ticketData.data;
-      // Remove tickets from openTickets and add to assignedTickets, filtering by ticket id
-      setOpenTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
-      setAssignedTickets(prev => [...prev, ...tickets]);
-    } else if (message === 'tickets-resolved') {
-      const tickets: Ticket[] = ticketData.data;
-      // Remove tickets from assignedTickets, filtering by ticket id
-      setAssignedTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+      return;
+    }
+
+    const tickets: Ticket[] = ticketData.data;
+    switch (message) {
+      case 'tickets-approved':
+        setPendingTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+        setOpenTickets(prev => [...prev, ...tickets]);
+        break;
+      case 'tickets-assigned':
+        setOpenTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+        setAssignedTickets(prev => [...prev, ...tickets]);
+        break;
+      case 'tickets-resolved':
+        setAssignedTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+        break;
     }
   });
 
+  /**
+   * Helper method to return the correct ticket list based on the tab index (status)
+   */
   const getTickets = (status: TicketStatus): [Ticket[], boolean] => {
-    if (status === TicketStatus.OPEN) {
-      return [openTickets, isGetOpenTicketsLoading];
-    } else if (status === TicketStatus.ASSIGNED) {
-      return [assignedTickets, isGetAssignedTicketsLoading];
-    } else if (status === TicketStatus.PENDING) {
-      return [pendingTickets, isGetPendingTicketsLoading];
+    switch (status) {
+      case TicketStatus.OPEN:
+        return [openTickets, isGetOpenTicketsLoading];
+      case TicketStatus.ASSIGNED:
+        return [assignedTickets, isGetAssignedTicketsLoading];
+      case TicketStatus.PENDING:
+        return [pendingTickets, isGetPendingTicketsLoading];
+      default:
+        return [[], false];
     }
-    return [[], false];
   };
 
   return (
@@ -103,7 +117,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             return (
               <div key={tab}>
                 {isLoading ? (
-                  <Skeleton height='40px' />
+                  <Skeleton mt={4} height='60px' />
                 ) : (
                   <TabPanel padding='20px 0' key={tab}>
                     <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />

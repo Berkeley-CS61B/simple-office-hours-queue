@@ -15,6 +15,9 @@ interface GroupedTicket {
   [key: string]: Ticket[];
 }
 
+/**
+ * TicketList component that displays the list of tickets for a given status
+ */
 const TicketList = (props: TicketListProps) => {
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
@@ -42,32 +45,37 @@ const TicketList = (props: TicketListProps) => {
     });
   };
 
-  /** Helper method to return appropriate buttons (approve, help, resolve)
+  /**
+   * Helper method to return appropriate buttons (approve, help, resolve)
    * Note: We can't use isGrouped here because that applies to the entire list
    */
   const getButton = (tickets: Ticket[], inGroupedView: boolean) => {
-    if (ticketStatus === TicketStatus.PENDING && userRole === UserRole.STAFF) {
-      return (
-        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
-          Approve all {inGroupedView && 'for ' + tickets[0]?.assignment}
-        </Button>
-      );
-    } else if (ticketStatus === TicketStatus.OPEN && userRole === UserRole.STAFF) {
-      return (
-        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
-          Help all {inGroupedView && 'for ' + tickets[0]?.assignment}
-        </Button>
-      );
-    } else if (ticketStatus === TicketStatus.ASSIGNED && userRole === UserRole.STAFF) {
-      return (
-        <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
-          Resolve all {inGroupedView && 'for ' + tickets[0]?.assignment}
-        </Button>
-      );
+    if (userRole !== UserRole.STAFF) {
+      return null;
+    }
+
+    switch (ticketStatus) {
+      case TicketStatus.PENDING:
+        return (
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
+            Approve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+          </Button>
+        );
+      case TicketStatus.OPEN:
+        return (
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
+            Help all {inGroupedView && 'for ' + tickets[0]?.assignment}
+          </Button>
+        );
+      case TicketStatus.ASSIGNED:
+        return (
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
+            Resolve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+          </Button>
+        );
     }
   };
 
-  // TODO experiment with Accordion
   const GroupedView = () => {
     return (
       <Flex flexDirection='column'>

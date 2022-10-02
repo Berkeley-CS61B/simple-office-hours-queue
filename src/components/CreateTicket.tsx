@@ -2,6 +2,9 @@ import { useState, useRef } from 'react';
 import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 
+/**
+ * CreateTicket component that allows studnets to create a new ticket
+ */
 const CreateTicketForm = () => {
   const [description, setDescription] = useState<string>('');
   const [assignment, setAssignment] = useState<string>('');
@@ -9,17 +12,21 @@ const CreateTicketForm = () => {
   const toast = useToast();
 
   const createTicketMutation = trpc.useMutation('ticket.createTicket');
-
+  // TODO make sure that assignments and locations are from dropdown
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'description') {
-      setDescription(value);
-    } else if (name === 'assignment') {
-      setAssignment(value);
-    } else if (name === 'location') {
-      setLocation(value);
-    } else {
-      console.error('Invalid input name');
+    switch (name) {
+      case 'description':
+        setDescription(value);
+        break;
+      case 'assignment':
+        setAssignment(value);
+        break;
+      case 'location':
+        setLocation(value);
+        break;
+      default:
+        console.error('Invalid input name');
     }
   };
 

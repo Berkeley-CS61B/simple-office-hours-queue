@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
 import { Ticket, TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
@@ -9,12 +8,19 @@ interface TicketCardProps {
   userRole: UserRole;
 }
 
+/**
+ * TicketCard component that displays the details of a ticket
+ */
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole } = props;
+  const isStaff = userRole === UserRole.STAFF;
+  const isPending = ticket.status === TicketStatus.PENDING;
+  const isOpen = ticket.status === TicketStatus.OPEN;
+  const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
-  const [helpedByUserName, setHelpedByUserName] = useState<string>('');
   const { data: helpedByName } = trpc.useQuery(['user.getUserName', { id: ticket.helpedByUserId! }], {
     enabled: ticket.status === TicketStatus.ASSIGNED,
   });
@@ -59,17 +65,15 @@ const TicketCard = (props: TicketCardProps) => {
             Being helped by {helpedByName}
           </Text>
           <Box textAlign='right'>
-            {ticket.status === TicketStatus.PENDING && userRole === UserRole.STAFF && (
-              <Button onClick={handleApproveTicket}>Approve</Button>
-            )}
-
-            {ticket.status === TicketStatus.OPEN && userRole === UserRole.STAFF && (
-              <Button onClick={handleHelpTicket}>Help</Button>
-            )}
-
-            {ticket.status === TicketStatus.ASSIGNED && userRole === UserRole.STAFF && (
-              <Button onClick={handleResolveTicket}>Resolve</Button>
-            )}
+            <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
+              Approve
+            </Button>
+            <Button onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
+              Help
+            </Button>
+            <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
+              Resolve
+            </Button>
           </Box>
         </Flex>
       </Flex>

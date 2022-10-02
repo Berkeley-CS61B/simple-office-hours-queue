@@ -10,6 +10,7 @@ import type { Session } from "next-auth";
 import "../styles/globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
 
+// TODO custom theme with darkmode as default
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
