@@ -8,6 +8,8 @@ import { clientEnv } from '../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import CreateTicket from '../components/CreateTicket';
 import TicketQueue from '../components/TicketQueue';
+import { useChannel } from '@ably-labs/react-hooks';
+import Broadcast from '../components/Broadcast';
 
 // TODO Verify that anyone cant make a request to any endpoint
 const Home: NextPage = () => {
@@ -44,9 +46,10 @@ const Home: NextPage = () => {
   }, [userId]);
 
   return (
-    <Layout>
+    <Layout isAblyConnected={isAblyConnected}>
       {userRole && isAblyConnected && (
         <>
+          {userRole === UserRole.STAFF && <Broadcast />}
           {userRole === UserRole.STUDENT && <CreateTicket />}
           <TicketQueue userRole={userRole} />
         </>

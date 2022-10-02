@@ -8,6 +8,7 @@ import { clientEnv } from '../../env/schema.mjs';
 import { UserRole, Ticket } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
+import InnerTicket from '../../components/InnerTicket';
 
 const TicketPage: NextPage = () => {
   const router = useRouter();
@@ -84,18 +85,14 @@ const TicketPage: NextPage = () => {
         duration: 3000,
         isClosable: true,
       });
-		Router.push('/');
+      Router.push('/');
     }
-
   }, [ticket, userRole, isInvalidTicket, authorized]);
-  
-  // TODO add confetti on ticket resolve
+
   return (
-    <Layout>
+    <Layout isAblyConnected={isAblyConnected}>
       {userRole && isAblyConnected && authorized && (
-        <>
-          {isInvalidTicket ? <Text>Invalid ticket</Text> : <>{ticket && <Text>Valid Ticket {ticket.status}</Text>}</>}
-        </>
+        <>{isInvalidTicket ? <Text>Invalid ticket</Text> : <>{ticket && <InnerTicket ticket={ticket} />}</>}</>
       )}
     </Layout>
   );

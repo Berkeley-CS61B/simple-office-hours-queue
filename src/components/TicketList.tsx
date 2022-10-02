@@ -4,6 +4,7 @@ import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../utils';
 import { useEffect, useState } from 'react';
 import { trpc } from '../utils/trpc';
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -25,6 +26,7 @@ const TicketList = (props: TicketListProps) => {
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
+  const [parent] : any = useAutoAnimate(); // I don't know how to type this
 
   // TODO add loading state
   const handleApproveTickets = async (tickets: Ticket[]) => {
@@ -85,7 +87,7 @@ const TicketList = (props: TicketListProps) => {
               {assignment}
             </Tag>
             {getButton(groupedTickets[assignment]!, true)}
-            <Box>
+            <Box ref={parent}>
               {groupedTickets[assignment]!.map((ticket: Ticket) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
               ))}
@@ -129,11 +131,11 @@ const TicketList = (props: TicketListProps) => {
           {isGrouped ? (
             <GroupedView />
           ) : (
-            <>
+            <Box ref={parent}>
               {tickets.map(ticket => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
               ))}
-            </>
+            </Box>
           )}
         </>
       )}
