@@ -72,7 +72,7 @@ const TicketPage: NextPage = () => {
    * redirect them to the queue page
    */
   useEffect(() => {
-    if (!ticket || !userRole || isInvalidTicket === null) {
+    if (!userRole || isInvalidTicket === null) {
       return;
     }
 
@@ -87,7 +87,7 @@ const TicketPage: NextPage = () => {
       });
       Router.push('/');
     }
-  }, [ticket, userRole, isInvalidTicket, authorized]);
+  }, [userRole, isInvalidTicket, authorized]);
 
   return (
     <Layout isAblyConnected={isAblyConnected}>
