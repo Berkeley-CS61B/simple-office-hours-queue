@@ -1,6 +1,6 @@
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
-import { Text, Flex } from '@chakra-ui/react';
+import { useSession, signIn } from 'next-auth/react';
+import { Text, Flex, Button } from '@chakra-ui/react';
 import { Navbar } from '../components/Navbar';
 import { ReactNode } from 'react';
 import ReceiveBroadcast from './ReceiveBroadcast';
@@ -28,9 +28,19 @@ const Layout = (props: LayoutProps) => {
       <Flex h='100%' direction='column'>
         <>
           <Navbar />
-          {!session && status !== 'loading' && <Text>Please Log In (we will style this better)</Text>}
+          {!session && status !== 'loading' && (
+            <Flex flexDirection='column' alignItems='center'>
+              <Text fontSize='4xl'>
+                Welcome back,{' '}
+                <Button border='1px' onClick={() => signIn('google')}>
+                  Sign in
+                </Button>{' '}
+                to continue
+              </Text>
+            </Flex>
+          )}
           {status === 'authenticated' && <>{children}</>}
-		  {isAblyConnected && <ReceiveBroadcast />}
+          {isAblyConnected && <ReceiveBroadcast />}
         </>
       </Flex>
     </>
