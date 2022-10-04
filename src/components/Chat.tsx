@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Input, Text, Flex } from '@chakra-ui/react';
 import { useChannel } from '@ably-labs/react-hooks';
+import { Button, Input, Box, Flex, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import { useSession } from 'next-auth/react';
 
@@ -9,14 +9,11 @@ interface ChatProps {
 }
 
 interface Message {
-  message: string;
-  sentBy: string;
+  content: string;
+  sentByName: string;
+  sentByUserId: string;
 }
 
-/**
- * Component that renders the chat box. Note: This assumes that
- * the user is authorized to view the ticket and that ably is configured.
- */
 const Chat = (props: ChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState<string>('');
@@ -36,37 +33,55 @@ const Chat = (props: ChatProps) => {
   let messageEnd: any = null;
 
   const [channel, _] = useChannel(`ticket-${props.ticketId}`, 'chat-message', message => {
-    const fullMessage: Message = message.data;
-    setMessages([...messages, fullMessage]);
+    setMessages((messages: Message[]) => [...messages, message.data]);
   });
 
-  console.log('messages', messages);
+  // TODO : Store messages in db and fetch them on load
+  
 
   const sendChatMessage = (messageText: string) => {
+    if (messageTextIsEmpty) return;
+
     channel.publish({
       name: 'chat-message',
       data: {
-        message: messageText,
-        sentBy: currentUserName,
-      },
+        content: messageText,
+        sentByName: currentUserName,
+        sentByUserId: session?.user?.id,
+      } as Message,
     });
     setMessageText('');
     inputBox.focus();
   };
 
-  const handleKeyDown = (event: any) => {
-    if (event.key === 'Enter' && !messageTextIsEmpty) {
-      sendChatMessage(messageText);
-    }
+  const handleFormSubmission = (event: any) => {
+    event.preventDefault();
+    sendChatMessage(messageText);
   };
 
-  const handleSendButtonClick = () => {
-    if (!messageTextIsEmpty) {
-      sendChatMessage(messageText);
-    }
-  };
+  const allMessages = messages.map((message, index: number) => {
+    const { content, sentByName, sentByUserId } = message;
+    const amISender = sentByUserId === session?.user?.id!;
+    return (
+      <Flex
+        key={index}
+        data-author={sentByName}
+        backgroundColor={amISender ? 'blue.600' : 'gray'}
+        p={3}
+        alignSelf={amISender ? 'flex-end' : 'flex-start'}
+        borderRadius={5}
+        borderBottomRightRadius={amISender ? 0 : 5}
+        borderBottomLeftRadius={amISender ? 5 : 0}
+        color='white'
+      >
+        <Text mr={2} fontWeight='bold' hidden={amISender}>
+          {sentByName}:
+        </Text>
+        {content}
+      </Flex>
+    );
+  });
 
-  // TODO figure out how to make all messages appear
   useEffect(() => {
     if (currentUserName) {
       messageEnd.scrollIntoView({ behaviour: 'smooth' });
@@ -76,33 +91,27 @@ const Chat = (props: ChatProps) => {
   return (
     <>
       {!!currentUserName && (
-        <Flex p={8} border='1px solid black' flexDirection='column'>
-          <Box>
-            {messages.map((message, index) => (
-              <Flex key={index}>
-                <Text fontWeight='bold' mr={3}>
-                  {message.sentBy}
-                </Text>
-                <Text>{message.message}</Text>
-              </Flex>
-            ))}
-            <div
-              ref={element => {
-                messageEnd = element;
-              }}
-            ></div>
-          </Box>
-          <Flex>
-            <Input
-              onKeyDown={handleKeyDown}
-              mr={3}
-              ref={el => (inputBox = el)}
-              value={messageText}
-              onChange={e => setMessageText(e.target.value)}
-            />
-            <Button onClick={handleSendButtonClick}>Send</Button>
+        <Box border='1px solid gray' p={4} mr={4} ml={4}>
+          <Flex mb={4} flexDirection='column' gap={2} height='50vh' overflowY='auto'>
+            {allMessages}
+            <Box ref={element => (messageEnd = element)} />
           </Flex>
-        </Flex>
+
+          <form onSubmit={handleFormSubmission}>
+            <Flex>
+              <Input
+                ref={element => (inputBox = element)}
+                value={messageText}
+                placeholder='Type a message...'
+                onChange={e => setMessageText(e.target.value)}
+                mr={4}
+              />
+              <Button type='submit' disabled={messageTextIsEmpty}>
+                Send
+              </Button>
+            </Flex>
+          </form>
+        </Box>
       )}
     </>
   );
