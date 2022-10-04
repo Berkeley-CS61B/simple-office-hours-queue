@@ -1,6 +1,7 @@
 import { Ticket, UserRole } from '@prisma/client';
 import { Text, Box, SimpleGrid } from '@chakra-ui/react';
 import InnerTicketInfo from './InnerTicketInfo';
+import Chat from './Chat';
 
 interface InnerTicketProps {
   ticket: Ticket;
@@ -18,7 +19,7 @@ const InnerTicket = (props: InnerTicketProps) => {
         <InnerTicketInfo ticket={ticket} userRole={userRole} />
       </Box>
       <Box mt={6}>
-        <Text>Chat</Text>
+		<Chat ticketId={ticket.id} />
       </Box>
     </SimpleGrid>
   );
