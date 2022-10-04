@@ -85,5 +85,5 @@ enum TicketStatus {
     OPEN
     ASSIGNED
     RESOLVED
-    DELETED
+    DELETED // TODO change this to CLOSED
 }

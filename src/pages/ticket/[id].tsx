@@ -10,6 +10,10 @@ import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
 import InnerTicket from '../../components/InnerTicket';
 
+/**
+ * Component that renders the ticket page. It ensures that ably is configured and 
+ * the current user is authorized to view the ticket.  
+ */
 const TicketPage: NextPage = () => {
   const router = useRouter();
   const id = Number(router.query.id);
@@ -21,13 +25,17 @@ const TicketPage: NextPage = () => {
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
 
-  const { refetch: fetchUserRole } = trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: false,
+  trpc.useQuery(['user.getUserRole', { id: userId }], {
+    enabled: userId !== '',
     refetchOnWindowFocus: false,
+	onSuccess: (data: UserRole) => {
+	  setUserRole(data);
+	},
   });
 
-  const { refetch: fetchTicket } = trpc.useQuery(['ticket.getTicket', { id }], {
-    enabled: false,
+  trpc.useQuery(['ticket.getTicket', { id }], {
+	enabled: id !== undefined,
+	refetchOnWindowFocus: false,
     onSuccess: data => {
       if (data) {
         setTicket(data);
@@ -37,12 +45,6 @@ const TicketPage: NextPage = () => {
       }
     },
   });
-
-  useEffect(() => {
-    if (id) {
-      fetchTicket();
-    }
-  }, [id]);
 
   useEffect(() => {
     if (session) {
@@ -58,15 +60,8 @@ const TicketPage: NextPage = () => {
     }
   }, [session]);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserRole().then(res => {
-        setUserRole(res.data);
-      });
-    }
-  }, [userId]);
-
   const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId;
+  
   /**
    * If the ticket doesn't exist or user doesn't have correct access,
    * redirect them to the queue page
@@ -92,7 +87,7 @@ const TicketPage: NextPage = () => {
   return (
     <Layout isAblyConnected={isAblyConnected}>
       {userRole && isAblyConnected && authorized && (
-        <>{isInvalidTicket ? <Text>Invalid ticket</Text> : <>{ticket && <InnerTicket ticket={ticket} />}</>}</>
+        <>{isInvalidTicket ? <Text>Invalid ticket</Text> : <>{ticket && <InnerTicket ticket={ticket} userRole={userRole} />}</>}</>
       )}
     </Layout>
   );

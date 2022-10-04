@@ -63,6 +63,12 @@ export const ticketRouter = createRouter()
       const channel = ably.channels.get('tickets'); // Change to include queue id
       channel.publish('tickets-approved', approvedTickets);
 
+      // Creates channel for each ticket for the inner page
+      for (const ticket of approvedTickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-approved', ticket);
+      }
+
       return approvedTickets;
     },
   })
@@ -92,6 +98,12 @@ export const ticketRouter = createRouter()
       const channel = ably.channels.get('tickets'); // Change to include queue id
       channel.publish('tickets-assigned', assignedTickets);
 
+      // Creates channel for each ticket for the inner page
+      for (const ticket of assignedTickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-assigned', ticket);
+      }
+
       return assignedTickets;
     },
   })
@@ -114,7 +126,69 @@ export const ticketRouter = createRouter()
       const channel = ably.channels.get('tickets'); // Change to include queue id
       channel.publish('tickets-resolved', resolvedTickets);
 
+      // Creates channel for each ticket for the inner page
+      for (const ticket of resolvedTickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-resolved', ticket);
+      }
+
       return resolvedTickets;
+    },
+  })
+  .mutation('requeueTickets', {
+    input: z.object({
+      ticketIds: z.array(z.number()),
+    }),
+    async resolve({ input, ctx }) {
+      const requeuedTickets: Ticket[] = [];
+
+      for (const ticketId of input.ticketIds) {
+        const ticket: Ticket = await ctx.prisma.ticket.update({
+          where: { id: ticketId },
+          data: { status: TicketStatus.OPEN },
+        });
+        requeuedTickets.push(ticket);
+      }
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-requeued', requeuedTickets);
+
+      // Creates channel for each ticket for the inner page
+      for (const ticket of requeuedTickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-requeued', ticket);
+      }
+
+      return requeuedTickets;
+    },
+  })
+  .mutation('reopenTickets', {
+    input: z.object({
+      ticketIds: z.array(z.number()),
+    }),
+    async resolve({ input, ctx }) {
+      const reopenedTickets: Ticket[] = [];
+
+      for (const ticketId of input.ticketIds) {
+        const ticket: Ticket = await ctx.prisma.ticket.update({
+          where: { id: ticketId },
+          data: { status: TicketStatus.OPEN },
+        });
+        reopenedTickets.push(ticket);
+      }
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-reopened', reopenedTickets);
+
+      // Creates channel for each ticket for the inner page
+      for (const ticket of reopenedTickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-reopened', ticket);
+      }
+
+      return reopenedTickets;
     },
   })
   .mutation('editInfo', {

@@ -69,10 +69,10 @@ const Broadcast = () => {
             </Center>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={() => setIsModalOpen(false)}>
+            <Button variant='ghost' mr={3} onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant='ghost' onClick={broadcast}>
+            <Button colorScheme='blue' onClick={broadcast}>
               Confirm
             </Button>
           </ModalFooter>

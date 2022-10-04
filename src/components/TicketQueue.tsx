@@ -12,7 +12,7 @@ interface TicketQueueProps {
 
 /**
  * TicketQueue component that displays the tabs for the different ticket statuses
- * and renders the TicketList component for each tab 
+ * and renders the TicketList component for each tab
  */
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole } = props;
@@ -80,6 +80,14 @@ const TicketQueue = (props: TicketQueueProps) => {
         break;
       case 'tickets-resolved':
         setAssignedTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+        break;
+      case 'tickets-requeued':
+        setAssignedTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
+        // Requeue puts these tickets at the top of the queue
+        setOpenTickets(prev => [...tickets, ...prev]);
+        break;
+      case 'tickets-reopened':
+        setOpenTickets(prev => [...prev, ...tickets]);
         break;
     }
   });
