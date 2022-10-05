@@ -47,4 +47,8 @@ const Layout = (props: LayoutProps) => {
   );
 };
 
+Layout.defaultProps = {
+  isAblyConnected: false,
+};
+
 export default Layout;

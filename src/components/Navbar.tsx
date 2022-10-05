@@ -13,7 +13,6 @@ import {
   useColorModeValue,
   Text,
   SkeletonCircle,
-  Image,
 } from "@chakra-ui/react";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -76,7 +75,10 @@ export const Navbar = () => {
         </Link>
 
         <Flex alignItems="center">
-          <Stack direction="row" spacing={5}>
+          <Stack direction="row" spacing={5} alignItems='center'>
+			<Link href="/admin">
+				<Text fontWeight='semibold' className='hover-cursor'>Admin</Text>
+			</Link>
             <DarkModeToggle />
             <AvatarDropdown />
           </Stack>

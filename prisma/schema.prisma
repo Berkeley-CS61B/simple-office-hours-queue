@@ -28,14 +28,16 @@ model Ticket {
     updatedAt   DateTime      @default(now()) @updatedAt
     status      TicketStatus  @default(PENDING)
     description String?
-    assignment  String
-    location    String
+    assignment  Assignment    @relation(fields: [assignmentId], references: [id])
+    location    Location      @relation(fields: [locationId], references: [id])
     resolution  String        @default("") // TODO
     taNotes     String? // TODO
     ChatMessage ChatMessage[]
 
     helpedByUserId  String?
     createdByUserId String
+    assignmentId    Int
+    locationId      Int
 }
 
 model Account {
@@ -76,6 +78,24 @@ model Session {
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+    id        Int       @id @default(autoincrement())
+    name      String
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @default(now()) @updatedAt
+    deletedAt DateTime?
+    Ticket    Ticket[]
+}
+
+model Location {
+    id        Int       @id @default(autoincrement())
+    name      String
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @default(now()) @updatedAt
+    deletedAt DateTime?
+    Ticket    Ticket[]
 }
 
 model VerificationToken {
