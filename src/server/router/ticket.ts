@@ -1,7 +1,7 @@
 import { createRouter } from './context';
 import { z } from 'zod';
 import Ably from 'ably/promises';
-import { Ticket, TicketStatus } from '@prisma/client';
+import { ChatMessage, Ticket, TicketStatus } from '@prisma/client';
 
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
@@ -191,6 +191,45 @@ export const ticketRouter = createRouter()
       return reopenedTickets;
     },
   })
+  .mutation('sendChatMessage', {
+    input: z.object({
+      ticketId: z.number(),
+      message: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const chatMessage = await ctx.prisma.chatMessage.create({
+        data: {
+          message: input.message,
+          author: {
+            connect: {
+              id: ctx.session?.user?.id,
+            },
+          },
+          ticket: {
+            connect: {
+              id: input.ticketId,
+            },
+          },
+        },
+      });
+
+	//   Add userName to the chatMessage
+	  const user = await ctx.prisma.user.findUnique({
+		  where: {
+			  id: ctx.session?.user?.id
+		  }
+	  })
+	  const chatMessageWithUserName : ChatMessageWithUserName = {
+		  ...chatMessage,
+		  userName: user?.name!
+	  }
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get(`ticket-${input.ticketId}`);
+      channel.publish('chat-message', chatMessageWithUserName);
+      return chatMessage;
+    },
+  })
   .mutation('editInfo', {
     input: z.object({
       id: z.number(),
@@ -253,4 +292,41 @@ export const ticketRouter = createRouter()
         },
       });
     },
+  })
+  .query('getChatMessages', {
+    input: z.object({
+      ticketId: z.number(),
+    }),
+    async resolve({ input, ctx }) {
+      const messages: ChatMessage[] = await ctx.prisma.chatMessage.findMany({
+        where: {
+          ticketId: input.ticketId,
+        },
+      });
+
+      //   Add user name to each message
+      const messagesWithUser: ChatMessageWithUserName[] = await Promise.all(
+        messages.map(async (message: ChatMessage) => {
+          const user = await ctx.prisma.user.findUnique({
+            where: {
+              id: message.userId,
+            },
+          });
+          return {
+            ...message,
+            userName: user?.name!,
+          };
+        }),
+      );
+
+      messagesWithUser.sort((a, b) => {
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      });
+
+      return messagesWithUser;
+    },
   });
+
+export interface ChatMessageWithUserName extends ChatMessage {
+  userName: string;
+}

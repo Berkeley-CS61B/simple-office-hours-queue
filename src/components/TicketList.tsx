@@ -26,7 +26,7 @@ const TicketList = (props: TicketListProps) => {
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
-  const [parent] : any = useAutoAnimate(); // I don't know how to type this
+  const [parent] : any = useAutoAnimate();
 
   // TODO add loading state
   const handleApproveTickets = async (tickets: Ticket[]) => {

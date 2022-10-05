@@ -8,7 +8,6 @@ import { clientEnv } from '../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import CreateTicket from '../components/CreateTicket';
 import TicketQueue from '../components/TicketQueue';
-import { useChannel } from '@ably-labs/react-hooks';
 import Broadcast from '../components/Broadcast';
 
 // TODO Verify that anyone cant make a request to any endpoint
@@ -18,8 +17,12 @@ const Home: NextPage = () => {
   const [isAblyConnected, setIsAblyConnected] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>();
 
-  const { refetch: fetchUserRole } = trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: false,
+  trpc.useQuery(['user.getUserRole', { id: userId }], {
+    enabled: userId !== '',
+	refetchOnWindowFocus: false,
+	onSuccess: (data: UserRole) => {
+	  setUserRole(data);
+	}
   });
 
   useEffect(() => {
@@ -36,15 +39,7 @@ const Home: NextPage = () => {
       });
     }
   }, [session]);
-
-  useEffect(() => {
-    if (userId) {
-      fetchUserRole().then(res => {
-        setUserRole(res.data);
-      });
-    }
-  }, [userId]);
-
+  
   return (
     <Layout isAblyConnected={isAblyConnected}>
       {userRole && isAblyConnected && (

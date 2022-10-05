@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Input, Box, Flex, Text } from '@chakra-ui/react';
+import { Button, Input, Box, Flex, Text, Spinner } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import { useSession } from 'next-auth/react';
+import { ChatMessageWithUserName } from '../server/router/ticket';
 
 interface ChatProps {
   ticketId: number;
@@ -15,48 +16,58 @@ interface Message {
 }
 
 const Chat = (props: ChatProps) => {
+  const { ticketId } = props;
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState<string>('');
-  const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [isChatLoaded, setIsChatLoaded] = useState<boolean>(false);
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
-
+  const sendChatMessageMutation = trpc.useMutation('ticket.sendChatMessage');
   const { data: session } = useSession();
-  trpc.useQuery(['user.getUserName', { id: session?.user?.id! }], {
+
+  trpc.useQuery(['ticket.getChatMessages', { ticketId }], {
+    enabled: ticketId !== undefined,
     refetchOnWindowFocus: false,
-    enabled: !!session?.user?.id,
     onSuccess: data => {
-      setCurrentUserName(data!);
+      const messages: Message[] = data.map(message => {
+        return {
+          content: message.message,
+          sentByName: message.userName,
+          sentByUserId: message.userId,
+        };
+      });
+      setMessages(messages);
+      setIsChatLoaded(true);
     },
   });
 
   let inputBox: any = null;
   let messageEnd: any = null;
 
-  const [channel, _] = useChannel(`ticket-${props.ticketId}`, 'chat-message', message => {
-    setMessages((messages: Message[]) => [...messages, message.data]);
+  useChannel(`ticket-${ticketId}`, 'chat-message', ablyMsg => {
+    const { message, userName, userId } = ablyMsg.data as ChatMessageWithUserName;
+    const newMessage: Message = {
+      content: message,
+      sentByName: userName,
+      sentByUserId: userId,
+    };
+	setMessages(prevMessages => [...prevMessages, newMessage]);
   });
 
-  // TODO : Store messages in db and fetch them on load
-  
-
-  const sendChatMessage = (messageText: string) => {
-    if (messageTextIsEmpty) return;
-
-    channel.publish({
-      name: 'chat-message',
-      data: {
-        content: messageText,
-        sentByName: currentUserName,
-        sentByUserId: session?.user?.id,
-      } as Message,
-    });
-    setMessageText('');
-    inputBox.focus();
-  };
-
-  const handleFormSubmission = (event: any) => {
+  const handleFormSubmission = async (event: any) => {
     event.preventDefault();
-    sendChatMessage(messageText);
+    if (messageTextIsEmpty) {
+      return;
+    }
+
+    await sendChatMessageMutation.mutateAsync({
+      ticketId,
+      message: messageText,
+    });
+	
+    setMessageText('');
+    if (inputBox) {
+      inputBox.focus();
+    }
   };
 
   const allMessages = messages.map((message, index: number) => {
@@ -83,14 +94,15 @@ const Chat = (props: ChatProps) => {
   });
 
   useEffect(() => {
-    if (currentUserName) {
+    if (messageEnd) {
       messageEnd.scrollIntoView({ behaviour: 'smooth' });
     }
   }, [messages]);
 
   return (
     <>
-      {!!currentUserName && (
+      {!isChatLoaded && <Spinner />}
+      {isChatLoaded && (
         <Box border='1px solid gray' p={4} mr={4} ml={4}>
           <Flex mb={4} flexDirection='column' gap={2} height='50vh' overflowY='auto'>
             {allMessages}

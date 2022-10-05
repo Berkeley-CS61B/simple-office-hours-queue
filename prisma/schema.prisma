@@ -9,18 +9,30 @@ datasource db {
     referentialIntegrity = "prisma"
 }
 
+model ChatMessage {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    message   String
+    author    User     @relation(fields: [userId], references: [id])
+    ticket    Ticket   @relation(fields: [ticketId], references: [id])
+
+    userId   String
+    ticketId Int
+}
+
 model Ticket {
-    id          Int          @id @default(autoincrement())
-    createdBy   User         @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-    helpedBy    User?        @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
-    createdAt   DateTime     @default(now())
-    updatedAt   DateTime     @default(now()) @updatedAt
-    status      TicketStatus @default(PENDING)
+    id          Int           @id @default(autoincrement())
+    createdBy   User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+    helpedBy    User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @default(now()) @updatedAt
+    status      TicketStatus  @default(PENDING)
     description String?
     assignment  String
     location    String
-    resolution  String       @default("")
-    taNotes     String?
+    resolution  String        @default("") // TODO
+    taNotes     String? // TODO
+    ChatMessage ChatMessage[]
 
     helpedByUserId  String?
     createdByUserId String
@@ -45,16 +57,17 @@ model Account {
 }
 
 model User {
-    id             String    @id @default(cuid())
+    id             String        @id @default(cuid())
     name           String?
-    email          String?   @unique
+    email          String?       @unique
     emailVerified  DateTime?
     image          String?
-    role           UserRole  @default(STUDENT)
+    role           UserRole      @default(STUDENT)
     accounts       Account[]
     sessions       Session[]
-    ticketsCreated Ticket[]  @relation("ticketsCreatedBy")
-    ticketsHelped  Ticket[]  @relation("ticketsHelpedBy")
+    ticketsCreated Ticket[]      @relation("ticketsCreatedBy")
+    ticketsHelped  Ticket[]      @relation("ticketsHelpedBy")
+    ChatMessage    ChatMessage[]
 }
 
 model Session {
