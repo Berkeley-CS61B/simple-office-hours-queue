@@ -85,7 +85,7 @@ model Assignment {
     name      String
     createdAt DateTime  @default(now())
     updatedAt DateTime  @default(now()) @updatedAt
-    deletedAt DateTime?
+	active    Boolean   @default(true)
     Ticket    Ticket[]
 }
 
@@ -94,7 +94,7 @@ model Location {
     name      String
     createdAt DateTime  @default(now())
     updatedAt DateTime  @default(now()) @updatedAt
-    deletedAt DateTime?
+	active    Boolean   @default(true)
     Ticket    Ticket[]
 }
 

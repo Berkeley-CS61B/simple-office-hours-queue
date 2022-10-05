@@ -1,47 +1,72 @@
 import { useState, useRef } from 'react';
 import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
+import { Select } from 'chakra-react-select';
+
+interface Assignment {
+  id: number;
+  label: string;
+  value: string;
+}
+
+interface Location {
+  id: number;
+  label: string;
+  value: string;
+}
 
 /**
  * CreateTicket component that allows studnets to create a new ticket
  */
 const CreateTicketForm = () => {
   const [description, setDescription] = useState<string>('');
-  const [assignment, setAssignment] = useState<string>('');
-  const [location, setLocation] = useState<string>('');
+  const [assignment, setAssignment] = useState<Assignment>();
+  const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
+  const [locationOptions, setLocationOptions] = useState<Location[]>([]);
+  const [location, setLocation] = useState<Location>();
   const toast = useToast();
 
   const createTicketMutation = trpc.useMutation('ticket.createTicket');
-  // TODO make sure that assignments and locations are from dropdown
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'description':
-        setDescription(value);
-        break;
-      case 'assignment':
-        setAssignment(value);
-        break;
-      case 'location':
-        setLocation(value);
-        break;
-      default:
-        console.error('Invalid input name');
-    }
-  };
+  trpc.useQuery(['admin.getActiveAssignments'], {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setAssignmentOptions(
+        data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
+      );
+    },
+  });
+  trpc.useQuery(['admin.getActiveLocations'], {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setLocationOptions(
+        data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
+      );
+    },
+  });
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+	if (!assignment || !location) {
+	  toast({
+		title: 'Error',
+		description: 'Please select an assignment and location',
+		status: 'error',
+		position: 'top-right',
+		duration: 3000,
+		isClosable: true,
+	  });
+	  return;
+	}
     createTicketMutation
       .mutateAsync({
         description: description.trim(),
-        assignment: assignment.trim(),
-        location: location.trim(),
+		assignmentId: assignment.id,
+		locationId: location.id,	
       })
       .then(() => {
         setDescription('');
-        setAssignment('');
-        setLocation('');
+        setAssignment(undefined);
+        setLocation(undefined);
         toast({
           title: 'Ticket created',
           description: 'Your help request is pending approval',
@@ -61,7 +86,7 @@ const CreateTicketForm = () => {
             <FormLabel>Description</FormLabel>
             <Input
               value={description}
-              onChange={onInputChange}
+              onChange={e => setDescription(e.target.value)}
               type='text'
               placeholder='Null Pointer Exception'
               name='description'
@@ -69,11 +94,11 @@ const CreateTicketForm = () => {
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Input value={assignment} onChange={onInputChange} type='text' placeholder='Lab 3' name='assignment' />
+            <Select onChange={val => setAssignment(val!)} options={assignmentOptions} />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Input value={location} onChange={onInputChange} type='text' placeholder='Room 273' name='location' />
+            <Select onChange={val => setLocation(val!)} options={locationOptions} />
           </FormControl>
           <Button type='submit' variant='outline' width='full' mt={4}>
             Request Help

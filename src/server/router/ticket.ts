@@ -11,23 +11,25 @@ export const ticketRouter = createRouter()
         .min(1)
         .max(1000)
         .optional(),
-      assignment: z
-        .string()
-        .min(1)
-        .max(250),
-      location: z
-        .string()
-        .min(1)
-        .max(250),
+      assignmentId: z.number(),
+      locationId: z.number(),
     }),
     async resolve({ input, ctx }) {
-      const { description, assignment, location } = input;
+      const { description, assignmentId, locationId } = input;
       const ticket = await ctx.prisma.ticket
         .create({
           data: {
             description,
-            assignment,
-            location,
+            assignment: {
+              connect: {
+                id: assignmentId,
+              },
+            },
+            location: {
+              connect: {
+                id: locationId,
+              },
+            },
             createdBy: {
               connect: {
                 id: ctx.session?.user?.id,
@@ -213,58 +215,21 @@ export const ticketRouter = createRouter()
         },
       });
 
-	//   Add userName to the chatMessage
-	  const user = await ctx.prisma.user.findUnique({
-		  where: {
-			  id: ctx.session?.user?.id
-		  }
-	  })
-	  const chatMessageWithUserName : ChatMessageWithUserName = {
-		  ...chatMessage,
-		  userName: user?.name!
-	  }
+      // Add userName to the chatMessage
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.session?.user?.id,
+        },
+      });
+      const chatMessageWithUserName: ChatMessageWithUserName = {
+        ...chatMessage,
+        userName: user?.name!,
+      };
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get(`ticket-${input.ticketId}`);
       channel.publish('chat-message', chatMessageWithUserName);
       return chatMessage;
-    },
-  })
-  .mutation('editInfo', {
-    input: z.object({
-      id: z.number(),
-      description: z
-        .string()
-        .min(1)
-        .max(1000),
-      assignment: z
-        .string()
-        .min(1)
-        .max(250),
-      location: z
-        .string()
-        .min(1)
-        .max(250),
-    }),
-    async resolve({ input, ctx }) {
-      const { id, description, assignment, location } = input;
-      const ticket = await ctx.prisma.ticket
-        .update({
-          where: {
-            id,
-          },
-          data: {
-            description,
-            assignment,
-            location,
-          },
-        })
-        .then(ticket => {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-          const channel = ably.channels.get('tickets'); // Change to include queue id
-          channel.publish('ticket-edited', ticket);
-        });
-      return ticket;
     },
   })
   .query('getTicket', {

@@ -35,6 +35,7 @@
     "@trpc/react": "^9.27.2",
     "@trpc/server": "^9.27.2",
     "ably": "^1.2.29",
+    "chakra-react-select": "^4.2.4",
     "framer-motion": "^7.4.0",
     "next": "12.3.1",
     "next-auth": "~4.10.3",
