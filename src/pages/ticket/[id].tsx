@@ -5,10 +5,11 @@ import { trpc } from '../../utils/trpc';
 import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../../env/schema.mjs';
-import { UserRole, Ticket } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
 import InnerTicket from '../../components/InnerTicket';
+import { TicketWithNames } from '../../server/router/ticket';
 
 /**
  * Component that renders the ticket page. It ensures that ably is configured and 
@@ -21,7 +22,7 @@ const TicketPage: NextPage = () => {
   const [userId, setUserId] = useState<string>('');
   const [isAblyConnected, setIsAblyConnected] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>();
-  const [ticket, setTicket] = useState<Ticket>();
+  const [ticket, setTicket] = useState<TicketWithNames>();
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
 

@@ -1,7 +1,7 @@
 import { createRouter } from './context';
 import { z } from 'zod';
 import Ably from 'ably/promises';
-import { ChatMessage, Ticket, TicketStatus } from '@prisma/client';
+import { Assignment, ChatMessage, Location, Ticket, TicketStatus, User } from '@prisma/client';
 
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
@@ -237,13 +237,19 @@ export const ticketRouter = createRouter()
       id: z.number(),
     }),
     async resolve({ input, ctx }) {
-      const ticket = await ctx.prisma.ticket.findUnique({
+      const ticket: Ticket | null = await ctx.prisma.ticket.findUnique({
         where: {
           id: input.id,
         },
       });
 
-      return ticket;
+      if (!ticket) {
+        return null;
+      }
+
+      const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
+
+      return ticketsWithNames[0];
     },
   })
   .query('getTicketsWithStatus', {
@@ -251,11 +257,15 @@ export const ticketRouter = createRouter()
       status: z.nativeEnum(TicketStatus),
     }),
     async resolve({ input, ctx }) {
-      return ctx.prisma.ticket.findMany({
+      const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
         },
       });
+
+      const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames(tickets, ctx);
+
+      return ticketsWithNames;
     },
   })
   .query('getChatMessages', {
@@ -292,6 +302,53 @@ export const ticketRouter = createRouter()
     },
   });
 
+const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
+  const ticketsWithNames: TicketWithNames[] = await Promise.all(
+    tickets.map(async (ticket: Ticket) => {
+      const location: Location = await ctx.prisma.location.findUnique({
+        where: {
+          id: ticket.locationId,
+        },
+      });
+      const assignment: Assignment = await ctx.prisma.assignment.findUnique({
+        where: {
+          id: ticket.assignmentId,
+        },
+      });
+      let helpedBy: User | undefined = undefined;
+      if (ticket.helpedByUserId) {
+        helpedBy = await ctx.prisma.user.findUnique({
+          where: {
+            id: ticket.helpedByUserId,
+          },
+        });
+      }
+      const createdBy: User = await ctx.prisma.user.findUnique({
+        where: {
+          id: ticket.createdByUserId,
+        },
+      });
+      return {
+        ...ticket,
+        locationName: location?.name,
+        assignmentName: assignment?.name,
+        helpedByName: helpedBy?.name,
+        createdByName: createdBy.name,
+      };
+    }),
+  );
+
+  return ticketsWithNames;
+};
+
 export interface ChatMessageWithUserName extends ChatMessage {
   userName: string;
+}
+
+// Includes the name of users, location, and assignment
+export interface TicketWithNames extends Ticket {
+  helpedByName: string | null | undefined;
+  createdByName: string | null;
+  assignmentName: string;
+  locationName: string;
 }

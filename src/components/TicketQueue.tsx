@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TicketStatus, UserRole, Ticket } from '@prisma/client';
+import { TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../utils';
+import { TicketWithNames } from '../server/router/ticket';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -22,15 +23,15 @@ const TicketQueue = (props: TicketQueueProps) => {
       ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
       : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING];
 
-  const [pendingTickets, setPendingTickets] = useState<Ticket[]>([]);
-  const [openTickets, setOpenTickets] = useState<Ticket[]>([]);
-  const [assignedTickets, setAssignedTickets] = useState<Ticket[]>([]);
+  const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
+  const [openTickets, setOpenTickets] = useState<TicketWithNames[]>([]);
+  const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
 
   const { isLoading: isGetOpenTicketsLoading } = trpc.useQuery(
     ['ticket.getTicketsWithStatus', { status: TicketStatus.OPEN }],
     {
       refetchOnWindowFocus: false,
-      onSuccess: (data: Ticket[]) => {
+      onSuccess: (data: TicketWithNames[]) => {
         setOpenTickets(data);
       },
     },
@@ -40,7 +41,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     ['ticket.getTicketsWithStatus', { status: TicketStatus.ASSIGNED }],
     {
       refetchOnWindowFocus: false,
-      onSuccess: (data: Ticket[]) => {
+      onSuccess: (data: TicketWithNames[]) => {
         setAssignedTickets(data);
       },
     },
@@ -50,7 +51,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     ['ticket.getTicketsWithStatus', { status: TicketStatus.PENDING }],
     {
       refetchOnWindowFocus: false,
-      onSuccess: (data: Ticket[]) => {
+      onSuccess: (data: TicketWithNames[]) => {
         setPendingTickets(data);
       },
     },
@@ -63,12 +64,12 @@ const TicketQueue = (props: TicketQueueProps) => {
   useChannel('tickets', ticketData => {
     const message = ticketData.name;
     if (message === 'new-ticket') {
-      const ticket: Ticket = ticketData.data; // Tickets are not bulk-created
+      const ticket: TicketWithNames = ticketData.data; // Tickets are not bulk-created
       setPendingTickets(prev => [...prev, ticket]);
       return;
     }
 
-    const tickets: Ticket[] = ticketData.data;
+    const tickets: TicketWithNames[] = ticketData.data;
     switch (message) {
       case 'tickets-approved':
         setPendingTickets(prev => prev.filter(ticket => !tickets.map(t => t.id).includes(ticket.id)));
@@ -95,7 +96,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   /**
    * Helper method to return the correct ticket list based on the tab index (status)
    */
-  const getTickets = (status: TicketStatus): [Ticket[], boolean] => {
+  const getTickets = (status: TicketStatus): [TicketWithNames[], boolean] => {
     switch (status) {
       case TicketStatus.OPEN:
         return [openTickets, isGetOpenTicketsLoading];

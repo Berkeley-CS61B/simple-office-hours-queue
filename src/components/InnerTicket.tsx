@@ -1,14 +1,14 @@
-import { Ticket, UserRole } from '@prisma/client';
-import { Text, Box, SimpleGrid } from '@chakra-ui/react';
+import {  UserRole } from '@prisma/client';
+import { Box, SimpleGrid } from '@chakra-ui/react';
 import InnerTicketInfo from './InnerTicketInfo';
 import Chat from './Chat';
+import { TicketWithNames } from '../server/router/ticket';
 
 interface InnerTicketProps {
-  ticket: Ticket;
+  ticket: TicketWithNames;
   userRole: UserRole;
 }
 
-// TODO add confetti on ticket resolve
 const InnerTicket = (props: InnerTicketProps) => {
   const { ticket, userRole } = props;
 

@@ -1,11 +1,12 @@
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
-import { Ticket, TicketStatus, UserRole } from '@prisma/client';
+import { TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
 import React from 'react';
+import { TicketWithNames } from '../server/router/ticket';
 import { trpc } from '../utils/trpc';
 
 interface TicketCardProps {
-  ticket: Ticket;
+  ticket: TicketWithNames;
   userRole: UserRole;
 }
 
@@ -22,9 +23,6 @@ const TicketCard = (props: TicketCardProps) => {
   const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
-  const { data: helpedByName } = trpc.useQuery(['user.getUserName', { id: ticket.helpedByUserId! }], {
-    enabled: ticket.status === TicketStatus.ASSIGNED,
-  });
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
@@ -64,15 +62,15 @@ const TicketCard = (props: TicketCardProps) => {
       <Flex justifyContent='space-between'>
         <Box>
           <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
-            {ticket.assignment}
+            {ticket.assignmentName}
           </Tag>
           <Tag p={2.5} size='lg' colorScheme='orange' borderRadius={5}>
-            {ticket.location}
+            {ticket.locationName}
           </Tag>
         </Box>
         <Flex flexDirection='column'>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
-            Being helped by {helpedByName}
+            Being helped by {ticket.helpedByName}
           </Text>
           <Box textAlign='right'>
             <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending}>

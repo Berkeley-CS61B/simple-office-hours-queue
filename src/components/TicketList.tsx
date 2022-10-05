@@ -1,19 +1,20 @@
-import { Ticket, TicketStatus, UserRole } from '@prisma/client';
+import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
 import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../utils';
 import { useEffect, useState } from 'react';
 import { trpc } from '../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react'
+import { TicketWithNames } from '../server/router/ticket';
 
 interface TicketListProps {
-  tickets: Ticket[];
+  tickets: TicketWithNames[];
   ticketStatus: TicketStatus;
   userRole: UserRole;
 }
 
 interface GroupedTicket {
-  [key: string]: Ticket[];
+  [key: string]: TicketWithNames[];
 }
 
 /**
@@ -29,19 +30,19 @@ const TicketList = (props: TicketListProps) => {
   const [parent] : any = useAutoAnimate();
 
   // TODO add loading state
-  const handleApproveTickets = async (tickets: Ticket[]) => {
+  const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
   };
 
-  const handleAssignTickets = async (tickets: Ticket[]) => {
+  const handleAssignTickets = async (tickets: TicketWithNames[]) => {
     await assignTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
   };
 
-  const handleResolveTickets = async (tickets: Ticket[]) => {
+  const handleResolveTickets = async (tickets: TicketWithNames[]) => {
     await resolveTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
@@ -51,7 +52,7 @@ const TicketList = (props: TicketListProps) => {
    * Helper method to return appropriate buttons (approve, help, resolve)
    * Note: We can't use isGrouped here because that applies to the entire list
    */
-  const getButton = (tickets: Ticket[], inGroupedView: boolean) => {
+  const getButton = (tickets: TicketWithNames[], inGroupedView: boolean) => {
     if (userRole !== UserRole.STAFF) {
       return null;
     }
@@ -60,19 +61,19 @@ const TicketList = (props: TicketListProps) => {
       case TicketStatus.PENDING:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
-            Approve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+            Approve all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
           </Button>
         );
       case TicketStatus.OPEN:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
-            Help all {inGroupedView && 'for ' + tickets[0]?.assignment}
+            Help all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
           </Button>
         );
       case TicketStatus.ASSIGNED:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
-            Resolve all {inGroupedView && 'for ' + tickets[0]?.assignment}
+            Resolve all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
           </Button>
         );
     }
@@ -88,7 +89,7 @@ const TicketList = (props: TicketListProps) => {
             </Tag>
             {getButton(groupedTickets[assignment]!, true)}
             <Box ref={parent}>
-              {groupedTickets[assignment]!.map((ticket: Ticket) => (
+              {groupedTickets[assignment]!.map((ticket: TicketWithNames) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
               ))}
             </Box>
@@ -105,7 +106,7 @@ const TicketList = (props: TicketListProps) => {
   useEffect(() => {
     if (isGrouped) {
       const groupedTickets = tickets.reduce((acc: any, ticket) => {
-        const key = ticket.assignment;
+        const key = ticket.assignmentName;
         if (!acc[key]) {
           acc[key] = [];
         }
