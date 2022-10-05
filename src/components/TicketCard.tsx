@@ -1,6 +1,7 @@
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
 import { Ticket, TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
+import React from 'react';
 import { trpc } from '../utils/trpc';
 
 interface TicketCardProps {
@@ -38,7 +39,14 @@ const TicketCard = (props: TicketCardProps) => {
   const handleResolveTicket = async () => {
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
-
+  
+  const handleTicketPress = (event : any) => {
+	if (event.target.tagName === 'BUTTON') {
+	  return;
+	}
+	Router.push(`/ticket/${ticket.id}`);
+  }
+  
   return (
     <Box
       mb={4}
@@ -48,6 +56,8 @@ const TicketCard = (props: TicketCardProps) => {
       borderWidth={1}
       borderRadius={8}
       boxShadow='lg'
+	  onClick={handleTicketPress}
+	  className='hover-cursor'
     >
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
