@@ -6,9 +6,7 @@ import { Assignment, ChatMessage, Location, Ticket, TicketStatus, User } from '@
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
     input: z.object({
-      description: z
-        .string()
-        .optional(),
+      description: z.string().optional(),
       assignmentId: z.number(),
       locationId: z.number(),
     }),
@@ -35,13 +33,13 @@ export const ticketRouter = createRouter()
             },
           },
         })
-        .then(async (ticket) => {
-		  const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
-		  const fullTicket: TicketWithNames = ticketsWithNames[0]!;
+        .then(async ticket => {
+          const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
+          const fullTicket: TicketWithNames = ticketsWithNames[0]!;
           const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
           const channel = ably.channels.get('tickets'); // Change to include queue id
           channel.publish('new-ticket', fullTicket);
-		  return fullTicket;
+          return fullTicket;
         });
     },
   })
@@ -61,17 +59,18 @@ export const ticketRouter = createRouter()
         approvedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-approved', approvedTickets);
+      await convertTicketToTicketWithNames(approvedTickets, ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('tickets-approved', tickets);
 
-      // Creates channel for each ticket for the inner page
-      for (const ticket of approvedTickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-approved', ticket);
-      }
-
-      return approvedTickets;
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-approved', ticket);
+        }
+        return tickets;
+      });
     },
   })
   .mutation('assignTickets', {
@@ -96,17 +95,18 @@ export const ticketRouter = createRouter()
         assignedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-assigned', assignedTickets);
+      await convertTicketToTicketWithNames(assignedTickets, ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('tickets-assigned', tickets);
 
-      // Creates channel for each ticket for the inner page
-      for (const ticket of assignedTickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-assigned', ticket);
-      }
-
-      return assignedTickets;
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-assigned', ticket);
+        }
+        return tickets;
+      });
     },
   })
   .mutation('resolveTickets', {
@@ -124,17 +124,18 @@ export const ticketRouter = createRouter()
         resolvedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-resolved', resolvedTickets);
+      await convertTicketToTicketWithNames(resolvedTickets, ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('tickets-resolved', tickets);
 
-      // Creates channel for each ticket for the inner page
-      for (const ticket of resolvedTickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-resolved', ticket);
-      }
-
-      return resolvedTickets;
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-resolved', ticket);
+        }
+        return tickets;
+      });
     },
   })
   .mutation('requeueTickets', {
@@ -152,17 +153,18 @@ export const ticketRouter = createRouter()
         requeuedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-requeued', requeuedTickets);
+      await convertTicketToTicketWithNames(requeuedTickets, ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('tickets-requeued', tickets);
 
-      // Creates channel for each ticket for the inner page
-      for (const ticket of requeuedTickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-requeued', ticket);
-      }
-
-      return requeuedTickets;
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-requeued', ticket);
+        }
+        return tickets;
+      });
     },
   })
   .mutation('reopenTickets', {
@@ -180,17 +182,18 @@ export const ticketRouter = createRouter()
         reopenedTickets.push(ticket);
       }
 
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-reopened', reopenedTickets);
+      await convertTicketToTicketWithNames(reopenedTickets, ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('tickets-reopened', tickets);
 
-      // Creates channel for each ticket for the inner page
-      for (const ticket of reopenedTickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-reopened', ticket);
-      }
-
-      return reopenedTickets;
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-reopened', ticket);
+        }
+        return tickets;
+      });
     },
   })
   .mutation('sendChatMessage', {
