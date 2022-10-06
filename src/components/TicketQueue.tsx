@@ -65,6 +65,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     const message = ticketData.name;
     if (message === 'new-ticket') {
       const ticket: TicketWithNames = ticketData.data; // Tickets are not bulk-created
+	     console.log(ticket)
       setPendingTickets(prev => [...prev, ticket]);
       return;
     }

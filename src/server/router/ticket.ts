@@ -8,15 +8,13 @@ export const ticketRouter = createRouter()
     input: z.object({
       description: z
         .string()
-        .min(1)
-        .max(1000)
         .optional(),
       assignmentId: z.number(),
       locationId: z.number(),
     }),
     async resolve({ input, ctx }) {
       const { description, assignmentId, locationId } = input;
-      const ticket = await ctx.prisma.ticket
+      await ctx.prisma.ticket
         .create({
           data: {
             description,
@@ -37,12 +35,14 @@ export const ticketRouter = createRouter()
             },
           },
         })
-        .then(ticket => {
+        .then(async (ticket) => {
+		  const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
+		  const fullTicket: TicketWithNames = ticketsWithNames[0]!;
           const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
           const channel = ably.channels.get('tickets'); // Change to include queue id
-          channel.publish('new-ticket', ticket);
+          channel.publish('new-ticket', fullTicket);
+		  return fullTicket;
         });
-      return ticket;
     },
   })
   // Concierge can approve a ticket

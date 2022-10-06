@@ -65,8 +65,9 @@ const CreateTicketForm = () => {
       })
       .then(() => {
         setDescription('');
-        setAssignment(undefined);
-        setLocation(undefined);
+		// Ressets the select options
+        setAssignment('' as unknown as Assignment);
+        setLocation('' as unknown as Location);
         toast({
           title: 'Ticket created',
           description: 'Your help request is pending approval',
@@ -94,11 +95,11 @@ const CreateTicketForm = () => {
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Select onChange={val => setAssignment(val!)} options={assignmentOptions} />
+            <Select value={assignment} onChange={val => setAssignment(val!)} options={assignmentOptions} />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Select onChange={val => setLocation(val!)} options={locationOptions} />
+            <Select value={location} onChange={val => setLocation(val!)} options={locationOptions} />
           </FormControl>
           <Button type='submit' variant='outline' width='full' mt={4}>
             Request Help
