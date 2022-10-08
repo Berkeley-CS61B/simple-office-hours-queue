@@ -64,6 +64,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     await reopenTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
+  // TODO pending is broken 
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
@@ -71,7 +72,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text hidden={!isAssigned}>Being helped by {ticket.helpedByName}</Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4}>{ticket.description}</Text>
-      <Text>{ticket.locationId}</Text>
+      <Text>Location: {ticket.locationName}</Text>
+      <Text>Assignment: {ticket.assignmentName}</Text>
       <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
         Help
       </Button>

@@ -26,6 +26,42 @@ export const adminRouter = createRouter()
       });
     },
   })
+  .mutation('editAssignment', {
+    input: z.object({
+      id: z.number(),
+      name: z.string(),
+      active: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      return ctx.prisma.assignment.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          active: input.active,
+        },
+      });
+    },
+  })
+  .mutation('editLocation', {
+	input: z.object({
+	  id: z.number(),
+	  name: z.string(),
+	  active: z.boolean(),
+	}),
+	async resolve({ input, ctx }) {
+	  return ctx.prisma.location.update({
+		where: {
+		  id: input.id,
+		},
+		data: {
+		  name: input.name,
+		  active: input.active,
+		},
+	  });
+	}
+  })
   .query('getAllAssignments', {
     async resolve({ ctx }) {
       return ctx.prisma.assignment.findMany();

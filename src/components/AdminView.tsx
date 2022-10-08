@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { Assignment, Location } from '@prisma/client';
 import { trpc } from '../utils/trpc';
-import { Box, Button, Flex, IconButton, Spinner, Switch, Text, useColorModeValue } from '@chakra-ui/react';
-import { EditIcon } from '@chakra-ui/icons';
+import { Button, Flex, Input, Spinner, Text } from '@chakra-ui/react';
+import AdminCard from './AdminCard';
 
 /**
  * Component which allows staff to edit the available locations and assignments
  */
 const AdminView = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignmentText, setAssignmentText] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
+  const [locationText, setLocationText] = useState('');
+
+  const createAssignmentMutation = trpc.useMutation('admin.createAssigmnent');
+  const editAssignmentMutation = trpc.useMutation('admin.editAssignment');
+  const createLocationMutation = trpc.useMutation('admin.createLocation');
+  const editLocationMutation = trpc.useMutation('admin.editLocation');
 
   const { isLoading: isAssignmentsLoading } = trpc.useQuery(['admin.getAllAssignments'], {
     refetchOnWindowFocus: false,
@@ -25,29 +32,50 @@ const AdminView = () => {
     },
   });
 
-  const boxColor = useColorModeValue('gray.100', 'gray.700');
+  const handleCreateAssignment = async () => {
+    const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });
+    setAssignments(prev => [...prev, data]);
+  };
 
-  // TODO make these lazy load
-  // Todo make name editable and add a delete button and move to a separate component
+  const handleCreateLocation = async () => {
+    const data = await createLocationMutation.mutateAsync({ name: locationText });
+    setLocations(prev => [...prev, data]);
+  };
+
   return (
     <>
       {isAssignmentsLoading || isLocationsLoading ? (
         <Spinner />
       ) : (
         <Flex m={10} flexDirection='column'>
-          <Flex mb={3}>
+          <Flex direction='column' w='50%' mb={3}>
             <Text fontSize='3xl' fontWeight='semibold'>
               Assignments
             </Text>
-            <Button ml={3} mt={1}>Add Assignment</Button>
+            <Flex>
+              <Input onChange={e => setAssignmentText(e.target.value)} value={assignmentText} placeholder='Gitlet' />
+              <Button onClick={handleCreateAssignment} ml={3}>
+                Create
+              </Button>
+            </Flex>
           </Flex>
           {assignments.map(assignment => (
-            <Flex borderRadius={4} mb={2} flexDirection='row' p={2} key={assignment.id} backgroundColor={boxColor}>
-              <Text fontWeight='semibold' fontSize='xl'>{assignment.name}</Text>
-			  <IconButton size='sm' ml={2} aria-label='Edit assignment' icon={<EditIcon />} />
-			  <Text fontSize='large' mt={1.25} ml={5}>Active?</Text>
-			  <Switch mt={1.5} ml={3} isChecked={assignment.active} /> 
+            <AdminCard key={assignment.id} assignmentOrLocation={assignment} editMutation={editAssignmentMutation} />
+          ))}
+
+          <Flex direction='column' w='50%' mt={10} mb={3}>
+            <Text fontSize='3xl' fontWeight='semibold'>
+              Locations
+            </Text>
+            <Flex>
+              <Input onChange={e => setLocationText(e.target.value)} value={locationText} placeholder='Woz' />
+              <Button onClick={handleCreateLocation} ml={3}>
+                Create
+              </Button>
             </Flex>
+          </Flex>
+          {locations.map(location => (
+            <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
           ))}
         </Flex>
       )}
