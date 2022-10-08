@@ -10,37 +10,35 @@ export const ticketRouter = createRouter()
       assignmentId: z.number(),
       locationId: z.number(),
     }),
-    async resolve({ input, ctx }) {
-      const { description, assignmentId, locationId } = input;
-      await ctx.prisma.ticket
-        .create({
-          data: {
-            description,
-            assignment: {
-              connect: {
-                id: assignmentId,
-              },
-            },
-            location: {
-              connect: {
-                id: locationId,
-              },
-            },
-            createdBy: {
-              connect: {
-                id: ctx.session?.user?.id,
-              },
+    async resolve({ ctx, input }) {
+      const ticket = await ctx.prisma.ticket.create({
+        data: {
+          description: input.description,
+          assignment: {
+            connect: {
+              id: input.assignmentId,
             },
           },
-        })
-        .then(async ticket => {
-          const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
-          const fullTicket: TicketWithNames = ticketsWithNames[0]!;
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-          const channel = ably.channels.get('tickets'); // Change to include queue id
-          channel.publish('new-ticket', fullTicket);
-          return fullTicket;
-        });
+          location: {
+            connect: {
+              id: input.locationId,
+            },
+          },
+          createdBy: {
+            connect: {
+              id: ctx?.session?.user?.id,
+            },
+          },
+        },
+      });
+
+      const ticketWithNames = await convertTicketToTicketWithNames([ticket], ctx);
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = await ably.channels.get(`ticket-${ticket.id}`);
+      await channel.publish('ticketCreated', ticketWithNames[0]);
+
+      return ticketWithNames[0];
     },
   })
   // Concierge can approve a ticket

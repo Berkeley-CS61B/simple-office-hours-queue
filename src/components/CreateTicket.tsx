@@ -2,8 +2,8 @@ import { useState, useRef } from 'react';
 import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import { Select } from 'chakra-react-select';
-import { TicketWithNames } from '../server/router/ticket';
 import Router from 'next/router';
+import { TicketWithNames } from '../server/router/ticket';
 
 interface Assignment {
   id: number;
@@ -66,7 +66,18 @@ const CreateTicketForm = () => {
 		assignmentId: assignment.id,
 		locationId: location.id,	
       })
-      .then(() => {
+      .then((ticket) => {
+		if (!ticket) {
+		  toast({
+			title: 'Error',
+			description: 'Could not create ticket',
+			status: 'error',
+			position: 'top-right',
+			duration: 3000,
+			isClosable: true,
+		  });
+		  return;
+		}
         setDescription('');
 		// Resets the select options
         setAssignment('' as unknown as Assignment);
@@ -79,6 +90,7 @@ const CreateTicketForm = () => {
           isClosable: true,
           position: 'top-right',
         });
+		Router.push(`/ticket/${ticket?.id}`);
       });
   };
 
