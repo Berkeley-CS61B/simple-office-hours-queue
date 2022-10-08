@@ -1,0 +1,6 @@
+This favicon was generated using the following font:
+
+- Font Title: Tinos
+- Font Author: Digitized data copyright (c) 2010-2012 Google Corporation.
+- Font Source: http://fonts.gstatic.com/s/tinos/v24/buE4poGnedXvwgX8dGVh8TI-.ttf
+- Font License: Apache License, version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html))
