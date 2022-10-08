@@ -10,7 +10,7 @@ import CreateTicket from '../components/CreateTicket';
 import TicketQueue from '../components/TicketQueue';
 import Broadcast from '../components/Broadcast';
 
-// TODO Verify that anyone cant make a request to any endpoint
+// TODO Verify that anyone cant make a request to any endpoint (https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
 const Home: NextPage = () => {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string>('');
