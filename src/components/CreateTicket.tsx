@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import { Select } from 'chakra-react-select';
+import { TicketWithNames } from '../server/router/ticket';
+import Router from 'next/router';
 
 interface Assignment {
   id: number;
@@ -44,6 +46,7 @@ const CreateTicketForm = () => {
     },
   });
 
+  // TODO Reroute to the ticket page after creating a ticket
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 	if (!assignment || !location) {
@@ -57,7 +60,7 @@ const CreateTicketForm = () => {
 	  });
 	  return;
 	}
-    createTicketMutation
+    await createTicketMutation
       .mutateAsync({
         description: description.trim(),
 		assignmentId: assignment.id,
@@ -65,7 +68,7 @@ const CreateTicketForm = () => {
       })
       .then(() => {
         setDescription('');
-		// Ressets the select options
+		// Resets the select options
         setAssignment('' as unknown as Assignment);
         setLocation('' as unknown as Location);
         toast({

@@ -19,11 +19,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole } = props;
   const [showConfetti, setShowConfetti] = useState(false);
   const canSeeName = ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
+  const isPending = ticket.status === TicketStatus.PENDING;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isStaff = userRole === UserRole.STAFF;
 
+  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
   const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
   const requeueTicketsMutation = trpc.useMutation('ticket.requeueTickets');
   const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
@@ -35,6 +37,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   useChannel(`ticket-${ticket.id}`, ticketData => {
     const message = ticketData.name;
     const shouldUpdateTicketMessages: string[] = [
+	  'ticket-approved',
       'ticket-resolved',
       'ticket-assigned',
       'ticket-reopened',
@@ -64,7 +67,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     await reopenTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
-  // TODO pending is broken 
+  const handleApproveTicket = async () => {
+	await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+  }
+
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
@@ -74,6 +80,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text mt={4}>{ticket.description}</Text>
       <Text>Location: {ticket.locationName}</Text>
       <Text>Assignment: {ticket.assignmentName}</Text>
+      <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
+        Approve
+      </Button>
       <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
         Help
       </Button>

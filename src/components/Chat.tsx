@@ -50,7 +50,7 @@ const Chat = (props: ChatProps) => {
       sentByName: userName,
       sentByUserId: userId,
     };
-	setMessages(prevMessages => [...prevMessages, newMessage]);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
   });
 
   const handleFormSubmission = async (event: any) => {
@@ -63,7 +63,7 @@ const Chat = (props: ChatProps) => {
       ticketId,
       message: messageText,
     });
-	
+
     setMessageText('');
     if (inputBox) {
       inputBox.focus();
@@ -103,7 +103,7 @@ const Chat = (props: ChatProps) => {
     <>
       {!isChatLoaded && <Spinner />}
       {isChatLoaded && (
-        <Box border='1px solid gray' p={4} mr={4} ml={4}>
+        <Box border='1px solid gray' p={4} mr={4} ml={4} borderRadius={5}>
           <Flex mb={4} flexDirection='column' gap={2} height='50vh' overflowY='auto'>
             {allMessages}
             <Box ref={element => (messageEnd = element)} />
