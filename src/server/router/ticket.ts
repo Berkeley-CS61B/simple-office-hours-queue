@@ -35,7 +35,7 @@ export const ticketRouter = createRouter()
       const ticketWithNames = await convertTicketToTicketWithNames([ticket], ctx);
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = await ably.channels.get(`ticket-${ticket.id}`);
+      const channel = ably.channels.get(`ticket-${ticket.id}`);
       await channel.publish('ticketCreated', ticketWithNames[0]);
 
       return ticketWithNames[0];

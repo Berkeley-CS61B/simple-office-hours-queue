@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { trpc } from '../../utils/trpc';
 import { useEffect, useState } from 'react';
 import { UserRole } from '@prisma/client';
-import { Text, useToast } from '@chakra-ui/react';
+import { useToast } from '@chakra-ui/react';
 import Router from 'next/router';
 import AdminView from '../../components/AdminView';
 
