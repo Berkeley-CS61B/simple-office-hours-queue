@@ -32,11 +32,11 @@ export const ticketRouter = createRouter()
         },
       });
 
-      const ticketWithNames = await convertTicketToTicketWithNames([ticket], ctx);
+      const ticketWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get(`ticket-${ticket.id}`);
-      await channel.publish('ticketCreated', ticketWithNames[0]);
+      const channel = ably.channels.get('tickets');
+      await channel.publish('new-ticket', ticketWithNames[0]);
 
       return ticketWithNames[0];
     },

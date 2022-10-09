@@ -8,6 +8,7 @@ import { useToast } from '@chakra-ui/react';
 import Router from 'next/router';
 import AdminView from '../../components/AdminView';
 
+// TODO add leaderboard and time per ticket
 const AdminPage: NextPage = () => {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string>('');
