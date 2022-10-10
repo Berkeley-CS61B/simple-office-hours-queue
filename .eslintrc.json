@@ -4,5 +4,9 @@
     "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint"],
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "rules": {
+	"@typescript-eslint/no-empty-function": "off",
+	"@typescript-eslint/no-non-null-asserted-optional-chain": "off" // TODO: do more research on this
+  }
 }
