@@ -1,12 +1,12 @@
 import { NextPage } from 'next';
-import Layout from '../../components/Layout';
+import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
 import { trpc } from '../../utils/trpc';
 import { useEffect, useState } from 'react';
 import { UserRole } from '@prisma/client';
 import { useToast } from '@chakra-ui/react';
 import Router from 'next/router';
-import AdminView from '../../components/AdminView';
+import AdminView from '../../components/admin/AdminView';
 
 // TODO add leaderboard and time per ticket
 const AdminPage: NextPage = () => {

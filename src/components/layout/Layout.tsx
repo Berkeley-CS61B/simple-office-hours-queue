@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import { useSession, signIn } from 'next-auth/react';
 import { Text, Flex, Button } from '@chakra-ui/react';
-import { Navbar } from '../components/Navbar';
+import { Navbar } from './Navbar';
 import { ReactNode } from 'react';
-import ReceiveBroadcast from './ReceiveBroadcast';
+import ReceiveBroadcast from '../queue/ReceiveBroadcast';
 
 interface LayoutProps {
   children: ReactNode;

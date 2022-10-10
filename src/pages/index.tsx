@@ -1,14 +1,14 @@
 import { NextPage } from 'next';
-import Layout from '../components/Layout';
+import Layout from '../components/layout/Layout';
 import { useSession } from 'next-auth/react';
 import { trpc } from '../utils/trpc';
 import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../env/schema.mjs';
 import { UserRole } from '@prisma/client';
-import CreateTicket from '../components/CreateTicket';
-import TicketQueue from '../components/TicketQueue';
-import Broadcast from '../components/Broadcast';
+import CreateTicket from '../components/queue/CreateTicket';
+import TicketQueue from '../components/queue/TicketQueue';
+import Broadcast from '../components/queue/Broadcast';
 
 // TODO Verify that anyone cant make a request to any endpoint (https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
 const Home: NextPage = () => {

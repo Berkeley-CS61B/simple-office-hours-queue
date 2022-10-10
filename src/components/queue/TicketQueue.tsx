@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
-import { uppercaseFirstLetter } from '../utils';
-import { TicketWithNames } from '../server/router/ticket';
+import { uppercaseFirstLetter } from '../../utils';
+import { TicketWithNames } from '../../server/router/ticket';
 
 interface TicketQueueProps {
   userRole: UserRole;

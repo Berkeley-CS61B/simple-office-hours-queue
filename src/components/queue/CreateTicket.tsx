@@ -1,9 +1,8 @@
 import { useState, useRef } from 'react';
 import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
-import { TicketWithNames } from '../server/router/ticket';
 
 interface Assignment {
   id: number;

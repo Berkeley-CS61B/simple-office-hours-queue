@@ -2,7 +2,7 @@ import {  UserRole } from '@prisma/client';
 import { Box, SimpleGrid } from '@chakra-ui/react';
 import InnerTicketInfo from './InnerTicketInfo';
 import Chat from './Chat';
-import { TicketWithNames } from '../server/router/ticket';
+import { TicketWithNames } from '../../server/router/ticket';
 
 interface InnerTicketProps {
   ticket: TicketWithNames;

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
 import { Button, Input, Box, Flex, Text, Spinner } from '@chakra-ui/react';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
-import { ChatMessageWithUserName } from '../server/router/ticket';
+import { ChatMessageWithUserName } from '../../server/router/ticket';
 
 interface ChatProps {
   ticketId: number;

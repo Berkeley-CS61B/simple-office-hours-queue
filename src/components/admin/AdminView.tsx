@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Assignment, Location } from '@prisma/client';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import { Button, Flex, Input, Spinner, Text } from '@chakra-ui/react';
 import AdminCard from './AdminCard';
 

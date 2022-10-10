@@ -2,8 +2,8 @@ import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakr
 import { TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
 import React from 'react';
-import { TicketWithNames } from '../server/router/ticket';
-import { trpc } from '../utils/trpc';
+import { TicketWithNames } from '../../server/router/ticket';
+import { trpc } from '../../utils/trpc';
 
 interface TicketCardProps {
   ticket: TicketWithNames;

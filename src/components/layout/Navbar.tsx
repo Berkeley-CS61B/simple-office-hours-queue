@@ -19,7 +19,7 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();

@@ -1,5 +1,5 @@
 import { NextPage } from 'next';
-import Layout from '../../components/Layout';
+import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
 import { trpc } from '../../utils/trpc';
 import { useEffect, useState } from 'react';
@@ -8,7 +8,7 @@ import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
-import InnerTicket from '../../components/InnerTicket';
+import InnerTicket from '../../components/ticket-page/InnerTicket';
 import { TicketWithNames } from '../../server/router/ticket';
 
 /**
