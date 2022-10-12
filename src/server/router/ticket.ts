@@ -1,7 +1,16 @@
 import { createRouter } from './context';
 import { z } from 'zod';
 import Ably from 'ably/promises';
-import { Assignment, ChatMessage, Location, Ticket, TicketStatus, User } from '@prisma/client';
+import {
+  Assignment,
+  ChatMessage,
+  Location,
+  SiteSettings,
+  SiteSettingsValues,
+  Ticket,
+  TicketStatus,
+  User,
+} from '@prisma/client';
 
 export const ticketRouter = createRouter()
   .mutation('createTicket', {
@@ -11,6 +20,12 @@ export const ticketRouter = createRouter()
       locationId: z.number(),
     }),
     async resolve({ ctx, input }) {
+      const pendingStageEnabled = await ctx.prisma.settings.findUnique({
+        where: {
+          setting: SiteSettings.isPendingStageEnabled,
+        },
+      });
+
       const ticket = await ctx.prisma.ticket.create({
         data: {
           description: input.description,
@@ -29,6 +44,8 @@ export const ticketRouter = createRouter()
               id: ctx?.session?.user?.id,
             },
           },
+          // If pending stage is enabled, set status to pending
+          status: pendingStageEnabled?.value === SiteSettingsValues.TRUE ? TicketStatus.PENDING : TicketStatus.OPEN,
         },
       });
 

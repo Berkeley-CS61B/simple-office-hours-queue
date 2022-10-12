@@ -1,4 +1,5 @@
 import { createRouter } from './context';
+import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { z } from 'zod';
 
 export const adminRouter = createRouter()
@@ -45,22 +46,42 @@ export const adminRouter = createRouter()
     },
   })
   .mutation('editLocation', {
-	input: z.object({
-	  id: z.number(),
-	  name: z.string(),
-	  active: z.boolean(),
-	}),
-	async resolve({ input, ctx }) {
-	  return ctx.prisma.location.update({
-		where: {
-		  id: input.id,
-		},
-		data: {
-		  name: input.name,
-		  active: input.active,
-		},
-	  });
-	}
+    input: z.object({
+      id: z.number(),
+      name: z.string(),
+      active: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      return ctx.prisma.location.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          active: input.active,
+        },
+      });
+    },
+  })
+  .mutation('setIsPendingStageEnabled', {
+    input: z.object({
+      setting: z.nativeEnum(SiteSettings),
+      value: z.nativeEnum(SiteSettingsValues),
+    }),
+    async resolve({ input, ctx }) {
+      return ctx.prisma.settings.upsert({
+        where: {
+          setting: input.setting,
+        },
+        update: {
+          value: input.value,
+        },
+        create: {
+          setting: input.setting,
+          value: input.value,
+        },
+      });
+    },
   })
   .query('getAllAssignments', {
     async resolve({ ctx }) {
@@ -89,5 +110,24 @@ export const adminRouter = createRouter()
           active: true,
         },
       });
+    },
+  })
+  .query('getIsPendingStageEnabled', {
+    async resolve({ ctx }) {
+      let setting;
+      setting = ctx.prisma.settings.findUnique({
+        where: {
+          setting: SiteSettings.isPendingStageEnabled,
+        },
+      });
+      if (!setting) {
+        setting = ctx.prisma.settings.create({
+          data: {
+            setting: SiteSettings.isPendingStageEnabled,
+            value: SiteSettingsValues.TRUE, // Default will be true
+          },
+        });
+      }
+	  return setting;
     },
   });

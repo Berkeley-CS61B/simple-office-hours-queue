@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { SiteSettingsValues, TicketStatus, UserRole } from '@prisma/client';
+import { Flex, Skeleton, Spinner, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -18,14 +18,15 @@ interface TicketQueueProps {
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole } = props;
 
-  const tabs =
-    userRole === UserRole.STUDENT
-      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
-      : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING];
-
   const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
   const [openTickets, setOpenTickets] = useState<TicketWithNames[]>([]);
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
+  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
+
+  const tabs =
+    userRole === UserRole.STUDENT || !isPendingStageEnabled
+      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
+      : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING];
 
   const { isLoading: isGetOpenTicketsLoading } = trpc.useQuery(
     ['ticket.getTicketsWithStatus', { status: TicketStatus.OPEN }],
@@ -57,6 +58,17 @@ const TicketQueue = (props: TicketQueueProps) => {
     },
   );
 
+  const { isLoading: isGetPendingStageLoading } = trpc.useQuery(['admin.getIsPendingStageEnabled'], {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      if (data?.value === SiteSettingsValues.TRUE) {
+        setIsPendingStageEnabled(true);
+      } else {
+        setIsPendingStageEnabled(false);
+      }
+    },
+  });
+
   /**
    * Ably channel to receive updates on ticket status.
    * This is used to update the ticket queue in real time.
@@ -65,7 +77,12 @@ const TicketQueue = (props: TicketQueueProps) => {
     const message = ticketData.name;
     if (message === 'new-ticket') {
       const ticket: TicketWithNames = ticketData.data; // Tickets are not bulk-created
-      setPendingTickets(prev => [...prev, ticket]);
+	//   TODO: Make sure this works
+	  if (isPendingStageEnabled) {
+		setPendingTickets(prev => [...prev, ticket]);
+	  } else {
+		setOpenTickets(prev => [...prev, ticket]);
+	  }
       return;
     }
 
@@ -114,29 +131,33 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs isFitted variant='enclosed' isLazy>
-        <TabList>
-          {tabs.map(tab => (
-            <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab)[0].length + ')'}</Tab>
-          ))}
-        </TabList>
-        <TabPanels>
-          {tabs.map(tab => {
-            const [tickets, isLoading] = getTickets(tab);
-            return (
-              <div key={tab}>
-                {isLoading ? (
-                  <Skeleton mt={4} height='60px' />
-                ) : (
-                  <TabPanel padding='20px 0' key={tab}>
-                    <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
-                  </TabPanel>
-                )}
-              </div>
-            );
-          })}
-        </TabPanels>
-      </Tabs>
+      {isGetPendingStageLoading ? (
+        <Spinner />
+      ) : (
+        <Tabs isFitted variant='enclosed' isLazy>
+          <TabList>
+            {tabs.map(tab => (
+              <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab)[0].length + ')'}</Tab>
+            ))}
+          </TabList>
+          <TabPanels>
+            {tabs.map(tab => {
+              const [tickets, isLoading] = getTickets(tab);
+              return (
+                <div key={tab}>
+                  {isLoading ? (
+                    <Skeleton mt={4} height='60px' />
+                  ) : (
+                    <TabPanel padding='20px 0' key={tab}>
+                      <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
+                    </TabPanel>
+                  )}
+                </div>
+              );
+            })}
+          </TabPanels>
+        </Tabs>
+      )}
     </Flex>
   );
 };

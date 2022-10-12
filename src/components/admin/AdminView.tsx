@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Assignment, Location } from '@prisma/client';
+import { Assignment, Location, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
-import { Button, Flex, Input, Spinner, Text } from '@chakra-ui/react';
+import { Button, Flex, Input, Spinner, Switch, Text } from '@chakra-ui/react';
 import AdminCard from './AdminCard';
 
 /**
@@ -11,12 +11,14 @@ const AdminView = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [assignmentText, setAssignmentText] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
-  const [locationText, setLocationText] = useState('');
+  const [locationText, setLocationText] = useState<string>('');
+  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
 
   const createAssignmentMutation = trpc.useMutation('admin.createAssigmnent');
   const editAssignmentMutation = trpc.useMutation('admin.editAssignment');
   const createLocationMutation = trpc.useMutation('admin.createLocation');
   const editLocationMutation = trpc.useMutation('admin.editLocation');
+  const setIsPendingStageEnabledMutation = trpc.useMutation('admin.setIsPendingStageEnabled');
 
   const { isLoading: isAssignmentsLoading } = trpc.useQuery(['admin.getAllAssignments'], {
     refetchOnWindowFocus: false,
@@ -32,6 +34,17 @@ const AdminView = () => {
     },
   });
 
+  const { isLoading: isGetPendingStageLoading } = trpc.useQuery(['admin.getIsPendingStageEnabled'], {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      if (data?.value === SiteSettingsValues.TRUE) {
+        setIsPendingStageEnabled(true);
+      } else {
+        setIsPendingStageEnabled(false);
+      }
+    },
+  });
+
   const handleCreateAssignment = async () => {
     const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });
     setAssignments(prev => [...prev, data]);
@@ -40,6 +53,17 @@ const AdminView = () => {
   const handleCreateLocation = async () => {
     const data = await createLocationMutation.mutateAsync({ name: locationText });
     setLocations(prev => [...prev, data]);
+  };
+
+  // Sets the pending stage to enabled or disabled depending on the current state
+  const handleTogglePendingStageEnabled = async () => {
+    setIsPendingStageEnabled(prev => !prev);
+    const valueToSet = isPendingStageEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
+    console.log(valueToSet);
+    await setIsPendingStageEnabledMutation.mutateAsync({
+      setting: SiteSettings.isPendingStageEnabled,
+      value: valueToSet,
+    });
   };
 
   return (
@@ -77,6 +101,20 @@ const AdminView = () => {
           {locations.map(location => (
             <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
           ))}
+
+          <Flex direction='column' w='50%' mt={10} mb={3}>
+            <Text fontSize='3xl' fontWeight='semibold'>
+              General Settings
+            </Text>
+            <Flex>
+              <Text fontSize='xl'>Pending Stage</Text>
+              {isGetPendingStageLoading ? (
+                <Spinner />
+              ) : (
+                <Switch ml={2} mt={2} isChecked={isPendingStageEnabled} onChange={handleTogglePendingStageEnabled} />
+              )}
+            </Flex>
+          </Flex>
         </Flex>
       )}
     </>

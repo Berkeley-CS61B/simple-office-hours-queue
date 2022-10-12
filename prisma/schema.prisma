@@ -9,6 +9,11 @@ datasource db {
     referentialIntegrity = "prisma"
 }
 
+model Settings {
+    setting SiteSettings       @id
+    value   SiteSettingsValues
+}
+
 model ChatMessage {
     id        Int      @id @default(autoincrement())
     createdAt DateTime @default(now())
@@ -81,20 +86,20 @@ model Session {
 }
 
 model Assignment {
-    id        Int       @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
     name      String
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @default(now()) @updatedAt
-	active    Boolean   @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    active    Boolean  @default(true)
     Ticket    Ticket[]
 }
 
 model Location {
-    id        Int       @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
     name      String
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @default(now()) @updatedAt
-	active    Boolean   @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    active    Boolean  @default(true)
     Ticket    Ticket[]
 }
 
@@ -119,4 +124,13 @@ enum TicketStatus {
     ASSIGNED
     RESOLVED
     DELETED // TODO change this to CLOSED
+}
+
+enum SiteSettings {
+    isPendingStageEnabled
+}
+
+enum SiteSettingsValues {
+	TRUE
+	FALSE
 }

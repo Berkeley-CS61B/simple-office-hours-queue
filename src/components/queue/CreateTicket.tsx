@@ -45,7 +45,6 @@ const CreateTicketForm = () => {
     },
   });
 
-  // TODO Reroute to the ticket page after creating a ticket
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 	if (!assignment || !location) {
@@ -83,7 +82,7 @@ const CreateTicketForm = () => {
         setLocation('' as unknown as Location);
         toast({
           title: 'Ticket created',
-          description: 'Your help request is pending approval',
+          description: 'Your help request has been created',
           status: 'success',
           duration: 3000,
           isClosable: true,
