@@ -1,7 +1,7 @@
 import { createRouter } from './context';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { z } from 'zod';
-import { settingsToDefault } from '../../utils';
+import { settingsToDefault } from '../../../utils';
 
 export const adminRouter = createRouter()
   .mutation('createAssigmnent', {

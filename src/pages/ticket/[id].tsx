@@ -9,11 +9,11 @@ import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
 import InnerTicket from '../../components/ticket-page/InnerTicket';
-import { TicketWithNames } from '../../server/router/ticket';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 /**
- * Component that renders the ticket page. It ensures that ably is configured and 
- * the current user is authorized to view the ticket.  
+ * Component that renders the ticket page. It ensures that ably is configured and
+ * the current user is authorized to view the ticket.
  */
 const TicketPage: NextPage = () => {
   const router = useRouter();
@@ -26,26 +26,34 @@ const TicketPage: NextPage = () => {
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
 
-  trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: userId !== '',
-    refetchOnWindowFocus: false,
-	onSuccess: (data: UserRole) => {
-	  setUserRole(data);
-	},
-  });
-
-  trpc.useQuery(['ticket.getTicket', { id }], {
-	enabled: id !== undefined,
-	refetchOnWindowFocus: false,
-    onSuccess: data => {
-      if (data) {
-        setTicket(data);
-        setIsInvalidTicket(false);
-      } else {
-        setIsInvalidTicket(true);
-      }
+  trpc.user.getUserRole.useQuery(
+    { id: userId },
+    {
+      enabled: userId !== '',
+      refetchOnWindowFocus: false,
+      onSuccess: (data: UserRole) => {
+        setUserRole(data);
+      },
+      trpc: {},
     },
-  });
+  );
+
+  trpc.ticket.getTicket.useQuery(
+    { id },
+    {
+      enabled: id !== undefined,
+      refetchOnWindowFocus: false,
+      onSuccess: data => {
+        if (data) {
+          setTicket(data);
+          setIsInvalidTicket(false);
+        } else {
+          setIsInvalidTicket(true);
+        }
+      },
+      trpc: {},
+    },
+  );
 
   useEffect(() => {
     if (session) {
@@ -62,7 +70,7 @@ const TicketPage: NextPage = () => {
   }, [session]);
 
   const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId;
-  
+
   /**
    * If the ticket doesn't exist or user doesn't have correct access,
    * redirect them to the queue page
@@ -88,7 +96,13 @@ const TicketPage: NextPage = () => {
   return (
     <Layout isAblyConnected={isAblyConnected}>
       {userRole && isAblyConnected && authorized && (
-        <>{isInvalidTicket ? <Text>Invalid ticket</Text> : <>{ticket && <InnerTicket ticket={ticket} userRole={userRole} />}</>}</>
+        <>
+          {isInvalidTicket ? (
+            <Text>Invalid ticket</Text>
+          ) : (
+            <>{ticket && <InnerTicket ticket={ticket} userRole={userRole} />}</>
+          )}
+        </>
       )}
     </Layout>
   );

@@ -5,7 +5,7 @@ import { uppercaseFirstLetter } from '../../utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti'
-import { TicketWithNames } from '../../server/router/ticket';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -25,11 +25,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isStaff = userRole === UserRole.STAFF;
 
-  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
-  const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
-  const requeueTicketsMutation = trpc.useMutation('ticket.requeueTickets');
-  const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
-  const reopenTicketsMutation = trpc.useMutation('ticket.reopenTickets');
+  const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
+  const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
+  const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
+  const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
+  const reopenTicketsMutation = trpc.ticket.reopenTickets.useMutation();
 
   const context = trpc.useContext();
   

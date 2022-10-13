@@ -15,13 +15,14 @@ const AdminPage: NextPage = () => {
   const [userRole, setUserRole] = useState<UserRole>();
   const toast = useToast();
 
-  trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: userId !== '',
-    refetchOnWindowFocus: false,
-    onSuccess: (data: UserRole) => {
-      setUserRole(data);
-    },
-  });
+    trpc.user.getUserRole.useQuery({ id: userId }, {
+        enabled: userId !== '',
+        refetchOnWindowFocus: false,
+        onSuccess: (data: UserRole) => {
+            setUserRole(data);
+        },
+        trpc: {}
+    });
 
   useEffect(() => {
     if (session) {

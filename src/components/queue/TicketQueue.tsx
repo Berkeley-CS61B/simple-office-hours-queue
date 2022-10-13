@@ -5,7 +5,7 @@ import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils';
-import { TicketWithNames } from '../../server/router/ticket';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -24,46 +24,50 @@ const TicketQueue = (props: TicketQueueProps) => {
   const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
 
-  const { isLoading: isGetSettingsLoading } = trpc.useQuery(['admin.getSettings'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
-    },
-  });
+    const { isLoading: isGetSettingsLoading } = trpc.admin.getSettings.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+        },
+        trpc: {}
+    });
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
       ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
       : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING];
 
-  const { isLoading: isGetOpenTicketsLoading } = trpc.useQuery(
-    ['ticket.getTicketsWithStatus', { status: TicketStatus.OPEN }],
-    {
-      refetchOnWindowFocus: false,
-      onSuccess: (data: TicketWithNames[]) => {
-        setOpenTickets(data);
+  const { isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
+    { status: TicketStatus.OPEN },
+      {
+          refetchOnWindowFocus: false,
+          onSuccess: (data: TicketWithNames[]) => {
+              setOpenTickets(data);
+          },
+          trpc: {}
       },
-    },
   );
 
-  const { isLoading: isGetAssignedTicketsLoading } = trpc.useQuery(
-    ['ticket.getTicketsWithStatus', { status: TicketStatus.ASSIGNED }],
-    {
-      refetchOnWindowFocus: false,
-      onSuccess: (data: TicketWithNames[]) => {
-        setAssignedTickets(data);
+  const { isLoading: isGetAssignedTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
+    { status: TicketStatus.ASSIGNED },
+      {
+          refetchOnWindowFocus: false,
+          onSuccess: (data: TicketWithNames[]) => {
+              setAssignedTickets(data);
+          },
+          trpc: {}
       },
-    },
   );
 
-  const { isLoading: isGetPendingTicketsLoading } = trpc.useQuery(
-    ['ticket.getTicketsWithStatus', { status: TicketStatus.PENDING }],
-    {
-      refetchOnWindowFocus: false,
-      onSuccess: (data: TicketWithNames[]) => {
-        setPendingTickets(data);
+  const { isLoading: isGetPendingTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
+    { status: TicketStatus.PENDING },
+      {
+          refetchOnWindowFocus: false,
+          onSuccess: (data: TicketWithNames[]) => {
+              setPendingTickets(data);
+          },
+          trpc: {}
       },
-    },
   );
 
   // Decides if the ticket should go to pending or assigned

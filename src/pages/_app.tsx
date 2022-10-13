@@ -5,7 +5,7 @@ import { withTRPC } from '@trpc/next';
 import { SessionProvider } from 'next-auth/react';
 import superjson from 'superjson';
 import { AppType } from 'next/app';
-import { AppRouter } from '../server/router';
+import { AppRouter } from '../server/trpc/router';
 import { Session } from 'next-auth';
 import '../styles/globals.css';
 import { ChakraProvider, ColorModeScript, extendTheme } from '@chakra-ui/react';

@@ -2,7 +2,7 @@ import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakr
 import { TicketStatus, UserRole } from '@prisma/client';
 import Router from 'next/router';
 import React from 'react';
-import { TicketWithNames } from '../../server/router/ticket';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 
 interface TicketCardProps {
@@ -20,9 +20,9 @@ const TicketCard = (props: TicketCardProps) => {
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
 
-  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
-  const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
-  const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
+  const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
+  const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
+  const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
