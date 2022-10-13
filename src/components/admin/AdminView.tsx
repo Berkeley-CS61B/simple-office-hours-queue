@@ -34,14 +34,10 @@ const AdminView = () => {
     },
   });
 
-  const { isLoading: isGetPendingStageLoading } = trpc.useQuery(['admin.getIsPendingStageEnabled'], {
+  const { isLoading: isGetSettingsLoading } = trpc.useQuery(['admin.getSettings'], {
     refetchOnWindowFocus: false,
-    onSuccess: data => {
-      if (data?.value === SiteSettingsValues.TRUE) {
-        setIsPendingStageEnabled(true);
-      } else {
-        setIsPendingStageEnabled(false);
-      }
+    onSuccess: (data: Map<SiteSettings, SiteSettingsValues>) => {
+      setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
     },
   });
 
@@ -59,9 +55,8 @@ const AdminView = () => {
   const handleTogglePendingStageEnabled = async () => {
     setIsPendingStageEnabled(prev => !prev);
     const valueToSet = isPendingStageEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
-    console.log(valueToSet);
     await setIsPendingStageEnabledMutation.mutateAsync({
-      setting: SiteSettings.isPendingStageEnabled,
+      setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
       value: valueToSet,
     });
   };
@@ -108,7 +103,7 @@ const AdminView = () => {
             </Text>
             <Flex>
               <Text fontSize='xl'>Pending Stage</Text>
-              {isGetPendingStageLoading ? (
+              {isGetSettingsLoading ? (
                 <Spinner />
               ) : (
                 <Switch ml={2} mt={2} isChecked={isPendingStageEnabled} onChange={handleTogglePendingStageEnabled} />

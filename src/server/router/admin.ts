@@ -1,6 +1,7 @@
 import { createRouter } from './context';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { z } from 'zod';
+import { settingsToDefault } from '../../utils';
 
 export const adminRouter = createRouter()
   .mutation('createAssigmnent', {
@@ -63,6 +64,7 @@ export const adminRouter = createRouter()
       });
     },
   })
+  // TODO: Change this to setSiteSettings and make custom hook
   .mutation('setIsPendingStageEnabled', {
     input: z.object({
       setting: z.nativeEnum(SiteSettings),
@@ -112,22 +114,23 @@ export const adminRouter = createRouter()
       });
     },
   })
-  .query('getIsPendingStageEnabled', {
+  .query('getSettings', {
     async resolve({ ctx }) {
-      let setting;
-      setting = ctx.prisma.settings.findUnique({
-        where: {
-          setting: SiteSettings.isPendingStageEnabled,
-        },
-      });
-      if (!setting) {
-        setting = ctx.prisma.settings.create({
-          data: {
-            setting: SiteSettings.isPendingStageEnabled,
-            value: SiteSettingsValues.TRUE, // Default will be true
+      const settings: Map<SiteSettings, SiteSettingsValues> = new Map();
+      for (const setting of Object.values(SiteSettings)) {
+		// Create the setting with the default value if it doesn't exist
+        const settingValue = await ctx.prisma.settings.upsert({
+          where: {
+            setting,
+          },
+          update: {},
+          create: {
+            setting,
+            value: settingsToDefault[setting]
           },
         });
+        settings.set(setting, settingValue.value);
       }
-	  return setting;
+      return settings;
     },
   });

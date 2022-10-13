@@ -126,8 +126,10 @@ enum TicketStatus {
     DELETED // TODO change this to CLOSED
 }
 
+// Default values for site settings are in utils.ts
 enum SiteSettings {
-    isPendingStageEnabled
+    IS_PENDING_STAGE_ENABLED
+	IS_QUEUE_OPEN
 }
 
 enum SiteSettingsValues {

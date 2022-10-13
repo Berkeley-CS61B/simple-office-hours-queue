@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { SiteSettingsValues, TicketStatus, UserRole } from '@prisma/client';
+import { useEffect, useState } from 'react';
+import { SiteSettings, SiteSettingsValues, TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, Spinner, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
@@ -21,7 +21,15 @@ const TicketQueue = (props: TicketQueueProps) => {
   const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
   const [openTickets, setOpenTickets] = useState<TicketWithNames[]>([]);
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
-  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
+  const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
+  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
+
+  const { isLoading: isGetSettingsLoading } = trpc.useQuery(['admin.getSettings'], {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+    },
+  });
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
@@ -58,16 +66,18 @@ const TicketQueue = (props: TicketQueueProps) => {
     },
   );
 
-  const { isLoading: isGetPendingStageLoading } = trpc.useQuery(['admin.getIsPendingStageEnabled'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      if (data?.value === SiteSettingsValues.TRUE) {
-        setIsPendingStageEnabled(true);
+  // Decides if the ticket should go to pending or assigned
+  // Note: We need an effect here because isPendingStageEnabled does not change in useChannel
+  useEffect(() => {
+    if (midwayTicket) {
+      if (isPendingStageEnabled) {
+        setPendingTickets(prev => [...prev, midwayTicket]);
       } else {
-        setIsPendingStageEnabled(false);
+        setOpenTickets(prev => [...prev, midwayTicket]);
       }
-    },
-  });
+      setMidwayTicket(undefined);
+    }
+  }, [midwayTicket]);
 
   /**
    * Ably channel to receive updates on ticket status.
@@ -76,13 +86,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   useChannel('tickets', ticketData => {
     const message = ticketData.name;
     if (message === 'new-ticket') {
-      const ticket: TicketWithNames = ticketData.data; // Tickets are not bulk-created
-	//   TODO: Make sure this works
-	  if (isPendingStageEnabled) {
-		setPendingTickets(prev => [...prev, ticket]);
-	  } else {
-		setOpenTickets(prev => [...prev, ticket]);
-	  }
+      setMidwayTicket(ticketData.data);
       return;
     }
 
@@ -131,7 +135,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      {isGetPendingStageLoading ? (
+      {isGetSettingsLoading ? (
         <Spinner />
       ) : (
         <Tabs isFitted variant='enclosed' isLazy>

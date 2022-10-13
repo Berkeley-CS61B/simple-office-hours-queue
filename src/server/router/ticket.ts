@@ -22,7 +22,7 @@ export const ticketRouter = createRouter()
     async resolve({ ctx, input }) {
       const pendingStageEnabled = await ctx.prisma.settings.findUnique({
         where: {
-          setting: SiteSettings.isPendingStageEnabled,
+          setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
         },
       });
 
