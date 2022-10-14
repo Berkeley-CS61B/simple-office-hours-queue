@@ -14,11 +14,11 @@ import {
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
-import { UseMutationResult } from 'react-query';
+import { UseTRPCMutationResult } from '@trpc/react/shared';
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
-  editMutation: UseMutationResult<any, any, any, any>;
+  editMutation: UseTRPCMutationResult<any, any, any, any>;
 }
 
 const EditableControls = () => {

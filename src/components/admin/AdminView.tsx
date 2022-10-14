@@ -14,7 +14,7 @@ const AdminView = () => {
   const [locationText, setLocationText] = useState<string>('');
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
 
-  const createAssignmentMutation = trpc.admin.createAssigmnent.useMutation();
+  const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
   const createLocationMutation = trpc.admin.createLocation.useMutation();
   const editLocationMutation = trpc.admin.editLocation.useMutation();

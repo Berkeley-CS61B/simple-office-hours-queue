@@ -10,6 +10,7 @@ export const userRouter = router({
     });
     return fullUser?.role;
   }),
+
   getUserName: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     const fullUser = await ctx.prisma.user.findFirst({
       where: {

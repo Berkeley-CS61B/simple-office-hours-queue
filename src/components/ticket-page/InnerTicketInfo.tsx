@@ -4,7 +4,7 @@ import { Text, Button } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
-import Confetti from 'react-confetti'
+import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface InnerTicketInfoProps {
@@ -18,7 +18,8 @@ interface InnerTicketInfoProps {
 const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole } = props;
   const [showConfetti, setShowConfetti] = useState(false);
-  const canSeeName = ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
+  const canSeeName =
+    ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
@@ -32,12 +33,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const reopenTicketsMutation = trpc.ticket.reopenTickets.useMutation();
 
   const context = trpc.useContext();
-  
+
   // Listens for updates on the ticket status
   useChannel(`ticket-${ticket.id}`, ticketData => {
     const message = ticketData.name;
     const shouldUpdateTicketMessages: string[] = [
-	  'ticket-approved',
+      'ticket-approved',
       'ticket-resolved',
       'ticket-assigned',
       'ticket-reopened',
@@ -45,13 +46,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     ];
 
     if (shouldUpdateTicketMessages.includes(message)) {
-      context.invalidateQueries(['ticket.getTicket', { id: ticket.id }]);
+      context.ticket.getTicket.invalidate({ id: ticket.id });
     }
   });
 
   const handleResolveTicket = async () => {
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
-		setShowConfetti(true);
+      setShowConfetti(true);
     });
   };
 
@@ -68,8 +69,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleApproveTicket = async () => {
-	await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-  }
+    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+  };
 
   return (
     <>
@@ -95,8 +96,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || !isResolved}>
         Reopen
       </Button>
-	  <Confetti recycle={false} numberOfPieces={200} run={showConfetti} onConfettiComplete={() => setShowConfetti(false)} />
-
+      <Confetti
+        recycle={false}
+        numberOfPieces={200}
+        run={showConfetti}
+        onConfettiComplete={() => setShowConfetti(false)}
+      />
     </>
   );
 };

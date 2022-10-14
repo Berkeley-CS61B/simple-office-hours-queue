@@ -1,5 +1,3 @@
-import { createRouter } from './context';
-import { z } from 'zod';
 import Ably from 'ably/promises';
 import {
   Assignment,
@@ -11,15 +9,19 @@ import {
   TicketStatus,
   User,
 } from '@prisma/client';
+import { router, publicProcedure } from '../trpc';
+import { z } from 'zod';
 
-export const ticketRouter = createRouter()
-  .mutation('createTicket', {
-    input: z.object({
-      description: z.string().optional(),
-      assignmentId: z.number(),
-      locationId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
+export const ticketRouter = router({
+  createTicket: publicProcedure
+    .input(
+      z.object({
+        description: z.string().optional(),
+        assignmentId: z.number(),
+        locationId: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const pendingStageEnabled = await ctx.prisma.settings.findUnique({
         where: {
           setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
@@ -56,14 +58,15 @@ export const ticketRouter = createRouter()
       await channel.publish('new-ticket', ticketWithNames[0]);
 
       return ticketWithNames[0];
-    },
-  })
-  // Concierge can approve a ticket
-  .mutation('approveTickets', {
-    input: z.object({
-      ticketIds: z.array(z.number()),
     }),
-    async resolve({ input, ctx }) {
+
+  approveTickets: publicProcedure
+    .input(
+      z.object({
+        ticketIds: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const approvedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
@@ -86,13 +89,15 @@ export const ticketRouter = createRouter()
         }
         return tickets;
       });
-    },
-  })
-  .mutation('assignTickets', {
-    input: z.object({
-      ticketIds: z.array(z.number()),
     }),
-    async resolve({ input, ctx }) {
+
+  assignTickets: publicProcedure
+    .input(
+      z.object({
+        ticketIds: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const assignedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
@@ -122,13 +127,15 @@ export const ticketRouter = createRouter()
         }
         return tickets;
       });
-    },
-  })
-  .mutation('resolveTickets', {
-    input: z.object({
-      ticketIds: z.array(z.number()),
     }),
-    async resolve({ input, ctx }) {
+
+  resolveTickets: publicProcedure
+    .input(
+      z.object({
+        ticketIds: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const resolvedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
@@ -151,13 +158,15 @@ export const ticketRouter = createRouter()
         }
         return tickets;
       });
-    },
-  })
-  .mutation('requeueTickets', {
-    input: z.object({
-      ticketIds: z.array(z.number()),
     }),
-    async resolve({ input, ctx }) {
+
+  requeueTickets: publicProcedure
+    .input(
+      z.object({
+        ticketIds: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const requeuedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
@@ -180,13 +189,15 @@ export const ticketRouter = createRouter()
         }
         return tickets;
       });
-    },
-  })
-  .mutation('reopenTickets', {
-    input: z.object({
-      ticketIds: z.array(z.number()),
     }),
-    async resolve({ input, ctx }) {
+
+  reopenTickets: publicProcedure
+    .input(
+      z.object({
+        ticketIds: z.array(z.number()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const reopenedTickets: Ticket[] = [];
 
       for (const ticketId of input.ticketIds) {
@@ -209,14 +220,16 @@ export const ticketRouter = createRouter()
         }
         return tickets;
       });
-    },
-  })
-  .mutation('sendChatMessage', {
-    input: z.object({
-      ticketId: z.number(),
-      message: z.string(),
     }),
-    async resolve({ input, ctx }) {
+
+  sendChatMessage: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        message: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
       const chatMessage = await ctx.prisma.chatMessage.create({
         data: {
           message: input.message,
@@ -248,13 +261,15 @@ export const ticketRouter = createRouter()
       const channel = ably.channels.get(`ticket-${input.ticketId}`);
       channel.publish('chat-message', chatMessageWithUserName);
       return chatMessage;
-    },
-  })
-  .query('getTicket', {
-    input: z.object({
-      id: z.number(),
     }),
-    async resolve({ input, ctx }) {
+
+  getTicket: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
       const ticket: Ticket | null = await ctx.prisma.ticket.findUnique({
         where: {
           id: input.id,
@@ -268,13 +283,15 @@ export const ticketRouter = createRouter()
       const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
 
       return ticketsWithNames[0];
-    },
-  })
-  .query('getTicketsWithStatus', {
-    input: z.object({
-      status: z.nativeEnum(TicketStatus),
     }),
-    async resolve({ input, ctx }) {
+
+  getTicketsWithStatus: publicProcedure
+    .input(
+      z.object({
+        status: z.nativeEnum(TicketStatus),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
@@ -284,13 +301,15 @@ export const ticketRouter = createRouter()
       const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames(tickets, ctx);
 
       return ticketsWithNames;
-    },
-  })
-  .query('getChatMessages', {
-    input: z.object({
-      ticketId: z.number(),
     }),
-    async resolve({ input, ctx }) {
+
+  getChatMessages: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
       const messages: ChatMessage[] = await ctx.prisma.chatMessage.findMany({
         where: {
           ticketId: input.ticketId,
@@ -317,8 +336,8 @@ export const ticketRouter = createRouter()
       });
 
       return messagesWithUser;
-    },
-  });
+    }),
+});
 
 const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
   const ticketsWithNames: TicketWithNames[] = await Promise.all(
