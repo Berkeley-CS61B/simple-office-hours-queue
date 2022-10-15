@@ -2,6 +2,7 @@ import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { settingsToDefault } from '../../../utils/utils';
+import { TRPCError } from '@trpc/server';
 
 export const adminRouter = router({
   createAssignment: publicProcedure
@@ -66,26 +67,39 @@ export const adminRouter = router({
       });
     }),
 
-  setIsPendingStageEnabled: publicProcedure
+	// TOO Fix this type, I think you can pass in any key right now
+  setSiteSettings: publicProcedure
     .input(
       z.object({
-        setting: z.nativeEnum(SiteSettings),
-        value: z.nativeEnum(SiteSettingsValues),
+        // Map each key in SiteSettings to type SiteSettingsValues, where theyre all optional
+        ...Object.fromEntries(
+          Object.keys(SiteSettings).map(key => [key, z.optional(z.nativeEnum(SiteSettingsValues))]),
+        ),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      return ctx.prisma.settings.upsert({
-        where: {
-          setting: input.setting,
-        },
-        update: {
-          value: input.value,
-        },
-        create: {
-          setting: input.setting,
-          value: input.value,
-        },
-      });
+      for (const key in input) {
+        if (!Object.keys(SiteSettings).includes(key)) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Invalid settings key: ${key}`,
+          });
+        }
+
+        const setting = key as SiteSettings;
+        await ctx.prisma.settings.upsert({
+          where: {
+            setting,
+          },
+          update: {
+            value: input[setting],
+          },
+          create: {
+            setting,
+            value: input[setting] ?? settingsToDefault[setting],
+          },
+        });
+      }
     }),
 
   getAllAssignments: publicProcedure.query(async ({ ctx }) => {

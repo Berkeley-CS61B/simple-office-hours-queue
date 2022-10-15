@@ -25,7 +25,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
   const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
 
-  const isPendingStageEnabled = siteSettings?.get(SiteSettings.IS_PENDING_STAGE_ENABLED);
+  const isPendingStageEnabled = siteSettings?.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE;
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
@@ -34,35 +34,35 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const { isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.OPEN },
-      {
-          refetchOnWindowFocus: false,
-          onSuccess: (data: TicketWithNames[]) => {
-              setOpenTickets(data);
-          },
-          trpc: {}
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data: TicketWithNames[]) => {
+        setOpenTickets(data);
       },
+      trpc: {},
+    },
   );
 
   const { isLoading: isGetAssignedTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.ASSIGNED },
-      {
-          refetchOnWindowFocus: false,
-          onSuccess: (data: TicketWithNames[]) => {
-              setAssignedTickets(data);
-          },
-          trpc: {}
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data: TicketWithNames[]) => {
+        setAssignedTickets(data);
       },
+      trpc: {},
+    },
   );
 
   const { isLoading: isGetPendingTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.PENDING },
-      {
-          refetchOnWindowFocus: false,
-          onSuccess: (data: TicketWithNames[]) => {
-              setPendingTickets(data);
-          },
-          trpc: {}
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data: TicketWithNames[]) => {
+        setPendingTickets(data);
       },
+      trpc: {},
+    },
   );
 
   // Decides if the ticket should go to pending or assigned

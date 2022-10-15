@@ -26,7 +26,7 @@ const AdminView = () => {
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
   const createLocationMutation = trpc.admin.createLocation.useMutation();
   const editLocationMutation = trpc.admin.editLocation.useMutation();
-  const setIsPendingStageEnabledMutation = trpc.admin.setIsPendingStageEnabled.useMutation();
+  const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
 
   const { isLoading: isAssignmentsLoading } = trpc.admin.getAllAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -58,9 +58,8 @@ const AdminView = () => {
   const handleTogglePendingStageEnabled = async () => {
     setIsPendingStageEnabled(prev => !prev);
     const valueToSet = isPendingStageEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
-    await setIsPendingStageEnabledMutation.mutateAsync({
-      setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
-      value: valueToSet,
+    await setSiteSettingsMutation.mutateAsync({
+      [SiteSettings.IS_PENDING_STAGE_ENABLED]: valueToSet,
     });
   };
 
