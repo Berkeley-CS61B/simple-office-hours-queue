@@ -1,7 +1,7 @@
 import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
 import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
-import { uppercaseFirstLetter } from '../../utils';
+import { uppercaseFirstLetter } from '../../utils/utils';
 import { useEffect, useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react'

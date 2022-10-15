@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Assignment, Location, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
 import { Button, Flex, Input, Spinner, Switch, Text } from '@chakra-ui/react';
 import AdminCard from './AdminCard';
+import useSiteSettings from '../../utils/hooks/useSiteSettings';
 
 /**
  * Component which allows staff to edit the available locations and assignments
@@ -13,6 +14,13 @@ const AdminView = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationText, setLocationText] = useState<string>('');
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
+  const { isLoading: isGetSettingsLoading, siteSettings } = useSiteSettings();
+
+  useEffect(() => {
+    if (siteSettings) {
+      setIsPendingStageEnabled(siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+    }
+  }, [siteSettings]);
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
@@ -20,29 +28,21 @@ const AdminView = () => {
   const editLocationMutation = trpc.admin.editLocation.useMutation();
   const setIsPendingStageEnabledMutation = trpc.admin.setIsPendingStageEnabled.useMutation();
 
-    const { isLoading: isAssignmentsLoading } = trpc.admin.getAllAssignments.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            setAssignments(data);
-        },
-        trpc: {}
-    });
+  const { isLoading: isAssignmentsLoading } = trpc.admin.getAllAssignments.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setAssignments(data);
+    },
+    trpc: {},
+  });
 
-    const { isLoading: isLocationsLoading } = trpc.admin.getAllLocations.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            setLocations(data);
-        },
-        trpc: {}
-    });
-
-    const { isLoading: isGetSettingsLoading } = trpc.admin.getSettings.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: (data: Map<SiteSettings, SiteSettingsValues>) => {
-            setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
-        },
-        trpc: {}
-    });
+  const { isLoading: isLocationsLoading } = trpc.admin.getAllLocations.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setLocations(data);
+    },
+    trpc: {},
+  });
 
   const handleCreateAssignment = async () => {
     const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });

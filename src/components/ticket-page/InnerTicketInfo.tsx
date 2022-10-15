@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { UserRole, TicketStatus } from '@prisma/client';
 import { Text, Button } from '@chakra-ui/react';
-import { uppercaseFirstLetter } from '../../utils';
+import { uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';

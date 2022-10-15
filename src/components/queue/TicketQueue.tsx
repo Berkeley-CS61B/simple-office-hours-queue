@@ -4,8 +4,9 @@ import { Flex, Skeleton, Spinner, Tab, TabList, TabPanel, TabPanels, Tabs, Text 
 import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
-import { uppercaseFirstLetter } from '../../utils';
+import { uppercaseFirstLetter } from '../../utils/utils';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+import useSiteSettings from '../../utils/hooks/useSiteSettings';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -17,20 +18,14 @@ interface TicketQueueProps {
  */
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole } = props;
+  const { isLoading: isGetSettingsLoading, siteSettings } = useSiteSettings();
 
   const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
   const [openTickets, setOpenTickets] = useState<TicketWithNames[]>([]);
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
   const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
-  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
 
-    const { isLoading: isGetSettingsLoading } = trpc.admin.getSettings.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
-        },
-        trpc: {}
-    });
+  const isPendingStageEnabled = siteSettings?.get(SiteSettings.IS_PENDING_STAGE_ENABLED);
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled

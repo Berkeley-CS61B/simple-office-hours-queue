@@ -1,7 +1,7 @@
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
-import { settingsToDefault } from '../../../utils';
+import { settingsToDefault } from '../../../utils/utils';
 
 export const adminRouter = router({
   createAssignment: publicProcedure
@@ -112,6 +112,7 @@ export const adminRouter = router({
     });
   }),
 
+  // This is used inside of the useSiteSettings custom hook
   getSettings: publicProcedure.query(async ({ ctx }) => {
     const settings: Map<SiteSettings, SiteSettingsValues> = new Map();
     for (const setting of Object.values(SiteSettings)) {
