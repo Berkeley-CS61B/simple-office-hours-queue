@@ -17,13 +17,14 @@ const Home: NextPage = () => {
   const [isAblyConnected, setIsAblyConnected] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>();
 
-  trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: userId !== '',
-	refetchOnWindowFocus: false,
-	onSuccess: (data: UserRole) => {
-	  setUserRole(data);
-	}
-  });
+    trpc.user.getUserRole.useQuery({ id: userId }, {
+        enabled: userId !== '',
+        refetchOnWindowFocus: false,
+        onSuccess: (data: UserRole) => {
+            setUserRole(data);
+        },
+        trpc: {}
+    });
 
   useEffect(() => {
     if (session) {

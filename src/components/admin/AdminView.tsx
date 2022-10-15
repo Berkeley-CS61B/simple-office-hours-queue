@@ -14,32 +14,35 @@ const AdminView = () => {
   const [locationText, setLocationText] = useState<string>('');
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>(false);
 
-  const createAssignmentMutation = trpc.useMutation('admin.createAssigmnent');
-  const editAssignmentMutation = trpc.useMutation('admin.editAssignment');
-  const createLocationMutation = trpc.useMutation('admin.createLocation');
-  const editLocationMutation = trpc.useMutation('admin.editLocation');
-  const setIsPendingStageEnabledMutation = trpc.useMutation('admin.setIsPendingStageEnabled');
+  const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
+  const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
+  const createLocationMutation = trpc.admin.createLocation.useMutation();
+  const editLocationMutation = trpc.admin.editLocation.useMutation();
+  const setIsPendingStageEnabledMutation = trpc.admin.setIsPendingStageEnabled.useMutation();
 
-  const { isLoading: isAssignmentsLoading } = trpc.useQuery(['admin.getAllAssignments'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      setAssignments(data);
-    },
-  });
+    const { isLoading: isAssignmentsLoading } = trpc.admin.getAllAssignments.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            setAssignments(data);
+        },
+        trpc: {}
+    });
 
-  const { isLoading: isLocationsLoading } = trpc.useQuery(['admin.getAllLocations'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      setLocations(data);
-    },
-  });
+    const { isLoading: isLocationsLoading } = trpc.admin.getAllLocations.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            setLocations(data);
+        },
+        trpc: {}
+    });
 
-  const { isLoading: isGetSettingsLoading } = trpc.useQuery(['admin.getSettings'], {
-    refetchOnWindowFocus: false,
-    onSuccess: (data: Map<SiteSettings, SiteSettingsValues>) => {
-      setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
-    },
-  });
+    const { isLoading: isGetSettingsLoading } = trpc.admin.getSettings.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: (data: Map<SiteSettings, SiteSettingsValues>) => {
+            setIsPendingStageEnabled(data.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+        },
+        trpc: {}
+    });
 
   const handleCreateAssignment = async () => {
     const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });

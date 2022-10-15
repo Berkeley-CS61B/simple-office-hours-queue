@@ -27,23 +27,25 @@ const CreateTicketForm = () => {
   const [location, setLocation] = useState<Location>();
   const toast = useToast();
 
-  const createTicketMutation = trpc.useMutation('ticket.createTicket');
-  trpc.useQuery(['admin.getActiveAssignments'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      setAssignmentOptions(
-        data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
-      );
-    },
-  });
-  trpc.useQuery(['admin.getActiveLocations'], {
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      setLocationOptions(
-        data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
-      );
-    },
-  });
+  const createTicketMutation = trpc.ticket.createTicket.useMutation();
+    trpc.admin.getActiveAssignments.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            setAssignmentOptions(
+                data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
+            );
+        },
+        trpc: {}
+    });
+    trpc.admin.getActiveLocations.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            setLocationOptions(
+                data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
+            );
+        },
+        trpc: {}
+    });
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

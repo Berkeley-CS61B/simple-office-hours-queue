@@ -3,7 +3,7 @@ import { useChannel } from '@ably-labs/react-hooks';
 import { Button, Input, Box, Flex, Text, Spinner } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
-import { ChatMessageWithUserName } from '../../server/router/ticket';
+import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
 
 interface ChatProps {
   ticketId: number;
@@ -21,24 +21,25 @@ const Chat = (props: ChatProps) => {
   const [messageText, setMessageText] = useState<string>('');
   const [isChatLoaded, setIsChatLoaded] = useState<boolean>(false);
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
-  const sendChatMessageMutation = trpc.useMutation('ticket.sendChatMessage');
+  const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
 
-  trpc.useQuery(['ticket.getChatMessages', { ticketId }], {
-    enabled: ticketId !== undefined,
-    refetchOnWindowFocus: false,
-    onSuccess: data => {
-      const messages: Message[] = data.map(message => {
-        return {
-          content: message.message,
-          sentByName: message.userName,
-          sentByUserId: message.userId,
-        };
-      });
-      setMessages(messages);
-      setIsChatLoaded(true);
-    },
-  });
+    trpc.ticket.getChatMessages.useQuery({ ticketId }, {
+        enabled: ticketId !== undefined,
+        refetchOnWindowFocus: false,
+        onSuccess: data => {
+            const messages: Message[] = data.map(message => {
+                return {
+                    content: message.message,
+                    sentByName: message.userName,
+                    sentByUserId: message.userId,
+                };
+            });
+            setMessages(messages);
+            setIsChatLoaded(true);
+        },
+        trpc: {}
+    });
 
   let inputBox: any = null;
   let messageEnd: any = null;

@@ -59,13 +59,18 @@ export const Navbar = () => {
   const { data: session } = useSession();
   const [userRole, setUserRole] = useState<UserRole>();
   const [userId, setUserId] = useState<string>('');
-  trpc.useQuery(['user.getUserRole', { id: userId }], {
-    enabled: userId !== '',
-    refetchOnWindowFocus: false,
-    onSuccess: (data: UserRole) => {
-      setUserRole(data);
+
+  // Convert above query to v10 trpc syntax
+  trpc.user.getUserRole.useQuery(
+    { id: userId },
+    {
+      enabled: userId !== '',
+      refetchOnWindowFocus: false,
+      onSuccess: (data: UserRole) => {
+        setUserRole(data);
+      },
     },
-  });
+  );
 
   useEffect(() => {
     if (session) {
@@ -84,13 +89,13 @@ export const Navbar = () => {
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>
-			{userRole && userRole === UserRole.STAFF && (
-            <Link href='/admin'>
-              <Text fontWeight='semibold' className='hover-cursor'>
-                Admin
-              </Text>
-            </Link>
-			)}
+            {userRole && userRole === UserRole.STAFF && (
+              <Link href='/admin'>
+                <Text fontWeight='semibold' className='hover-cursor'>
+                  Admin
+                </Text>
+              </Link>
+            )}
             <DarkModeToggle />
             <AvatarDropdown />
           </Stack>

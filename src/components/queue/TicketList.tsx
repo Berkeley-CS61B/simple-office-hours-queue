@@ -5,7 +5,7 @@ import { uppercaseFirstLetter } from '../../utils';
 import { useEffect, useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react'
-import { TicketWithNames } from '../../server/router/ticket';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
@@ -24,9 +24,9 @@ const TicketList = (props: TicketListProps) => {
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
   const { tickets, ticketStatus, userRole } = props;
-  const approveTicketsMutation = trpc.useMutation('ticket.approveTickets');
-  const assignTicketsMutation = trpc.useMutation('ticket.assignTickets');
-  const resolveTicketsMutation = trpc.useMutation('ticket.resolveTickets');
+  const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
+  const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
+  const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const [parent] : any = useAutoAnimate();
 
   // TODO add loading state
