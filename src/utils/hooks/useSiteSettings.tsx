@@ -10,6 +10,7 @@ const useSiteSettings = () => {
 
   const { isLoading } = trpc.admin.getSettings.useQuery(undefined, {
     refetchOnWindowFocus: false,
+
     onSuccess: data => {
       setSiteSettings(data);
     },

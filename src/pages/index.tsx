@@ -8,6 +8,7 @@ import { UserRole } from '@prisma/client';
 import CreateTicket from '../components/queue/CreateTicket';
 import TicketQueue from '../components/queue/TicketQueue';
 import Broadcast from '../components/queue/Broadcast';
+import OpenOrCloseQueue from '../components/queue/OpenOrCloseQueue';
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
@@ -25,12 +26,21 @@ const Home: NextPage = () => {
       });
     }
   }, [session]);
-  
+
+  const StaffView = () => {
+    return (
+      <>
+        <Broadcast />
+		<OpenOrCloseQueue />
+      </>
+    );
+  };
+
   return (
     <Layout isAblyConnected={isAblyConnected}>
       {session && session.user && isAblyConnected && (
         <>
-          {session.user.role === UserRole.STAFF && <Broadcast />}
+          {session.user.role === UserRole.STAFF && <StaffView />}
           {session.user.role === UserRole.STUDENT && <CreateTicket />}
           <TicketQueue userRole={session.user.role} />
         </>
