@@ -24,22 +24,25 @@ const Chat = (props: ChatProps) => {
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
 
-    trpc.ticket.getChatMessages.useQuery({ ticketId }, {
-        enabled: ticketId !== undefined,
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            const messages: Message[] = data.map(message => {
-                return {
-                    content: message.message,
-                    sentByName: message.userName,
-                    sentByUserId: message.userId,
-                };
-            });
-            setMessages(messages);
-            setIsChatLoaded(true);
-        },
-        trpc: {}
-    });
+  trpc.ticket.getChatMessages.useQuery(
+    { ticketId },
+    {
+      enabled: ticketId !== undefined,
+      refetchOnWindowFocus: false,
+      onSuccess: data => {
+        const messages: Message[] = data.map(message => {
+          return {
+            content: message.message,
+            sentByName: message.userName,
+            sentByUserId: message.userId,
+          };
+        });
+        setMessages(messages);
+        setIsChatLoaded(true);
+      },
+      trpc: {},
+    },
+  );
 
   let inputBox: any = null;
   let messageEnd: any = null;

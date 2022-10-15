@@ -21,22 +21,9 @@ const TicketPage: NextPage = () => {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string>('');
   const [isAblyConnected, setIsAblyConnected] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>();
   const [ticket, setTicket] = useState<TicketWithNames>();
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
-
-  trpc.user.getUserRole.useQuery(
-    { id: userId },
-    {
-      enabled: userId !== '',
-      refetchOnWindowFocus: false,
-      onSuccess: (data: UserRole) => {
-        setUserRole(data);
-      },
-      trpc: {},
-    },
-  );
 
   trpc.ticket.getTicket.useQuery(
     { id },
@@ -68,6 +55,8 @@ const TicketPage: NextPage = () => {
       });
     }
   }, [session]);
+
+  const userRole = session?.user?.role;
 
   const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId;
 

@@ -1,8 +1,7 @@
 import { NextPage } from 'next';
 import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
-import { trpc } from '../../utils/trpc';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { UserRole } from '@prisma/client';
 import { useToast } from '@chakra-ui/react';
 import Router from 'next/router';
@@ -11,25 +10,9 @@ import AdminView from '../../components/admin/AdminView';
 // TODO add leaderboard and time per ticket
 const AdminPage: NextPage = () => {
   const { data: session } = useSession();
-  const [userId, setUserId] = useState<string>('');
-  const [userRole, setUserRole] = useState<UserRole>();
   const toast = useToast();
 
-    trpc.user.getUserRole.useQuery({ id: userId }, {
-        enabled: userId !== '',
-        refetchOnWindowFocus: false,
-        onSuccess: (data: UserRole) => {
-            setUserRole(data);
-        },
-        trpc: {}
-    });
-
-  useEffect(() => {
-    if (session) {
-      setUserId(session.user?.id!);
-    }
-  }, [session]);
-
+  const userRole = session?.user?.role;
   const authorized = userRole === UserRole.STAFF;
 
   useEffect(() => {

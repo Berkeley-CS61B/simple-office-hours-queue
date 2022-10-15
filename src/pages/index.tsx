@@ -1,7 +1,6 @@
 import { NextPage } from 'next';
 import Layout from '../components/layout/Layout';
 import { useSession } from 'next-auth/react';
-import { trpc } from '../utils/trpc';
 import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../env/schema.mjs';
@@ -10,26 +9,12 @@ import CreateTicket from '../components/queue/CreateTicket';
 import TicketQueue from '../components/queue/TicketQueue';
 import Broadcast from '../components/queue/Broadcast';
 
-// TODO Verify that anyone cant make a request to any endpoint (https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
 const Home: NextPage = () => {
   const { data: session } = useSession();
-  const [userId, setUserId] = useState<string>('');
   const [isAblyConnected, setIsAblyConnected] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>();
-
-    trpc.user.getUserRole.useQuery({ id: userId }, {
-        enabled: userId !== '',
-        refetchOnWindowFocus: false,
-        onSuccess: (data: UserRole) => {
-            setUserRole(data);
-        },
-        trpc: {}
-    });
 
   useEffect(() => {
     if (session) {
-      setUserId(session.user?.id!);
-
       // Maybe better way to do this?
       new Promise(resolve => {
         configureAbly({
@@ -43,11 +28,11 @@ const Home: NextPage = () => {
   
   return (
     <Layout isAblyConnected={isAblyConnected}>
-      {userRole && isAblyConnected && (
+      {session && session.user && isAblyConnected && (
         <>
-          {userRole === UserRole.STAFF && <Broadcast />}
-          {userRole === UserRole.STUDENT && <CreateTicket />}
-          <TicketQueue userRole={userRole} />
+          {session.user.role === UserRole.STAFF && <Broadcast />}
+          {session.user.role === UserRole.STUDENT && <CreateTicket />}
+          <TicketQueue userRole={session.user.role} />
         </>
       )}
     </Layout>

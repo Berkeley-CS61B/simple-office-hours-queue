@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -19,7 +18,6 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
-import { trpc } from '../../utils/trpc';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
@@ -57,26 +55,6 @@ const AvatarDropdown = () => {
 
 export const Navbar = () => {
   const { data: session } = useSession();
-  const [userRole, setUserRole] = useState<UserRole>();
-  const [userId, setUserId] = useState<string>('');
-
-  // Convert above query to v10 trpc syntax
-  trpc.user.getUserRole.useQuery(
-    { id: userId },
-    {
-      enabled: userId !== '',
-      refetchOnWindowFocus: false,
-      onSuccess: (data: UserRole) => {
-        setUserRole(data);
-      },
-    },
-  );
-
-  useEffect(() => {
-    if (session) {
-      setUserId(session.user?.id!);
-    }
-  }, [session]);
 
   return (
     <Box bg={useColorModeValue('gray.100', 'gray.900')}>
@@ -89,7 +67,7 @@ export const Navbar = () => {
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>
-            {userRole && userRole === UserRole.STAFF && (
+            {session?.user?.role === UserRole.STAFF && (
               <Link href='/admin'>
                 <Text fontWeight='semibold' className='hover-cursor'>
                   Admin
