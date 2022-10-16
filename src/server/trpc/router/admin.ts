@@ -1,12 +1,12 @@
 import Ably from 'ably/promises';
-import { router, publicProcedure } from '../trpc';
+import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { settingsToDefault } from '../../../utils/utils';
 import { TRPCError } from '@trpc/server';
 
 export const adminRouter = router({
-  createAssignment: publicProcedure
+  createAssignment: protectedStaffProcedure
     .input(
       z.object({
         name: z.string(),
@@ -20,7 +20,7 @@ export const adminRouter = router({
       });
     }),
 
-  createLocation: publicProcedure.input(z.object({ name: z.string() })).mutation(async ({ input, ctx }) => {
+  createLocation: protectedStaffProcedure.input(z.object({ name: z.string() })).mutation(async ({ input, ctx }) => {
     return ctx.prisma.location.create({
       data: {
         name: input.name,
@@ -28,7 +28,7 @@ export const adminRouter = router({
     });
   }),
 
-  editAssignment: publicProcedure
+  editAssignment: protectedStaffProcedure
     .input(
       z.object({
         id: z.number(),
@@ -48,7 +48,7 @@ export const adminRouter = router({
       });
     }),
 
-  editLocation: publicProcedure
+  editLocation: protectedStaffProcedure
     .input(
       z.object({
         id: z.number(),
@@ -68,7 +68,7 @@ export const adminRouter = router({
       });
     }),
 
-  setSiteSettings: publicProcedure
+  setSiteSettings: protectedStaffProcedure
     .input(
       z.object({
         // Map each key in SiteSettings to type SiteSettingsValues, where theyre all optional
@@ -108,15 +108,15 @@ export const adminRouter = router({
       }
     }),
 
-  getAllAssignments: publicProcedure.query(async ({ ctx }) => {
+  getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.assignment.findMany();
   }),
 
-  getAllLocations: publicProcedure.query(async ({ ctx }) => {
+  getAllLocations: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany();
   }),
 
-  getActiveAssignments: publicProcedure.query(async ({ ctx }) => {
+  getActiveAssignments: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.assignment.findMany({
       where: {
         active: true,
@@ -124,7 +124,7 @@ export const adminRouter = router({
     });
   }),
 
-  getActiveLocations: publicProcedure.query(async ({ ctx }) => {
+  getActiveLocations: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany({
       where: {
         active: true,
@@ -133,7 +133,7 @@ export const adminRouter = router({
   }),
 
   // This is used inside of the useSiteSettings custom hook
-  getSettings: publicProcedure.query(async ({ ctx }) => {
+  getSettings: protectedProcedure.query(async ({ ctx }) => {
     const settings: Map<SiteSettings, SiteSettingsValues> = new Map();
     for (const setting of Object.values(SiteSettings)) {
       // Create the setting with the default value if it doesn't exist

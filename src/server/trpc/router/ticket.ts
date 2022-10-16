@@ -9,11 +9,11 @@ import {
   TicketStatus,
   User,
 } from '@prisma/client';
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure, protectedStaffProcedure } from '../trpc';
 import { z } from 'zod';
 
 export const ticketRouter = router({
-  createTicket: publicProcedure
+  createTicket: protectedProcedure
     .input(
       z.object({
         description: z.string().optional(),
@@ -60,7 +60,7 @@ export const ticketRouter = router({
       return ticketWithNames[0];
     }),
 
-  approveTickets: publicProcedure
+  approveTickets: protectedStaffProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -91,7 +91,7 @@ export const ticketRouter = router({
       });
     }),
 
-  assignTickets: publicProcedure
+  assignTickets: protectedStaffProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -129,7 +129,7 @@ export const ticketRouter = router({
       });
     }),
 
-  resolveTickets: publicProcedure
+  resolveTickets: protectedStaffProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -160,7 +160,7 @@ export const ticketRouter = router({
       });
     }),
 
-  requeueTickets: publicProcedure
+  requeueTickets: protectedStaffProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -191,7 +191,7 @@ export const ticketRouter = router({
       });
     }),
 
-  reopenTickets: publicProcedure
+  reopenTickets: protectedStaffProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -222,7 +222,7 @@ export const ticketRouter = router({
       });
     }),
 
-  sendChatMessage: publicProcedure
+  sendChatMessage: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
@@ -263,7 +263,8 @@ export const ticketRouter = router({
       return chatMessage;
     }),
 
-  clearQueue: publicProcedure.mutation(async ({ ctx }) => {
+  //   TODO: This should be using the CLOSED status instead of RESOLVED
+  clearQueue: protectedStaffProcedure.mutation(async ({ ctx }) => {
     // Resolves all open, pending, and assigned tickets.
     // Note: This is slower than using updateMany but it allows us to push to Ably
     const resolvedTickets: Ticket[] = [];
@@ -297,7 +298,7 @@ export const ticketRouter = router({
     });
   }),
 
-  getTicket: publicProcedure
+  getTicket: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -319,7 +320,7 @@ export const ticketRouter = router({
       return ticketsWithNames[0];
     }),
 
-  getTicketsWithStatus: publicProcedure
+  getTicketsWithStatus: protectedProcedure
     .input(
       z.object({
         status: z.nativeEnum(TicketStatus),
@@ -337,7 +338,7 @@ export const ticketRouter = router({
       return ticketsWithNames;
     }),
 
-  getChatMessages: publicProcedure
+  getChatMessages: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
