@@ -1,3 +1,4 @@
+import Ably from 'ably/promises';
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
@@ -99,6 +100,12 @@ export const adminRouter = router({
             value: input[setting] ?? settingsToDefault[setting],
           },
         });
+
+		if (setting === SiteSettings.IS_QUEUE_OPEN) {
+			const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+			const channel = ably.channels.get('settings');
+			channel.publish('queue-open-close', input[setting]);
+		}
       }
     }),
 

@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { SiteSettings, SiteSettingsValues, TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Skeleton, Spinner, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { TicketStatus, UserRole } from '@prisma/client';
+import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
-import useSiteSettings from '../../utils/hooks/useSiteSettings';
 
 interface TicketQueueProps {
   userRole: UserRole;
+  isPendingStageEnabled: boolean;
+  isQueueOpen: boolean;
 }
 
 /**
@@ -17,15 +18,12 @@ interface TicketQueueProps {
  * and renders the TicketList component for each tab
  */
 const TicketQueue = (props: TicketQueueProps) => {
-  const { userRole } = props;
-  const { isLoading: isGetSettingsLoading, siteSettings } = useSiteSettings();
+  const { userRole, isPendingStageEnabled, isQueueOpen } = props;
 
   const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
   const [openTickets, setOpenTickets] = useState<TicketWithNames[]>([]);
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
   const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
-
-  const isPendingStageEnabled = siteSettings?.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE;
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
@@ -129,38 +127,44 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   };
 
+  if (!isQueueOpen) {
+    return (
+      <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>
+        <Text fontSize='2xl' fontWeight='bold'>
+          Queue is currently closed
+        </Text>
+      </Flex>
+    );
+  }
+
   return (
     <Flex width='full' align='left' flexDir='column' p={10}>
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      {isGetSettingsLoading ? (
-        <Spinner />
-      ) : (
-        <Tabs isFitted variant='enclosed' isLazy>
-          <TabList>
-            {tabs.map(tab => (
-              <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab)[0].length + ')'}</Tab>
-            ))}
-          </TabList>
-          <TabPanels>
-            {tabs.map(tab => {
-              const [tickets, isLoading] = getTickets(tab);
-              return (
-                <div key={tab}>
-                  {isLoading ? (
-                    <Skeleton mt={4} height='60px' />
-                  ) : (
-                    <TabPanel padding='20px 0' key={tab}>
-                      <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
-                    </TabPanel>
-                  )}
-                </div>
-              );
-            })}
-          </TabPanels>
-        </Tabs>
-      )}
+      <Tabs isFitted variant='enclosed' isLazy>
+        <TabList>
+          {tabs.map(tab => (
+            <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab)[0].length + ')'}</Tab>
+          ))}
+        </TabList>
+        <TabPanels>
+          {tabs.map(tab => {
+            const [tickets, isLoading] = getTickets(tab);
+            return (
+              <div key={tab}>
+                {isLoading ? (
+                  <Skeleton mt={4} height='60px' />
+                ) : (
+                  <TabPanel padding='20px 0' key={tab}>
+                    <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
+                  </TabPanel>
+                )}
+              </div>
+            );
+          })}
+        </TabPanels>
+      </Tabs>
     </Flex>
   );
 };

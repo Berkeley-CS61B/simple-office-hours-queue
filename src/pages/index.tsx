@@ -4,11 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../env/schema.mjs';
-import { UserRole } from '@prisma/client';
-import CreateTicket from '../components/queue/CreateTicket';
-import TicketQueue from '../components/queue/TicketQueue';
-import Broadcast from '../components/queue/Broadcast';
-import OpenOrCloseQueue from '../components/queue/OpenOrCloseQueue';
+import QueueLayout from '../components/queue/QueueLayout';
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
@@ -27,24 +23,9 @@ const Home: NextPage = () => {
     }
   }, [session]);
 
-  const StaffView = () => {
-    return (
-      <>
-        <Broadcast />
-		<OpenOrCloseQueue />
-      </>
-    );
-  };
-
   return (
     <Layout isAblyConnected={isAblyConnected}>
-      {session && session.user && isAblyConnected && (
-        <>
-          {session.user.role === UserRole.STAFF && <StaffView />}
-          {session.user.role === UserRole.STUDENT && <CreateTicket />}
-          <TicketQueue userRole={session.user.role} />
-        </>
-      )}
+      {session && session.user && isAblyConnected && <QueueLayout userRole={session.user.role} />}
     </Layout>
   );
 };
