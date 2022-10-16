@@ -1,3 +1,4 @@
+import { useChannel } from '@ably-labs/react-hooks';
 import { Button, ModalFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from '@chakra-ui/react';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ interface OpenOrCloseQueueProps {
 }
 
 const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
+  const [channel] = useChannel('broadcast', () => {});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isQueueOpen } = props;
   const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
@@ -19,11 +21,18 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     await setSiteSettingsMutation.mutateAsync({
       [SiteSettings.IS_QUEUE_OPEN]: valueToSet,
     });
-	if (shouldClearQueue) {
-	  await clearQueueMutation.mutateAsync();
-	  context.ticket.getTicketsWithStatus.invalidate();
-	}
-	setIsModalOpen(false);
+    if (shouldClearQueue) {
+      await clearQueueMutation.mutateAsync();
+      context.ticket.getTicketsWithStatus.invalidate();
+    }
+    setIsModalOpen(false);
+    channel.publish({
+      name: 'broadcast',
+      data:
+        'The queue has been ' +
+        (isQueueOpen ? 'closed' : 'opened') +
+        (shouldClearQueue ? ' and the queue has been cleared' : ''),
+    });
   };
 
   return (
