@@ -263,6 +263,40 @@ export const ticketRouter = router({
       return chatMessage;
     }),
 
+  clearQueue: publicProcedure.mutation(async ({ ctx }) => {
+    // Resolves all open, pending, and assigned tickets.
+    // Note: This is slower than using updateMany but it allows us to push to Ably
+    const resolvedTickets: Ticket[] = [];
+
+    const tickets = await ctx.prisma.ticket.findMany({
+      where: {
+        status: {
+          in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ASSIGNED],
+        },
+      },
+    });
+
+    for (const ticket of tickets) {
+      const resolvedTicket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { status: TicketStatus.RESOLVED },
+      });
+      resolvedTickets.push(resolvedTicket);
+    }
+
+    await convertTicketToTicketWithNames(resolvedTickets, ctx).then(tickets => {
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets'); // Change to include queue id
+      channel.publish('tickets-resolved', tickets);
+
+      for (const ticket of tickets) {
+        const channel = ably.channels.get(`ticket-${ticket.id}`);
+        channel.publish('ticket-resolved', ticket);
+      }
+      return tickets;
+    });
+  }),
+
   getTicket: publicProcedure
     .input(
       z.object({

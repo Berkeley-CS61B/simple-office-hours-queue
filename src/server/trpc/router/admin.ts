@@ -68,7 +68,6 @@ export const adminRouter = router({
       });
     }),
 
-	// TOO Fix this type, I think you can pass in any key right now
   setSiteSettings: publicProcedure
     .input(
       z.object({
