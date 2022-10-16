@@ -12,6 +12,7 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
   const { isQueueOpen } = props;
   const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
+  const context = trpc.useContext();
 
   const handleOpenOrCloseQueue = async (shouldClearQueue: boolean) => {
     const valueToSet = isQueueOpen ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
@@ -20,7 +21,7 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     });
 	if (shouldClearQueue) {
 	  await clearQueueMutation.mutateAsync();
-
+	  context.ticket.getTicketsWithStatus.invalidate();
 	}
 	setIsModalOpen(false);
   };
