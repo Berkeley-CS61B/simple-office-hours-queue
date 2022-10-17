@@ -53,7 +53,7 @@ SOHQ uses MySQL as its database, mainly because the free tier of <a href="https:
 <br />
 
 
-After your `.env` file is setup, run the following commands to install dependencies and start the server:
+After your `.env` file is set up, run the following commands to install dependencies and start the server:
 
 ```bash
 npm install
