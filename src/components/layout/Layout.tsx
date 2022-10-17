@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { useSession, signIn } from 'next-auth/react';
 import { Text, Flex, Button } from '@chakra-ui/react';
 import { Navbar } from './Navbar';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import ReceiveBroadcast from '../queue/ReceiveBroadcast';
 
 interface LayoutProps {
@@ -15,6 +15,19 @@ interface LayoutProps {
  */
 const Layout = (props: LayoutProps) => {
   const { children, isAblyConnected } = props;
+
+  useEffect(() => {
+    //   Create a function that shows a notification
+    if (!('Notification' in window)) {
+      alert('This browser does not support desktop notification. We suggest using a different browser.');
+    } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'denied' || permission === 'default') {
+          alert('We highly recommend enabling desktop notifications to receive updates on your queue status.');
+        }
+      });
+    }
+  }, []);
 
   const { data: session, status } = useSession();
 
