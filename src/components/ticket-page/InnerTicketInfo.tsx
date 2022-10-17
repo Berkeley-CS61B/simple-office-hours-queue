@@ -44,6 +44,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-assigned',
       'ticket-reopened',
       'ticket-requeued',
+	  'ticket-staffnote',
     ];
 
     if (shouldUpdateTicketMessages.includes(message)) {

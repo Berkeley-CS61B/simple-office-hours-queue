@@ -310,7 +310,17 @@ export const ticketRouter = router({
         where: { id: input.ticketId },
         data: { staffNotes: input.notes },
       });
-      return ticket;
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          channel.publish('ticket-staffnote', ticket);
+        }
+        return tickets;
+      });
     }),
 
   getTicket: protectedProcedure

@@ -20,7 +20,6 @@ const StaffNotes = (props: StaffNotesProps) => {
   const { ticket, userRole } = props;
   const [notesText, setNotesText] = useState('');
   const addStaffNotesMutation = trpc.ticket.setStaffNotes.useMutation();
-  const context = trpc.useContext();
 
   const handleSubmitTaNotes = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,7 +34,6 @@ const StaffNotes = (props: StaffNotesProps) => {
       notes: newNotes,
     });
     setNotesText('');
-    context.ticket.getTicket.invalidate({ id: ticket.id });
   };
 
   return (
