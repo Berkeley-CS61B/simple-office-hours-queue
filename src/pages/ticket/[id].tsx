@@ -28,7 +28,7 @@ const TicketPage: NextPage = () => {
   trpc.ticket.getTicket.useQuery(
     { id },
     {
-      enabled: id !== undefined,
+      enabled: id !== undefined && !isNaN(id),
       refetchOnWindowFocus: false,
       onSuccess: data => {
         if (data) {

@@ -298,6 +298,21 @@ export const ticketRouter = router({
     });
   }),
 
+  setStaffNotes: protectedStaffProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        notes: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { staffNotes: input.notes },
+      });
+      return ticket;
+    }),
+
   getTicket: protectedProcedure
     .input(
       z.object({

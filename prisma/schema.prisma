@@ -36,7 +36,7 @@ model Ticket {
     assignment  Assignment    @relation(fields: [assignmentId], references: [id])
     location    Location      @relation(fields: [locationId], references: [id])
     resolution  String        @default("") // TODO
-    taNotes     String? // TODO
+    staffNotes  String?
     ChatMessage ChatMessage[]
 
     helpedByUserId  String?
@@ -129,10 +129,10 @@ enum TicketStatus {
 // Default values for site settings are in utils.ts
 enum SiteSettings {
     IS_PENDING_STAGE_ENABLED
-	IS_QUEUE_OPEN
+    IS_QUEUE_OPEN
 }
 
 enum SiteSettingsValues {
-	TRUE
-	FALSE
+    TRUE
+    FALSE
 }

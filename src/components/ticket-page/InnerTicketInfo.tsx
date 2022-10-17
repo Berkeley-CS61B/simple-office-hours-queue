@@ -6,6 +6,7 @@ import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+import StaffNotes from './StaffNotes';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -81,6 +82,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text mt={4}>{ticket.description}</Text>
       <Text>Location: {ticket.locationName}</Text>
       <Text>Assignment: {ticket.assignmentName}</Text>
+
+	  <StaffNotes ticket={ticket} userRole={userRole} />
+
       <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
         Approve
       </Button>
