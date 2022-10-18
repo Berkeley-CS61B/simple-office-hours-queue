@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../env/schema.mjs';
 import QueueLayout from '../components/queue/QueueLayout';
+import { trpc } from '../utils/trpc';
+import { UserRole } from '@prisma/client';
 
 const Home: NextPage = () => {
   const { data: session } = useSession();

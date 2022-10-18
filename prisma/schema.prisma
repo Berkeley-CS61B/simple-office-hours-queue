@@ -103,6 +103,16 @@ model Location {
     Ticket    Ticket[]
 }
 
+// This is used for when users are imported. When a user signs in for the first time, 
+// their entry in this table is deleted.
+model ConfirmedUser {
+	id        Int      @id @default(autoincrement())
+	email     String   @unique
+	role      UserRole @default(STUDENT)
+
+	createdAt DateTime @default(now())
+}
+
 model VerificationToken {
     identifier String
     token      String   @unique

@@ -1,7 +1,14 @@
 import { Importer, ImporterField } from 'react-csv-importer';
 import 'react-csv-importer/dist/index.css';
+import { trpc } from '../../utils/trpc';
 
 const ImportUsers = () => {
+  const addUserMutation = trpc.user.addUsers.useMutation();
+
+  const handleAddUsers = async () => {
+
+  }
+
   return (
     <Importer
       chunkSize={10000} // optional, internal parsing chunk size in bytes

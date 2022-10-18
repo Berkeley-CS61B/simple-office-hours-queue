@@ -15,23 +15,39 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    // Only allow users that are present in the database to sign in
+	// Only allow users that either exist in the 'User' table or have been imported (confirmed)
     async signIn({ user, account }) {
-      if (account?.provider !== 'google') {
+      if (account?.provider !== 'google' || !user?.email) {
         return false;
       }
-
-      const userExists = await prisma.user.findUnique({
+	     
+      const userExists = await prisma.user.findFirst({
         where: {
-          email: user.email ?? undefined,
+          email: user.email,
         },
       });
 
-      if (!userExists) {
-        return false;
-      } else {
-        return true;
-      }
+	  if (userExists) {
+		return true;
+	  }
+
+	  const userIsConfirmed = await prisma.confirmedUser.findFirst({
+		where: {
+		  email: user.email,
+		},
+	  });
+
+	  if (!!userIsConfirmed) {
+		// Delete the user from the 'ConfirmedUser' table since they are now in 'User'
+		await prisma.confirmedUser.delete({
+		  where: {
+			email: user.email,
+		  },
+		});
+		return true;
+	  }
+
+	  return false;
     },
   },
 
