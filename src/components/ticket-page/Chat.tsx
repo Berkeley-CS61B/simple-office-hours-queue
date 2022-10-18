@@ -58,12 +58,8 @@ const Chat = (props: ChatProps) => {
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
-    // TODO: Test this
     if (userId !== session?.user?.id) {
-      // Only show notification if the user is not focused on the page
-      if (document.visibilityState === 'hidden') {
-        showNotification(`New message from ${userName}`, message);
-      }
+      showNotification(`New message from ${userName}`, message);
     }
   });
 
