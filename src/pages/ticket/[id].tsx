@@ -25,7 +25,6 @@ const TicketPage: NextPage = () => {
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
 
-  // Remove ticket state and just use result of query
   trpc.ticket.getTicket.useQuery(
     { id },
     {

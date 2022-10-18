@@ -4,6 +4,7 @@ import { Button, Input, Box, Flex, Text, Spinner } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
+import useNotification from '../../utils/hooks/useNotification';
 
 interface ChatProps {
   ticketId: number;
@@ -23,6 +24,7 @@ const Chat = (props: ChatProps) => {
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
+  const { showNotification } = useNotification();
 
   trpc.ticket.getChatMessages.useQuery(
     { ticketId },
@@ -55,6 +57,14 @@ const Chat = (props: ChatProps) => {
       sentByUserId: userId,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
+
+    // TODO: Test this
+    if (userId !== session?.user?.id) {
+      // Only show notification if the user is not focused on the page
+      if (document.visibilityState === 'hidden') {
+        showNotification(`New message from ${userName}`, message);
+      }
+    }
   });
 
   const handleFormSubmission = async (event: any) => {

@@ -31,7 +31,7 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
       data:
         'The queue has been ' +
         (isQueueOpen ? 'closed' : 'opened') +
-        (shouldClearQueue ? ' and the queue has been cleared' : ''),
+        (shouldClearQueue ? ' and cleared' : ''),
     });
   };
 

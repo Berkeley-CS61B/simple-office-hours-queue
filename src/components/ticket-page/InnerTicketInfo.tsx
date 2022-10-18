@@ -7,6 +7,7 @@ import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
+import useNotification from '../../utils/hooks/useNotification';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -19,6 +20,7 @@ interface InnerTicketInfoProps {
 const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole } = props;
   const [showConfetti, setShowConfetti] = useState(false);
+  const { showNotification } = useNotification();
   const canSeeName =
     ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
   const isPending = ticket.status === TicketStatus.PENDING;

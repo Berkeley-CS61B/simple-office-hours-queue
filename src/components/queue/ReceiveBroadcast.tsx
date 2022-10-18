@@ -1,14 +1,17 @@
 import { useChannel } from '@ably-labs/react-hooks';
 import { useToast } from '@chakra-ui/react';
+import useNotification from '../../utils/hooks/useNotification';
 
 /*
  * Listen for broadcast messages from staff. Note: This assumes Ably is connected.
+ * This component isn't required but it's cleaner to have it in a separate component.
  */
 const ReceiveBroadcast = () => {
 
 	const toast = useToast();
+	const { showNotification } = useNotification();
 
-	const [channel, ably] = useChannel('broadcast', 'broadcast', msg => {
+	useChannel('broadcast', 'broadcast', msg => {
 	  // TODO add queue id
 	  toast({
 		title: msg.data,
@@ -18,14 +21,17 @@ const ReceiveBroadcast = () => {
 		isClosable: true,
 		containerStyle: {
 		  zIndex: 9999,
-		  width: '800px',
+		  width: '95vw',
 		  maxWidth: '100%',
 		},
 	  });
+
+	  // Send a notification when a broadcast is received
+	  showNotification(undefined, msg.data);
 	});
 
 	return (
-		<div></div>
+		<></>
 	);
 }
 

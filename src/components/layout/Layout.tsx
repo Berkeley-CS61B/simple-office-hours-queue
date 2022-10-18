@@ -17,7 +17,6 @@ const Layout = (props: LayoutProps) => {
   const { children, isAblyConnected } = props;
 
   useEffect(() => {
-    //   Create a function that shows a notification
     if (!('Notification' in window)) {
       alert('This browser does not support desktop notification. We suggest using a different browser.');
     } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
