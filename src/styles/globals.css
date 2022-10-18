@@ -11,3 +11,7 @@ body {
 .hover-cursor {
   cursor: pointer;
 }
+
+.CSVImporter_Importer {
+	color: black;
+}

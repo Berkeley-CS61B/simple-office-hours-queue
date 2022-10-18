@@ -1,46 +1,54 @@
+import { UserRole } from '@prisma/client';
 import { Importer, ImporterField } from 'react-csv-importer';
 import 'react-csv-importer/dist/index.css';
 import { trpc } from '../../utils/trpc';
 
+interface ImportedUser {
+  email: string;
+  role: UserRole;
+}
+
+const EMAIL_REGEX =/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
 const ImportUsers = () => {
   const addUserMutation = trpc.user.addUsers.useMutation();
 
-  const handleAddUsers = async () => {
-
-  }
+  const handleAddUsers = async () => {};
 
   return (
     <Importer
-      chunkSize={10000} // optional, internal parsing chunk size in bytes
+      chunkSize={10000}
       assumeNoHeaders={false}
-      restartable={false}
-      onStart={({ file, fields }) => {
-        // optional, invoked when user has mapped columns and started import
-        console.log('starting import of file', file, 'with fields', fields);
-      }}
+      restartable
       processChunk={async rows => {
-        // required, receives a list of parsed objects based on defined fields and user column mapping;
-        // may be called several times if file is large
-        // (if this callback returns a promise, the widget will wait for it before parsing more data)
-        console.log('received batch of rows', rows);
+        const users = rows.filter(user => {
+          const userRole = user.role as string;
+          const userEmail = user.email as string;
 
-        // mock timeout to simulate processing
-        await new Promise(resolve => setTimeout(resolve, 500));
+          // Check if userEmail is valid email
+		  if (!userEmail.match(EMAIL_REGEX)) {
+			console.log('Invalid email ' + userEmail);
+			return false;
+		  }
+
+          // Check if user role is valid, meaning it's in the UserRole enum
+          if (!Object.values(UserRole).includes(userRole.toUpperCase() as UserRole)) {
+            console.log(
+              'Invalid user role',
+              userRole + ' for user ' + userEmail + '. User role must be one of ' + Object.values(UserRole),
+            );
+			return false;
+          }
+        });
+		
+		console.log('Adding users', users);
       }}
-      onComplete={({ file, fields }) => {
-        // optional, invoked right after import is done (but user did not dismiss/reset the widget yet)
-        console.log('finished import of file', file, 'with fields', fields);
-      }}
-      onClose={() => {
-        // optional, invoked when import is done and user clicked "Finish"
-        // (if this is not specified, the widget lets the user upload another file)
-        console.log('importer dismissed');
+      onComplete={() => {
+        console.log('Success!');
       }}
     >
-      <ImporterField name='name' label='Name' />
       <ImporterField name='email' label='Email' />
       <ImporterField name='role' label='Role' />
-      <ImporterField name='postalCode' label='Postal Code' optional />
     </Importer>
   );
 };
