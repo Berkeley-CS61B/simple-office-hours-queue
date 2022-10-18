@@ -6,6 +6,8 @@ SOHQ is an open-source office hours queue that allows students to sign up for of
 
 ## Installation
 
+Clone the reposity and `cd` into it.
+
 For the `.env` setup, Refer to the `.env.example` file for the format of the required environment variables. The setup is as follows:
 
 <details>
@@ -53,19 +55,24 @@ SOHQ uses MySQL as its database, mainly because the free tier of <a href="https:
 <br />
 
 
-After your `.env` file is set up, run the following commands to install dependencies and start the server:
+After your `.env` file is set up, run the following commands to install dependencies populate the database with the schema:
 
 ```bash
 npm install
-npm run build
-npm run start
+npx prisma db push
 ```
 
-If you want to run the server in development mode, run the following commands:
+If you want to run the server in development mode (to see live changes), run the following command:
 
 ```bash
-npm install
 npm run dev
+```
+
+If you want to create a production build, run the following commands:
+
+```bash
+npm run build
+npm run start
 ```
 
 ## Tech Stack
