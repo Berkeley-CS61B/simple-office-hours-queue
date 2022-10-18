@@ -4,6 +4,7 @@ import { trpc } from '../../utils/trpc';
 import { Button, Flex, Input, Spinner, Switch, Text } from '@chakra-ui/react';
 import AdminCard from './AdminCard';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
+import ImportUsers from './ImportUsers';
 
 /**
  * Component which allows staff to edit the available locations and assignments
@@ -112,6 +113,12 @@ const AdminView = () => {
               )}
             </Flex>
           </Flex>
+
+		  <Flex direction='column'>
+			<Text fontSize='xl'>Import Users</Text>
+			<ImportUsers />
+		  </Flex>
+
         </Flex>
       )}
     </>
