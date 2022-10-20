@@ -49,7 +49,7 @@ const StaffNotes = (props: StaffNotesProps) => {
               <Input
                 color='black'
                 value={notesText}
-                placeholder='Type a message...'
+                placeholder='Your name will be added automatically'
                 onChange={e => setNotesText(e.target.value)}
                 _placeholder={{ color: 'black' }}
                 mr={4}

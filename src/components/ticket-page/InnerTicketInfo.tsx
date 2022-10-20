@@ -25,6 +25,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isOpen = ticket.status === TicketStatus.OPEN;
+  const isClosed = ticket.status === TicketStatus.CLOSED;
   const isStaff = userRole === UserRole.STAFF;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
@@ -32,6 +33,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const reopenTicketsMutation = trpc.ticket.reopenTickets.useMutation();
+  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
 
   const context = trpc.useContext();
 
@@ -45,6 +47,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-reopened',
       'ticket-requeued',
 	  'ticket-staffnote',
+	  'ticket-closed',
     ];
 
     if (shouldUpdateTicketMessages.includes(message)) {
@@ -74,6 +77,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
+  const handleCloseTicket = async () => {
+	await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+  }
+
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
@@ -98,9 +105,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned}>
         Requeue
       </Button>
-      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || !isResolved}>
+      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed) }>
         Reopen
       </Button>
+	  <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
+		Close
+	  </Button>
       <Confetti
         recycle={false}
         numberOfPieces={200}

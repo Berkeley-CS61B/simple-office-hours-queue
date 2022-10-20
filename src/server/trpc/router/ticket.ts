@@ -160,6 +160,41 @@ export const ticketRouter = router({
       });
     }),
 
+  // We only allow the creator of the ticket to close it
+  closeTicket: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket = await ctx.prisma.ticket.findUnique({
+        where: {
+          id: input.ticketId,
+        },
+      });
+      if (ticket?.createdByUserId !== ctx.session?.user?.id) {
+        throw new Error('You are not authorized to close this ticket');
+      }
+
+      const closedTicket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { status: TicketStatus.CLOSED },
+      });
+
+      await convertTicketToTicketWithNames([closedTicket], ctx).then(ticketsWithNames => {
+        const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        channel.publish('ticket-closed', ticketWithName);
+
+        // Uses ticket inner page channel
+        const innerChannel = ably.channels.get(`ticket-${ticket.id}`);
+        innerChannel.publish('ticket-closed', ticketWithName);
+        return ticketWithName;
+      });
+    }),
+
   requeueTickets: protectedStaffProcedure
     .input(
       z.object({
@@ -263,11 +298,10 @@ export const ticketRouter = router({
       return chatMessage;
     }),
 
-  //   TODO: This should be using the CLOSED status instead of RESOLVED
   clearQueue: protectedStaffProcedure.mutation(async ({ ctx }) => {
-    // Resolves all open, pending, and assigned tickets.
+    // Closes all open, pending, and assigned tickets.
     // Note: This is slower than using updateMany but it allows us to push to Ably
-    const resolvedTickets: Ticket[] = [];
+    const closedTickets: Ticket[] = [];
 
     const tickets = await ctx.prisma.ticket.findMany({
       where: {
@@ -278,21 +312,21 @@ export const ticketRouter = router({
     });
 
     for (const ticket of tickets) {
-      const resolvedTicket: Ticket = await ctx.prisma.ticket.update({
+      const closedTicket: Ticket = await ctx.prisma.ticket.update({
         where: { id: ticket.id },
-        data: { status: TicketStatus.RESOLVED },
+        data: { status: TicketStatus.CLOSED },
       });
-      resolvedTickets.push(resolvedTicket);
+      closedTickets.push(closedTicket);
     }
 
-    await convertTicketToTicketWithNames(resolvedTickets, ctx).then(tickets => {
+    await convertTicketToTicketWithNames(closedTickets, ctx).then(tickets => {
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('tickets'); // Change to include queue id
-      channel.publish('tickets-resolved', tickets);
+      channel.publish('all-tickets-closed', tickets);
 
       for (const ticket of tickets) {
         const channel = ably.channels.get(`ticket-${ticket.id}`);
-        channel.publish('ticket-resolved', ticket);
+        channel.publish('ticket-closed', ticket);
       }
       return tickets;
     });

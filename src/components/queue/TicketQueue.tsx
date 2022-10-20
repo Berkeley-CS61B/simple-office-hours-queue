@@ -85,6 +85,11 @@ const TicketQueue = (props: TicketQueueProps) => {
     if (message === 'new-ticket') {
       setMidwayTicket(ticketData.data);
       return;
+    } else if (message === 'ticket-closed') {
+      setOpenTickets(prev => prev.filter(ticket => ticket.id !== ticketData.data.id));
+      setAssignedTickets(prev => prev.filter(ticket => ticket.id !== ticketData.data.id));
+      setPendingTickets(prev => prev.filter(ticket => ticket.id !== ticketData.data.id));
+      return;
     }
 
     const tickets: TicketWithNames[] = ticketData.data;
@@ -107,6 +112,12 @@ const TicketQueue = (props: TicketQueueProps) => {
         break;
       case 'tickets-reopened':
         setOpenTickets(prev => [...prev, ...tickets]);
+        break;
+      case 'all-tickets-closed':
+        // Closes all tickets in the queue (pending, open, assigned)
+        setPendingTickets([]);
+        setOpenTickets([]);
+        setAssignedTickets([]);
         break;
     }
   });

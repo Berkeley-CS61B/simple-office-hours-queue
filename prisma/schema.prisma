@@ -133,7 +133,7 @@ enum TicketStatus {
     OPEN
     ASSIGNED
     RESOLVED
-    DELETED // TODO change this to CLOSED
+    CLOSED
 }
 
 // Default values for site settings are in utils.ts
