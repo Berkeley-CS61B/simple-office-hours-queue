@@ -18,7 +18,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
   const { userRole } = props;
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState(false);
-  const { siteSettings, isLoading: isSettingsLoading } = useSiteSettings();
+  const { data: siteSettings, isLoading: isSettingsLoading } = useSiteSettings();
   
   useEffect(() => {
     if (siteSettings) {
