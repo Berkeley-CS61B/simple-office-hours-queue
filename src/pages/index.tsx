@@ -1,14 +1,15 @@
 import { NextPage } from 'next';
+import dynamic from 'next/dynamic';
 import Layout from '../components/layout/Layout';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../env/schema.mjs';
-import QueueLayout from '../components/queue/QueueLayout';
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
   const [isAblyConnected, setIsAblyConnected] = useState(false);
+  const QueueLayout = dynamic(() => import('../components/queue/QueueLayout'));
 
   useEffect(() => {
     if (session) {
@@ -19,7 +20,7 @@ const Home: NextPage = () => {
           clientId: session?.user?.id, // Not sure if this should be different (random?)
         });
         resolve(setIsAblyConnected(true));
-      });
+      }).catch(err => console.error(err));
     }
   }, [session]);
 

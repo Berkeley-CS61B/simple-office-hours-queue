@@ -19,7 +19,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState(false);
   const { siteSettings, isLoading: isSettingsLoading } = useSiteSettings();
-
+  
   useEffect(() => {
     if (siteSettings) {
       setIsQueueOpen(siteSettings.get(SiteSettings.IS_QUEUE_OPEN) === SiteSettingsValues.TRUE);

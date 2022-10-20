@@ -12,7 +12,6 @@ interface InnerTicketProps {
 const InnerTicket = (props: InnerTicketProps) => {
   const { ticket, userRole } = props;
 
-  // TODO allow students to close their own tickets
   return (
     <SimpleGrid columns={[1, null, 2]} textAlign='center'>
       <Box mt={6}>

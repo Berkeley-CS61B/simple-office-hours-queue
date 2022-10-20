@@ -1,8 +1,8 @@
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
-import TicketList from './TicketList';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -18,6 +18,7 @@ interface TicketQueueProps {
  * and renders the TicketList component for each tab
  */
 const TicketQueue = (props: TicketQueueProps) => {
+  const TicketList = dynamic(() => import('./TicketList'));
   const { userRole, isPendingStageEnabled, isQueueOpen } = props;
 
   const [pendingTickets, setPendingTickets] = useState<TicketWithNames[]>([]);
@@ -149,7 +150,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         return [[], false];
     }
   };
-
+  
   if (!isQueueOpen) {
     return (
       <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>

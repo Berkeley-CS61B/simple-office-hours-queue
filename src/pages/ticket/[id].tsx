@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import { NextPage } from 'next';
 import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
@@ -8,8 +9,8 @@ import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
-import InnerTicket from '../../components/ticket-page/InnerTicket';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+
 
 /**
  * Component that renders the ticket page. It ensures that ably is configured and
@@ -19,6 +20,8 @@ const TicketPage: NextPage = () => {
   const router = useRouter();
   const id = Number(router.query.id);
   const { data: session } = useSession();
+  const InnerTicket = dynamic(() => import('../../components/ticket-page/InnerTicket'));
+
   const [userId, setUserId] = useState<string>('');
   const [isAblyConnected, setIsAblyConnected] = useState(false);
   const [ticket, setTicket] = useState<TicketWithNames>();
@@ -52,7 +55,7 @@ const TicketPage: NextPage = () => {
           clientId: session?.user?.id,
         });
         resolve(setIsAblyConnected(true));
-      });
+      }).catch(err => console.error(err));
     }
   }, [session]);
 
