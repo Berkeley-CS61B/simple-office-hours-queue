@@ -105,6 +105,7 @@ export const ticketRouter = router({
           where: { id: ticketId },
           data: {
             status: TicketStatus.ASSIGNED,
+			helpedAt: new Date(),
             helpedBy: {
               connect: {
                 id: ctx.session?.user?.id,

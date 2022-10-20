@@ -29,6 +29,7 @@ model Ticket {
     id          Int           @id @default(autoincrement())
     createdBy   User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
     helpedBy    User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    helpedAt    DateTime?
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @default(now()) @updatedAt
     status      TicketStatus  @default(PENDING)
@@ -106,11 +107,11 @@ model Location {
 // This is used for when users are imported. When a user signs in for the first time, 
 // their entry in this table is deleted.
 model ConfirmedUser {
-	id        Int      @id @default(autoincrement())
-	email     String   @unique
-	role      UserRole @default(STUDENT)
+    id    Int      @id @default(autoincrement())
+    email String   @unique
+    role  UserRole @default(STUDENT)
 
-	createdAt DateTime @default(now())
+    createdAt DateTime @default(now())
 }
 
 model VerificationToken {

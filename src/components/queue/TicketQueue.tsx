@@ -25,6 +25,18 @@ const TicketQueue = (props: TicketQueueProps) => {
   const [assignedTickets, setAssignedTickets] = useState<TicketWithNames[]>([]);
   const [midwayTicket, setMidwayTicket] = useState<TicketWithNames>();
 
+  const context = trpc.useContext();
+
+  // Refresh the assigned tickets every minute so the timer updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (assignedTickets.length > 0) {
+        context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
       ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]

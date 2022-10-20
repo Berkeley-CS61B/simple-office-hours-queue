@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus } from '@prisma/client';
 import { Text, Button } from '@chakra-ui/react';
-import { uppercaseFirstLetter } from '../../utils/utils';
+import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
@@ -37,6 +37,16 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const context = trpc.useContext();
 
+  // Refresh the ticket every minute so the timer updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (ticket.status === TicketStatus.ASSIGNED) {
+        context.ticket.getTicket.invalidate({ id: ticket.id });
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Listens for updates on the ticket status
   useChannel(`ticket-${ticket.id}`, ticketData => {
     const message = ticketData.name;
@@ -46,8 +56,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-assigned',
       'ticket-reopened',
       'ticket-requeued',
-	  'ticket-staffnote',
-	  'ticket-closed',
+      'ticket-staffnote',
+      'ticket-closed',
     ];
 
     if (shouldUpdateTicketMessages.includes(message)) {
@@ -78,20 +88,24 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleCloseTicket = async () => {
-	await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
-  }
+    await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+  };
 
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
       <Text>Ticket Status: {uppercaseFirstLetter(ticket.status)}</Text>
-      <Text hidden={!isAssigned}>Being helped by {ticket.helpedByName}</Text>
+      <Text hidden={!isAssigned}>
+        <>
+          Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)
+        </>
+      </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4}>{ticket.description}</Text>
       <Text>Location: {ticket.locationName}</Text>
       <Text>Assignment: {ticket.assignmentName}</Text>
 
-	  <StaffNotes ticket={ticket} userRole={userRole} />
+      <StaffNotes ticket={ticket} userRole={userRole} />
 
       <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
         Approve
@@ -105,12 +119,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned}>
         Requeue
       </Button>
-      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed) }>
+      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)}>
         Reopen
       </Button>
-	  <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
-		Close
-	  </Button>
+      <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
+        Close
+      </Button>
       <Confetti
         recycle={false}
         numberOfPieces={200}

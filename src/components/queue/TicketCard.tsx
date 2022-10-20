@@ -4,6 +4,7 @@ import Router from 'next/router';
 import React from 'react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
+import { timeDifferenceInMinutes } from '../../utils/utils';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -70,7 +71,7 @@ const TicketCard = (props: TicketCardProps) => {
         </Box>
         <Flex flexDirection='column'>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
-            Being helped by {ticket.helpedByName}
+            <>Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)</>
           </Text>
           <Box textAlign='right'>
             <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
