@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SiteSettings, SiteSettingsValues, UserRole } from '@prisma/client';
-import useSiteSettings from '../../utils/hooks/useSiteSettings';
 import TicketQueue from './TicketQueue';
 import CreateTicket from './CreateTicket';
 import Broadcast from './Broadcast';
 import OpenOrCloseQueue from './OpenOrCloseQueue';
 import { Spinner } from '@chakra-ui/react';
 import { useChannel } from '@ably-labs/react-hooks';
+import useSiteSettings from '../../utils/hooks/useSiteSettings';
 
 interface QueueLayoutProps {
   userRole: UserRole;
@@ -16,10 +16,10 @@ interface QueueLayoutProps {
  */
 const QueueLayout = (props: QueueLayoutProps) => {
   const { userRole } = props;
-  const [isQueueOpen, setIsQueueOpen] = useState(false);
-  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState(false);
-  const { data: siteSettings, isLoading: isSettingsLoading } = useSiteSettings();
-  
+  const [isQueueOpen, setIsQueueOpen] = useState<boolean>();
+  const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
+  const { siteSettings } = useSiteSettings();
+
   useEffect(() => {
     if (siteSettings) {
       setIsQueueOpen(siteSettings.get(SiteSettings.IS_QUEUE_OPEN) === SiteSettingsValues.TRUE);
@@ -32,7 +32,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
     setIsQueueOpen(ablyMsg.data === SiteSettingsValues.TRUE);
   });
 
-  if (isSettingsLoading) {
+  if (isQueueOpen === undefined || isPendingStageEnabled === undefined) {
     return <Spinner />;
   }
 
