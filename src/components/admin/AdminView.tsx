@@ -64,7 +64,7 @@ const AdminView = () => {
     });
   };
 
-  if ( assignments === undefined || locations === undefined) {
+  if (assignments === undefined || locations === undefined) {
     return <Spinner />;
   }
 
