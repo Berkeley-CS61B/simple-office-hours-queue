@@ -100,11 +100,11 @@ export const adminRouter = router({
           },
         });
 
-		if (setting === SiteSettings.IS_QUEUE_OPEN) {
-			const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-			const channel = ably.channels.get('settings');
-			channel.publish('queue-open-close', input[setting]);
-		}
+        if (setting === SiteSettings.IS_QUEUE_OPEN) {
+          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+          const channel = ably.channels.get('settings');
+          await channel.publish('queue-open-close', input[setting]);
+        }
       }
     }),
 
