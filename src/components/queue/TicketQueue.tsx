@@ -35,10 +35,17 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-assigned',
       'tickets-requeued',
       'tickets-reopened',
+      'ticket-closed',
       'all-tickets-closed',
     ];
-    const shouldInvalidateAssigned = ['tickets-assigned', 'tickets-resolved', 'tickets-requeued', 'all-tickets-closed'];
-    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed'];
+    const shouldInvalidateAssigned = [
+      'tickets-assigned',
+      'tickets-resolved',
+      'tickets-requeued',
+      'all-tickets-closed',
+      'ticket-closed',
+    ];
+    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
 
     if (shouldInvalidateOpen.includes(message)) {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
