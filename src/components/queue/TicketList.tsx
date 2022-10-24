@@ -29,7 +29,6 @@ const TicketList = (props: TicketListProps) => {
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const [parent] : any = useAutoAnimate();
 
-  // TODO add loading state
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
