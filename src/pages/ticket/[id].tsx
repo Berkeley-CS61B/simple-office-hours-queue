@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic';
 import { NextPage } from 'next';
 import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
@@ -10,6 +9,7 @@ import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+import InnerTicket from '../../components/ticket-page/InnerTicket';
 
 
 /**
@@ -20,7 +20,6 @@ const TicketPage: NextPage = () => {
   const router = useRouter();
   const id = Number(router.query.id);
   const { data: session } = useSession();
-  const InnerTicket = dynamic(() => import('../../components/ticket-page/InnerTicket'));
 
   const [userId, setUserId] = useState<string>('');
   const [isAblyConnected, setIsAblyConnected] = useState(false);
