@@ -13,11 +13,10 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if (session) {
-      // Maybe better way to do this?
       new Promise(resolve => {
         configureAbly({
           key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
-          clientId: session?.user?.id, // Not sure if this should be different (random?)
+          clientId: session?.user?.id,
         });
         resolve(setIsAblyConnected(true));
       }).catch(err => console.error(err));

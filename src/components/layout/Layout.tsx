@@ -11,7 +11,7 @@ interface LayoutProps {
 }
 /**
  * Layout component that wraps all pages.
- * Porivdes a navbar and ensures that the user is logged in.
+ * Provides a navbar and ensures that the user is logged in.
  */
 const Layout = (props: LayoutProps) => {
   const { children, isAblyConnected } = props;
@@ -34,7 +34,7 @@ const Layout = (props: LayoutProps) => {
     <>
       <Head>
         <title>Office Hours Queue</title>
-        <meta name='description' content='Office Hours Queue' />
+        <meta name='OH Queue' content='Office Hours Queue' />
       </Head>
 
       <Flex h='100%' direction='column'>
