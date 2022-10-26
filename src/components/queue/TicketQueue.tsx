@@ -166,7 +166,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         <TabPanels>
           {tabs.map(tab => {
             if (isGetTicketsLoading) {
-              return <Skeleton height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} />;
+              return <Skeleton key={tab} height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} />;
             }
             const tickets = getTickets(tab);
             return (
