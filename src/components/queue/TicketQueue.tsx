@@ -1,6 +1,16 @@
 import { useEffect } from 'react';
 import { TicketStatus, UserRole } from '@prisma/client';
-import { Box, Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import {
+  Flex,
+  Skeleton,
+  SkeletonText,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+} from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
@@ -110,15 +120,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     );
   };
 
-  if (isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading) {
-    return (
-      <Flex alignItems='center' justifyContent='center' width='100%' mt={5} flexDirection='column'>
-        <Skeleton height='100px' width='100%' mb={4} />
-        <Skeleton height='100px' width='100%' mb={4} />
-        <Skeleton height='100px' width='100%' mb={4} />
-      </Flex>
-    );
-  }
+  const isGetTicketsLoading = isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading;
 
   /**
    * Helper method to return the correct ticket list based on the tab index (status)
@@ -140,6 +142,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     <Flex width='full' align='left' flexDir='column' p={10}>
       <Flex flexDir='column' mb={4}>
         <Text fontSize='2xl'>Your Tickets</Text>
+        {isGetTicketsLoading && <SkeletonText noOfLines={1} mt={2} h={3} w={150} />}
         {getMyTickets()?.length === 0 && (
           <Text fontSize='md' color='gray.500'>
             You have no tickets
@@ -155,11 +158,16 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Tabs isFitted variant='enclosed' isLazy>
         <TabList>
           {tabs.map(tab => (
-            <Tab key={tab}>{uppercaseFirstLetter(tab) + ' (' + getTickets(tab).length + ')'}</Tab>
+            <Tab key={tab}>
+              {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
+            </Tab>
           ))}
         </TabList>
         <TabPanels>
           {tabs.map(tab => {
+            if (isGetTicketsLoading) {
+              return <Skeleton height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} />;
+            }
             const tickets = getTickets(tab);
             return (
               <div key={tab}>
