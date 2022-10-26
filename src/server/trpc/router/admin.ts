@@ -134,24 +134,18 @@ export const adminRouter = router({
 
   // This is used inside of the useSiteSettings custom hook
   getSettings: protectedProcedure.query(async ({ ctx }) => {
-	const settings: {[key in SiteSettings]: SiteSettingsValues} = {
-		[SiteSettings.IS_QUEUE_OPEN]: settingsToDefault[SiteSettings.IS_QUEUE_OPEN],
-		[SiteSettings.IS_PENDING_STAGE_ENABLED]: settingsToDefault[SiteSettings.IS_PENDING_STAGE_ENABLED],
-	}
-
-    for (const setting of Object.values(SiteSettings)) {
-      // Create the setting with the default value if it doesn't exist
-      const settingValue = await ctx.prisma.settings.upsert({
-        where: {
-          setting,
-        },
-        update: {},
-        create: {
-          setting,
-          value: settingsToDefault[setting],
-        },
-      });
-	settings[setting] = settingValue.value;
+    const settings = await ctx.prisma.settings.findMany();
+    // Add missing settings to the database if they dont exist. I initially 
+	// had upsert, but it was very slow so I changed it to manually add
+    for (const setting of Object.keys(settingsToDefault)) {
+      if (!settings.some(s => s.setting === setting)) {
+        await ctx.prisma.settings.create({
+          data: {
+            setting: setting as SiteSettings,
+            value: settingsToDefault[setting as SiteSettings],
+          },
+        });
+      }
     }
     return settings;
   }),
