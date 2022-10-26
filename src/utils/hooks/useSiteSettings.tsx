@@ -12,7 +12,12 @@ const useSiteSettings = () => {
     refetchOnWindowFocus: false,
 
     onSuccess: data => {
-      setSiteSettings(data);
+      setSiteSettings(
+        new Map<SiteSettings, SiteSettingsValues>(
+          Object.entries(data).map(([key, value]) => [key as SiteSettings, value as SiteSettingsValues]),
+        ),
+      );
+      //   setSiteSettings(data);
     },
   });
 

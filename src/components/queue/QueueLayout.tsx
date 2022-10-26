@@ -12,6 +12,7 @@ interface QueueLayoutProps {
   userRole: UserRole;
   userId: string;
 }
+
 /**
  * Intermediate component to guarantee that Ably is initialized
  */

@@ -134,7 +134,11 @@ export const adminRouter = router({
 
   // This is used inside of the useSiteSettings custom hook
   getSettings: protectedProcedure.query(async ({ ctx }) => {
-    const settings: Map<SiteSettings, SiteSettingsValues> = new Map();
+	const settings: {[key in SiteSettings]: SiteSettingsValues} = {
+		[SiteSettings.IS_QUEUE_OPEN]: settingsToDefault[SiteSettings.IS_QUEUE_OPEN],
+		[SiteSettings.IS_PENDING_STAGE_ENABLED]: settingsToDefault[SiteSettings.IS_PENDING_STAGE_ENABLED],
+	}
+
     for (const setting of Object.values(SiteSettings)) {
       // Create the setting with the default value if it doesn't exist
       const settingValue = await ctx.prisma.settings.upsert({
@@ -147,7 +151,7 @@ export const adminRouter = router({
           value: settingsToDefault[setting],
         },
       });
-      settings.set(setting, settingValue.value);
+	settings[setting] = settingValue.value;
     }
     return settings;
   }),
