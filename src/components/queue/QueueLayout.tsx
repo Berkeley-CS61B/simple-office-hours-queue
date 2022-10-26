@@ -10,12 +10,13 @@ import useSiteSettings from '../../utils/hooks/useSiteSettings';
 
 interface QueueLayoutProps {
   userRole: UserRole;
+  userId: string;
 }
 /**
  * Intermediate component to guarantee that Ably is initialized
  */
 const QueueLayout = (props: QueueLayoutProps) => {
-  const { userRole } = props;
+  const { userRole, userId } = props;
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>();
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
   const { siteSettings } = useSiteSettings();
@@ -45,7 +46,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
         </>
       )}
       {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket />}
-      <TicketQueue userRole={userRole} isPendingStageEnabled={isPendingStageEnabled} isQueueOpen={isQueueOpen} />
+      <TicketQueue userId={userId} userRole={userRole} isPendingStageEnabled={isPendingStageEnabled} isQueueOpen={isQueueOpen} />
     </>
   );
 };

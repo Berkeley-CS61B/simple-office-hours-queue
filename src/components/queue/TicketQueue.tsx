@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { Box, Flex, Skeleton, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import TicketList from './TicketList';
+import TicketCard from './TicketCard';
 
 interface TicketQueueProps {
   userRole: UserRole;
+  userId: string;
   isPendingStageEnabled: boolean;
   isQueueOpen: boolean;
 }
@@ -18,7 +20,7 @@ interface TicketQueueProps {
  * and renders the TicketList component for each tab
  */
 const TicketQueue = (props: TicketQueueProps) => {
-  const { userRole, isPendingStageEnabled, isQueueOpen } = props;
+  const { userRole, isPendingStageEnabled, isQueueOpen, userId } = props;
 
   const context = trpc.useContext();
 
@@ -96,6 +98,18 @@ const TicketQueue = (props: TicketQueueProps) => {
     );
   }
 
+  /* Tickets that the current user is assigned to or has created */
+  const getMyTickets = () => {
+    if (userRole === UserRole.STAFF) {
+      return assignedTickets?.filter(ticket => ticket.helpedByUserId === userId);
+    }
+
+    // Return tickets (pending, open, or assigned) that the current user has created
+    return [...(openTickets ?? []), ...(assignedTickets ?? []), ...(pendingTickets ?? [])].filter(
+      ticket => ticket.createdByUserId === userId,
+    );
+  };
+
   if (isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading) {
     return (
       <Flex alignItems='center' justifyContent='center' width='100%' mt={5} flexDirection='column'>
@@ -124,6 +138,17 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   return (
     <Flex width='full' align='left' flexDir='column' p={10}>
+      <Flex flexDir='column' mb={4}>
+        <Text fontSize='2xl'>Your Tickets</Text>
+        {getMyTickets()?.length === 0 && (
+          <Text fontSize='md' color='gray.500'>
+            You have no tickets
+          </Text>
+        )}
+        {getMyTickets()?.map(ticket => (
+          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+        ))}
+      </Flex>
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>

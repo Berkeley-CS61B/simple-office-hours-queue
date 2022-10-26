@@ -21,11 +21,11 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     await setSiteSettingsMutation.mutateAsync({
       [SiteSettings.IS_QUEUE_OPEN]: valueToSet,
     });
+    setIsModalOpen(false);
     if (shouldClearQueue) {
       await clearQueueMutation.mutateAsync();
       context.ticket.getTicketsWithStatus.invalidate();
     }
-    setIsModalOpen(false);
     channel.publish({
       name: 'broadcast',
       data:
