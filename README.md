@@ -33,7 +33,8 @@ Google OAuth is used for authentication.
 
 2. Enable the Google OAuth API.
 
-3. Create a new OAuth client ID. Make sure to set the redirect URI to `http://localhost:3000/api/auth/callback/google`.
+3. Create a new OAuth client ID. Make sure to set the redirect URI to `http://localhost:3000/api/auth/callback/google` and Authorized JavaScript origins to `http://localhost`. When deployed, add new entries, replacing `localhost`/`localhost:3000` to the new URL.
+![image](https://user-images.githubusercontent.com/24885081/198122006-cc0665ca-f81a-4035-9fe3-928b0ae76f6c.png)
 
 4. Copy the client ID and paste it into the `GOOGLE_CLIENT_ID` variable in the `.env` file.
 
