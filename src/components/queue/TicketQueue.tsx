@@ -1,16 +1,6 @@
 import { useEffect } from 'react';
 import { TicketStatus, UserRole } from '@prisma/client';
-import {
-  Flex,
-  Skeleton,
-  SkeletonText,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Text,
-} from '@chakra-ui/react';
+import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';

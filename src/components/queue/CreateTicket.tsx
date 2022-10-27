@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
+import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
 
 interface Assignment {
   id: number;
@@ -28,58 +28,56 @@ const CreateTicketForm = () => {
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
-    trpc.admin.getActiveAssignments.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            setAssignmentOptions(
-                data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
-            );
-        },
-        trpc: {}
-    });
-    trpc.admin.getActiveLocations.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: data => {
-            setLocationOptions(
-                data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
-            );
-        },
-        trpc: {}
-    });
+  trpc.admin.getActiveAssignments.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setAssignmentOptions(
+        data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
+      );
+    },
+  });
+  trpc.admin.getActiveLocations.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setLocationOptions(
+        data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
+      );
+    },
+  });
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-	if (!assignment || !location) {
-	  toast({
-		title: 'Error',
-		description: 'Please select an assignment and location',
-		status: 'error',
-		position: 'top-right',
-		duration: 3000,
-		isClosable: true,
-	  });
-	  return;
-	}
+    if (!assignment || !location) {
+      toast({
+        title: 'Error',
+        description: 'Please select an assignment and location',
+        status: 'error',
+        position: 'top-right',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     await createTicketMutation
       .mutateAsync({
         description: description.trim(),
-		assignmentId: assignment.id,
-		locationId: location.id,	
+        assignmentId: assignment.id,
+        locationId: location.id,
       })
-      .then((ticket) => {
-		if (!ticket) {
-		  toast({
-			title: 'Error',
-			description: 'Could not create ticket',
-			status: 'error',
-			position: 'top-right',
-			duration: 3000,
-			isClosable: true,
-		  });
-		  return;
-		}
+      .then(ticket => {
+        if (!ticket) {
+          toast({
+            title: 'Error',
+            description: 'Could not create ticket',
+            status: 'error',
+            position: 'top-right',
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
         setDescription('');
-		// Resets the select options
+        // Resets the select options
         setAssignment('' as unknown as Assignment);
         setLocation('' as unknown as Location);
         toast({
@@ -90,7 +88,7 @@ const CreateTicketForm = () => {
           isClosable: true,
           position: 'top-right',
         });
-		Router.push(`/ticket/${ticket?.id}`);
+        Router.push(`/ticket/${ticket?.id}`);
       });
   };
 
@@ -126,7 +124,6 @@ const CreateTicketForm = () => {
 };
 
 const CreateTicket = () => {
-  // TODO fix this type
   const endOfForm: any = useRef<HTMLSpanElement>();
 
   return (

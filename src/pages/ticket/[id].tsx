@@ -11,7 +11,6 @@ import { Text, useToast } from '@chakra-ui/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import InnerTicket from '../../components/ticket-page/InnerTicket';
 
-
 /**
  * Component that renders the ticket page. It ensures that ably is configured and
  * the current user is authorized to view the ticket.
@@ -40,7 +39,6 @@ const TicketPage: NextPage = () => {
           setIsInvalidTicket(true);
         }
       },
-      trpc: {},
     },
   );
 

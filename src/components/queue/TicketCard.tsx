@@ -1,7 +1,6 @@
+import Router from 'next/router';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
 import { TicketStatus, UserRole } from '@prisma/client';
-import Router from 'next/router';
-import React from 'react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
@@ -38,14 +37,14 @@ const TicketCard = (props: TicketCardProps) => {
   const handleResolveTicket = async () => {
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
-  
-  const handleTicketPress = (event : any) => {
-	if (event.target.tagName === 'BUTTON') {
-	  return;
-	}
-	Router.push(`/ticket/${ticket.id}`);
-  }
-  
+
+  const handleTicketPress = (event: any) => {
+    if (event.target.tagName === 'BUTTON') {
+      return;
+    }
+    Router.push(`/ticket/${ticket.id}`);
+  };
+
   return (
     <Box
       mb={4}
@@ -55,8 +54,8 @@ const TicketCard = (props: TicketCardProps) => {
       borderWidth={1}
       borderRadius={8}
       boxShadow='lg'
-	  onClick={handleTicketPress}
-	  className='hover-cursor'
+      onClick={handleTicketPress}
+      className='hover-cursor'
     >
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
@@ -71,7 +70,9 @@ const TicketCard = (props: TicketCardProps) => {
         </Box>
         <Flex flexDirection='column'>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
-            <>Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)</>
+            <>
+              Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)
+            </>
           </Text>
           <Box textAlign='right'>
             <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending}>

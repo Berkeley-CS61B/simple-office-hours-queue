@@ -47,7 +47,12 @@ const QueueLayout = (props: QueueLayoutProps) => {
         </>
       )}
       {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket />}
-      <TicketQueue userId={userId} userRole={userRole} isPendingStageEnabled={isPendingStageEnabled} isQueueOpen={isQueueOpen} />
+      <TicketQueue
+        userId={userId}
+        userRole={userRole}
+        isPendingStageEnabled={isPendingStageEnabled}
+        isQueueOpen={isQueueOpen}
+      />
     </>
   );
 };

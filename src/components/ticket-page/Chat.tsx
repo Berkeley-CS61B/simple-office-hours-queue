@@ -42,7 +42,6 @@ const Chat = (props: ChatProps) => {
         setMessages(messages);
         setIsChatLoaded(true);
       },
-      trpc: {},
     },
   );
 
