@@ -10,6 +10,8 @@ Clone the reposity and `cd` into it.
 
 For the `.env` setup, Refer to the `.env.example` file for the format of the required environment variables. The setup is as follows:
 
+Run `cp .env.example .env` to create the `.env` file.
+
 <details>
 <summary>Ably</summary>
 
@@ -62,6 +64,12 @@ After your `.env` file is set up, run the following commands to install dependen
 npm install
 npx prisma db push
 ```
+
+We need to populate the database with the default settings and first user. Go to `prisma/seed.ts` and change the `YOUR_EMAIL_ADDRESS` variable to your email. Then run:
+
+```bash
+npx prisma db seed
+``` 
 
 If you want to run the server in development mode (to see live changes), run the following command:
 
