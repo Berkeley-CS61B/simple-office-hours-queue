@@ -6,6 +6,10 @@ const prisma = new PrismaClient();
 const YOUR_EMAIL_ADDRESS = '';
 
 async function main() {
+  if (YOUR_EMAIL_ADDRESS === '') {
+    throw new Error('Please set YOUR_EMAIL_ADDRESS in seed.ts');
+  }
+
   await prisma.confirmedUser.create({
     data: {
       email: YOUR_EMAIL_ADDRESS,
@@ -30,7 +34,7 @@ async function main() {
 main()
   .then(async () => {
     await prisma.$disconnect();
-	console.log(`Seeding complete. added ${YOUR_EMAIL_ADDRESS} as STAFF and initial settings`);
+    console.log(`Seeding complete. added ${YOUR_EMAIL_ADDRESS} as STAFF and initial settings`);
   })
   .catch(async e => {
     console.error(e);

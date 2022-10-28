@@ -38,12 +38,6 @@ export const authOptions: NextAuthOptions = {
 	  });
 
 	  if (!!userIsConfirmed) {
-		// Delete the user from the 'ConfirmedUser' table since they are now in 'User'
-		await prisma.confirmedUser.delete({
-		  where: {
-			email: user.email,
-		  },
-		});
 		return true;
 	  }
 

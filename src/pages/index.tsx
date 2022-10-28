@@ -25,7 +25,9 @@ const Home: NextPage = () => {
 
   return (
     <Layout isAblyConnected={isAblyConnected}>
-      {session && session.user && isAblyConnected && <QueueLayout userRole={session.user.role} userId={session.user.id} />}
+      {session && session.user && isAblyConnected && (
+        <QueueLayout userRole={session.user.role} userId={session.user.id} />
+      )}
     </Layout>
   );
 };

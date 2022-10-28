@@ -7,6 +7,7 @@ import OpenOrCloseQueue from './OpenOrCloseQueue';
 import { Spinner } from '@chakra-ui/react';
 import { useChannel } from '@ably-labs/react-hooks';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
+import { trpc } from '../../utils/trpc';
 
 interface QueueLayoutProps {
   userRole: UserRole;
@@ -20,7 +21,24 @@ const QueueLayout = (props: QueueLayoutProps) => {
   const { userRole, userId } = props;
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>();
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
+  const changeUserRoleMutation = trpc.user.updateUserRole.useMutation();
   const { siteSettings } = useSiteSettings();
+
+  // If the user was added as STAFF, change their role
+  useEffect(() => {
+    (async () => {
+      const roleVerified = localStorage.getItem('roleVerified');
+      if (!roleVerified || roleVerified === 'false') {
+        changeUserRoleMutation.mutateAsync().then((res) => {
+          localStorage.setItem('roleVerified', 'true');
+		  if (res) {
+		  alert('Your role has been updated. Press OK to continue.');
+			window.location.reload();
+		  }
+        });
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (siteSettings) {

@@ -1,4 +1,4 @@
-import { router, protectedStaffProcedure } from '../trpc';
+import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 
@@ -19,4 +19,36 @@ export const userRouter = router({
       });
       return users;
     }),
+
+  updateUserRole: protectedProcedure.mutation(async ({ ctx }) => {
+    const curUserRole = await ctx.prisma.confirmedUser.findUnique({
+      where: {
+        email: ctx.session.user.email!,
+      },
+      select: {
+        role: true,
+      },
+    });
+	 
+	// Not in the 'ConfirmedUser' table
+	if (!curUserRole) {
+	  return null;
+	}
+
+	// Delete the user from the 'ConfirmedUser' table since they are now in 'User'
+	await ctx.prisma.confirmedUser.delete({
+	  where: {
+		email: ctx.session.user.email!,
+	  },
+	});
+	 
+	return await ctx.prisma.user.update({
+	  where: {
+		email: ctx.session.user.email!,
+	  },
+	  data: {
+		role: curUserRole?.role,
+	  },
+	});
+  }),
 });
