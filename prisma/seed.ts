@@ -1,15 +1,15 @@
-import { PrismaClient, SiteSettings } from '@prisma/client';
+import { PrismaClient, SiteSettings, UserRole } from '@prisma/client';
 import { settingsToDefault } from '../src/utils/utils';
 const prisma = new PrismaClient();
 
 // Update this variable with your email address to add yourself as STAFF
-const YOUR_EMAIL_ADDRESS = 'yayee@gmail.com';
+const YOUR_EMAIL_ADDRESS = '';
 
 async function main() {
   await prisma.confirmedUser.create({
     data: {
       email: YOUR_EMAIL_ADDRESS,
-      role: 'STAFF',
+      role: UserRole.STAFF,
     },
   });
 
