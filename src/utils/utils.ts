@@ -17,3 +17,6 @@ export const timeDifferenceInMinutes = (date: Date | null) : number => {
   const difference = now.getTime() - date.getTime();
   return Math.round(difference / 60000);
 };
+
+
+export const EMAIL_REGEX = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;

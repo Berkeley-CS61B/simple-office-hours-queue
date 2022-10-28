@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Importer, ImporterField } from 'react-csv-importer';
 import 'react-csv-importer/dist/index.css';
 import { trpc } from '../../utils/trpc';
+import { EMAIL_REGEX } from '../../utils/utils';
 
 interface ImportedUser {
   email: string;
   role: UserRole;
 }
-
-const EMAIL_REGEX = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
 const ImportUsers = () => {
   const [invalidEmails, setInvalidEmails] = useState<string[]>([]);

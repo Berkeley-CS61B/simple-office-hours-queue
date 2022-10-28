@@ -29,12 +29,12 @@ const QueueLayout = (props: QueueLayoutProps) => {
     (async () => {
       const roleVerified = localStorage.getItem('roleVerified');
       if (!roleVerified || roleVerified === 'false') {
-        changeUserRoleMutation.mutateAsync().then((res) => {
+        changeUserRoleMutation.mutateAsync().then(res => {
           localStorage.setItem('roleVerified', 'true');
-		  if (res) {
-		  alert('Your role has been updated. Press OK to continue.');
-			window.location.reload();
-		  }
+          if (res) {
+            alert('Your role has been updated. Press OK to continue.');
+            window.location.reload();
+          }
         });
       }
     })();
