@@ -94,6 +94,8 @@ If you'd like to view your database locally at any point, you can run
 npx prisma studio
 ```
 
+## BUG: The user roles will always be STUDENT. If you want to change the role of a user, you will have to do it manually in the database. You can do this by running `npx prisma studio` and then clicking on the `User` table and then clicking on the user you want to change the role of. Then, change the `role` field to `STAFF`.
+
 ## Tech Stack
 
 This project is built using the [T3 stack](https://github.com/t3-oss/create-t3-app), specifically these aspects:
