@@ -6,6 +6,10 @@ SOHQ is an open-source office hours queue that allows students to sign up for of
 
 ## Installation
 
+### Prerequisites
+- Git
+- Node.js >= 14.7
+
 Clone the reposity and `cd` into it.
 
 For the `.env` setup, Refer to the `.env.example` file for the format of the required environment variables. The setup is as follows:
@@ -21,7 +25,7 @@ Ably is used for real-time communication (i.e. queue updates)
 
 2. Create a new app.
 
-3. You should have 2 API keys, one for the server (top) and one for the client (bottom). Copy the server API key and paste it into the `ABLY_SERVER_API_KEY` variable in the `.env` file. Copy the client API key and paste it into the `NEXT_PUBLIC_ABLY_CLIENT_API_KEY` variable in the `.env` file. Your client API key should have the `Subscribe` and `Publish` permission enabled.
+3. Go to the "API Keys" tab. You should have 2 API keys, one for the server (top) and one for the client (bottom). Copy the server API key and paste it into the `ABLY_SERVER_API_KEY` variable in the `.env` file. Copy the client API key and paste it into the `NEXT_PUBLIC_ABLY_CLIENT_API_KEY` variable in the `.env` file. **Your client API key should have the `Subscribe` and `Publish` permission enabled.**
 ![Ably API Keys](/readme-assets/ably-config.jpg)
 
 </details>
@@ -33,9 +37,9 @@ Google OAuth is used for authentication.
 
 1. Create a new project on <a target="_blank" href="https://console.developers.google.com">Google Cloud Platform</a>.
 
-2. Enable the Google OAuth API.
+2. Press the "Create Credentials" button and select "OAuth client ID". Go throuth the process of filling out the form. Select `External` if you're given the option. Press the "Create Credentials" button again. This time select "Web application" as the application type.
 
-3. Create a new OAuth client ID. Make sure to set the redirect URI to `http://localhost:3000/api/auth/callback/google` and Authorized JavaScript origins to `http://localhost`. When deployed, add new entries, replacing `localhost`/`localhost:3000` to the new URL.
+3. Create a new OAuth client ID. Make sure to set the Authorized JavaScript origins to `http://localhost` and redirect URI to `http://localhost:3000/api/auth/callback/google`. When deployed, add new entries, replacing `localhost`/`localhost:3000` to the new URL.
 ![Google Auth setup](/readme-assets/google-config.jpg)
 
 4. Copy the client ID and paste it into the `GOOGLE_CLIENT_ID` variable in the `.env` file.
@@ -82,6 +86,12 @@ If you want to create a production build, run the following commands:
 ```bash
 npm run build
 npm run start
+```
+
+If you'd like to view your database locally at any point, you can run
+
+```bash
+npx prisma studio
 ```
 
 ## Tech Stack
