@@ -130,18 +130,15 @@ const CreateTicket = () => {
     <Flex width='full' align='left' flexDir='column' p={10}>
       <Text fontSize='2xl' mb={5}>
         Welcome back. Create a ticket to get started or{' '}
-        <Box
-          as='span'
-          className='hover-cursor'
+        <Button
           border='1px'
           borderRadius={8}
-          p='3px'
           pl='5px'
           pr='5px'
           onClick={() => endOfForm.current.scrollIntoView()}
         >
           view the queue
-        </Box>
+        </Button>
       </Text>
       <CreateTicketForm />
       <span ref={endOfForm}></span> {/* Start of queue */}
