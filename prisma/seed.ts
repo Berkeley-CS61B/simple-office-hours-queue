@@ -3,7 +3,7 @@ import { EMAIL_REGEX, settingsToDefault } from '../src/utils/utils';
 const prisma = new PrismaClient();
 
 // Update this variable with your email address to add yourself as STAFF
-const YOUR_EMAIL_ADDRESS = 'ad1@berkeley.edu';
+const YOUR_EMAIL_ADDRESS = '';
 
 async function main() {
   if (!YOUR_EMAIL_ADDRESS.match(EMAIL_REGEX)) {

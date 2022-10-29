@@ -30,17 +30,17 @@ export const userRouter = router({
       },
     });
 
+    // Not in the 'ConfirmedUser' table
+    if (!curUserRole || curUserRole.role === UserRole.STUDENT) {
+      return null;
+    }
+
     // Delete the user from the 'ConfirmedUser' table since they are now in 'User'
     await ctx.prisma.confirmedUser.delete({
       where: {
         email: ctx.session.user.email!,
       },
     });
-
-    // Not in the 'ConfirmedUser' table
-    if (!curUserRole || curUserRole.role === UserRole.STUDENT) {
-      return null;
-    }
 
     return ctx.prisma.user.update({
       where: {
