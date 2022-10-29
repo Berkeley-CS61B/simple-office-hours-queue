@@ -1,13 +1,13 @@
 import { Box, Flex, Tag, Text, useColorModeValue } from '@chakra-ui/react';
 import Router from 'next/router';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+import { timeDifferenceInMinutes } from '../../utils/utils';
 
 const SimpleTicketCard = ({ ticket }: { ticket: TicketWithNames }) => {
   const handleTicketPress = () => {
     Router.push(`/ticket/${ticket.id}`);
   };
 
-  // TODO: Add 'resolvedAt' to ticket model
   return (
     <Flex
       backgroundColor={useColorModeValue('white', 'gray.800')}
@@ -33,7 +33,7 @@ const SimpleTicketCard = ({ ticket }: { ticket: TicketWithNames }) => {
         </Tag>
       </Flex>
       <Text>
-        Helped {ticket.createdByName} for {} minutes
+        Helped {ticket.createdByName} for {timeDifferenceInMinutes(new Date(), ticket.resolvedAt)} minutes
       </Text>
     </Flex>
   );

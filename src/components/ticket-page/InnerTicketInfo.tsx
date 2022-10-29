@@ -97,7 +97,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text>Ticket Status: {uppercaseFirstLetter(ticket.status)}</Text>
       <Text hidden={!isAssigned}>
         <>
-          Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)
+          Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
         </>
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>

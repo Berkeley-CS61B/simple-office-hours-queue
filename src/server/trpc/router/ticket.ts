@@ -154,7 +154,7 @@ export const ticketRouter = router({
       for (const ticketId of input.ticketIds) {
         const ticket: Ticket = await ctx.prisma.ticket.update({
           where: { id: ticketId },
-          data: { status: TicketStatus.RESOLVED },
+          data: { status: TicketStatus.RESOLVED, resolvedAt: new Date() },
         });
         resolvedTickets.push(ticket);
       }
@@ -429,8 +429,8 @@ export const ticketRouter = router({
         },
       });
 
-	  const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
-	  const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
+      const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
+      const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
 
       return {
         helpedTickets,

@@ -71,7 +71,7 @@ const TicketCard = (props: TicketCardProps) => {
         <Flex flexDirection='column'>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
             <>
-              Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(ticket.helpedAt)} minute(s)
+              Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
             </>
           </Text>
           <Box textAlign='right'>
