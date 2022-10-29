@@ -68,7 +68,7 @@ const CreateTicketForm = () => {
         if (!ticket) {
           toast({
             title: 'Error',
-            description: 'Could not create ticket',
+            description: 'Could not create ticket. You may already have a ticket open.',
             status: 'error',
             position: 'top-right',
             duration: 3000,

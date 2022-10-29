@@ -22,6 +22,18 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+	  // Limits stsudents to 1 ticket at a time
+      const doesStudentHaveActiveTicket = await ctx.prisma.ticket.findFirst({
+        where: {
+          createdByUserId: ctx.session.user.id,
+          OR: [{ status: TicketStatus.PENDING }, { status: TicketStatus.OPEN }, { status: TicketStatus.ASSIGNED }],
+        },
+      });
+
+      if (doesStudentHaveActiveTicket) {
+        return;
+      }
+
       const pendingStageEnabled = await ctx.prisma.settings.findUnique({
         where: {
           setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
@@ -77,7 +89,7 @@ export const ticketRouter = router({
         approvedTickets.push(ticket);
       }
 
-      await convertTicketToTicketWithNames(approvedTickets, ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames(approvedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
         await channel.publish('tickets-approved', tickets);
@@ -116,7 +128,7 @@ export const ticketRouter = router({
         assignedTickets.push(ticket);
       }
 
-      await convertTicketToTicketWithNames(assignedTickets, ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames(assignedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
         await channel.publish('tickets-assigned', tickets);
@@ -124,7 +136,7 @@ export const ticketRouter = router({
         // Uses ticket inner page channel
         for (const ticket of tickets) {
           const channel = ably.channels.get(`ticket-${ticket.id}`);
-		  await channel.publish('ticket-assigned', ticket);
+          await channel.publish('ticket-assigned', ticket);
         }
         return tickets;
       });
@@ -147,7 +159,7 @@ export const ticketRouter = router({
         resolvedTickets.push(ticket);
       }
 
-      await convertTicketToTicketWithNames(resolvedTickets, ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames(resolvedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
         await channel.publish('tickets-resolved', tickets);
@@ -183,7 +195,7 @@ export const ticketRouter = router({
         data: { status: TicketStatus.CLOSED },
       });
 
-      await convertTicketToTicketWithNames([closedTicket], ctx).then(async (ticketsWithNames) => {
+      await convertTicketToTicketWithNames([closedTicket], ctx).then(async ticketsWithNames => {
         const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
@@ -213,7 +225,7 @@ export const ticketRouter = router({
         requeuedTickets.push(ticket);
       }
 
-      await convertTicketToTicketWithNames(requeuedTickets, ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames(requeuedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
         await channel.publish('tickets-requeued', tickets);
@@ -244,7 +256,7 @@ export const ticketRouter = router({
         reopenedTickets.push(ticket);
       }
 
-      await convertTicketToTicketWithNames(reopenedTickets, ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames(reopenedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets'); // Change to include queue id
         await channel.publish('tickets-reopened', tickets);
@@ -320,7 +332,7 @@ export const ticketRouter = router({
       closedTickets.push(closedTicket);
     }
 
-    await convertTicketToTicketWithNames(closedTickets, ctx).then(async (tickets) => {
+    await convertTicketToTicketWithNames(closedTickets, ctx).then(async tickets => {
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('tickets'); // Change to include queue id
       await channel.publish('all-tickets-closed', tickets);
@@ -346,7 +358,7 @@ export const ticketRouter = router({
         data: { staffNotes: input.notes },
       });
 
-      await convertTicketToTicketWithNames([ticket], ctx).then(async (tickets) => {
+      await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
 
         // Uses ticket inner page channel
