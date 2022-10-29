@@ -410,6 +410,34 @@ export const ticketRouter = router({
       return ticketsWithNames;
     }),
 
+  getTicketsWithUserId: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
+        where: {
+          helpedByUserId: input.userId,
+        },
+      });
+
+      const createdTicketsNoName = await ctx.prisma.ticket.findMany({
+        where: {
+          createdByUserId: input.userId,
+        },
+      });
+
+	  const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
+	  const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
+
+      return {
+        helpedTickets,
+        createdTickets,
+      };
+    }),
+
   getChatMessages: protectedProcedure
     .input(
       z.object({
