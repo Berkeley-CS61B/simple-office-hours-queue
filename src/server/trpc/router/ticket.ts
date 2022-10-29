@@ -22,7 +22,7 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-	  // Limits stsudents to 1 ticket at a time
+      // Limits students to 1 ticket at a time
       const doesStudentHaveActiveTicket = await ctx.prisma.ticket.findFirst({
         where: {
           createdByUserId: ctx.session.user.id,
