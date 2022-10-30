@@ -7,6 +7,7 @@ import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
+import useNotification from '../../utils/hooks/useNotification';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -19,6 +20,7 @@ interface InnerTicketInfoProps {
 const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole } = props;
   const [showConfetti, setShowConfetti] = useState(false);
+  const { showNotification } = useNotification();
   const canSeeName =
     ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
   const isPending = ticket.status === TicketStatus.PENDING;
@@ -60,8 +62,18 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-closed',
     ];
 
+    const shouldNotNotifyStudent: string[] = ['ticket-staffnote'];
+
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });
+
+      // Notify the student when the ticket is updated
+      if (userRole === UserRole.STUDENT) {
+        const update = message.split('-')[1];
+        if (!shouldNotNotifyStudent.includes(message)) {
+          showNotification(`Ticket ${update}`, `Your ticket has been ${update} by a staff member.`);
+        }
+      }
     }
   });
 
