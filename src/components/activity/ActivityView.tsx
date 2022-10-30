@@ -1,8 +1,7 @@
-import { Button, Flex, Spinner, Text } from '@chakra-ui/react';
-import { UserRole } from '@prisma/client';
+import { Flex, Spinner, Text } from '@chakra-ui/react';
 import { SessionUser } from '../../pages/api/auth/[...nextauth]';
 import { trpc } from '../../utils/trpc';
-import SimpleTicketCard from './SimpleTicketCard';
+import ActivityTable from './ActivityTable';
 
 interface ActivityViewProps {
   user: SessionUser;
@@ -13,7 +12,7 @@ const ActivityView = (props: ActivityViewProps) => {
 
   const { data: userTickets, isLoading: isTicketsLoading } = trpc.ticket.getTicketsWithUserId.useQuery({
     userId: user.id,
-  });
+  }, { refetchOnWindowFocus: false });
 
   return (
     <>
@@ -27,22 +26,7 @@ const ActivityView = (props: ActivityViewProps) => {
         {isTicketsLoading ? (
           <Spinner />
         ) : (
-          <>
-            {user.role === UserRole.STAFF && (
-              <>
-                <Button>Tickets you've helped</Button>
-                {userTickets?.helpedTickets.length === 0 && <Text>No tickets helped</Text>}
-                {userTickets?.helpedTickets?.map(ticket => (
-					<SimpleTicketCard ticket={ticket} />
-                ))}
-              </>
-            )}
-            <Button>Tickets you've created</Button>
-            {userTickets?.createdTickets.length === 0 && <Text>No tickets created</Text>}
-            {userTickets?.createdTickets?.map(ticket => (
-				<SimpleTicketCard ticket={ticket} />
-            ))}
-          </>
+			<ActivityTable userTickets={userTickets!} />
         )}
       </Flex>
     </>

@@ -1,4 +1,4 @@
-import { Box, Flex, Tag, Text, useColorModeValue } from '@chakra-ui/react';
+import { Flex, Tag, Text, useColorModeValue } from '@chakra-ui/react';
 import Router from 'next/router';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { timeDifferenceInMinutes } from '../../utils/utils';
@@ -33,7 +33,7 @@ const SimpleTicketCard = ({ ticket }: { ticket: TicketWithNames }) => {
         </Tag>
       </Flex>
       <Text>
-        Helped {ticket.createdByName} for {timeDifferenceInMinutes(new Date(), ticket.resolvedAt)} minutes
+        Helped {ticket.createdByName} for {timeDifferenceInMinutes(ticket.resolvedAt, ticket.helpedAt)} minutes
       </Text>
     </Flex>
   );
