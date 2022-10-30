@@ -71,7 +71,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       if (userRole === UserRole.STUDENT) {
         const update = message.split('-')[1];
         if (!shouldNotNotifyStudent.includes(message)) {
-          showNotification(`Ticket ${update}`, `Your ticket has been ${update} by a staff member.`);
+          showNotification(`Ticket ${update}`, `Your ticket has been ${update}`);
         }
       }
     }
