@@ -8,13 +8,16 @@ interface ActivityViewProps {
   user: SessionUser;
 }
 
+/**
+ * Displays the activity log for the current user
+ */
 const ActivityView = (props: ActivityViewProps) => {
   const { user } = props;
   const { isOpen: isHelpedTableOpen, onToggle: toggleHelpedTable } = useDisclosure();
   const { isOpen: isCreatedTableOpen, onToggle: toggleCreatedTable } = useDisclosure();
 
   const { data: userTickets, isLoading: isTicketsLoading } = trpc.ticket.getTicketsWithUserId.useQuery(
-    { userId: user.id },
+    { userId: user.id, shouldSortByCreatedAt: true },
     { refetchOnWindowFocus: false },
   );
 
@@ -29,7 +32,7 @@ const ActivityView = (props: ActivityViewProps) => {
         ) : (
           <>
             <Flex>
-              <Button mr={4} onClick={toggleHelpedTable}>
+              <Button mr={4} onClick={toggleHelpedTable} hidden={user.role !== UserRole.STAFF}>
                 {isHelpedTableOpen ? 'Hide ' : 'Show '} tickets you've helped
               </Button>
               <Button onClick={toggleCreatedTable}>
@@ -39,13 +42,21 @@ const ActivityView = (props: ActivityViewProps) => {
 
             <Box hidden={user.role !== UserRole.STAFF}>
               <Collapse in={isHelpedTableOpen} animateOpacity>
-                <ActivityTable tickets={userTickets?.helpedTickets ?? []} title='Your helped tickets' />
+                <ActivityTable
+                  tickets={userTickets?.helpedTickets ?? []}
+                  title='Your helped tickets'
+                  shouldShowCreatedBy={true}
+                />
               </Collapse>
             </Box>
 
             <Box>
               <Collapse in={isCreatedTableOpen} animateOpacity>
-                <ActivityTable tickets={userTickets?.createdTickets ?? []} title='Your created tickets' />
+                <ActivityTable
+                  tickets={userTickets?.createdTickets ?? []}
+                  title='Your created tickets'
+                  shouldShowCreatedBy={false}
+                />
               </Collapse>
             </Box>
           </>

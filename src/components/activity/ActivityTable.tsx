@@ -1,7 +1,7 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { Box, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react';
+import { ExternalLinkIcon, TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import { Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import { useTable, usePagination } from 'react-table';
+import { useTable, usePagination, useSortBy } from 'react-table';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { addDurationToTickets, getActivityTableColumns } from '../../utils/utils';
 import ActivityTablePagination from './ActivityTablePagination';
@@ -9,11 +9,16 @@ import ActivityTablePagination from './ActivityTablePagination';
 interface ActivityTableProps {
   tickets: TicketWithNames[];
   title: string;
+  shouldShowCreatedBy: boolean;
 }
 
+/**
+ * Table that displays a list of tickets. This will either be tickets that the user has
+ * helped or tickets that the user has created.
+ */
 const ActivityTable = (props: ActivityTableProps) => {
-  const { tickets, title } = props;
-  const columns = useMemo(() => getActivityTableColumns(title), []);
+  const { tickets, title, shouldShowCreatedBy } = props;
+  const columns = useMemo(() => getActivityTableColumns(title, shouldShowCreatedBy), []);
   const data = useMemo(() => addDurationToTickets(tickets), [tickets]);
 
   const {
@@ -31,10 +36,10 @@ const ActivityTable = (props: ActivityTableProps) => {
     previousPage,
     setPageSize,
     state: { pageIndex, pageSize },
-  } = useTable({ columns, data }, usePagination);
+  } = useTable({ columns, data }, useSortBy, usePagination);
 
   if (tickets.length === 0) {
-	return <Text>No tickets found!</Text>;
+    return <Text mt={4}>No tickets found!</Text>;
   }
 
   return (
@@ -57,15 +62,27 @@ const ActivityTable = (props: ActivityTableProps) => {
             {headerGroups.map(headerGroup => (
               <Tr className='activity-table-header' {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map(column => (
-                  <Th pl={0} {...column.getHeaderProps()}>
+                  <Th pl={0} {...column.getHeaderProps(column.getSortByToggleProps())}>
                     {column.render('Header')}
+                    <>
+                      {column.isSorted ? (
+                        column.isSortedDesc ? (
+                          <TriangleDownIcon ml={1} mb={0.5} />
+                        ) : (
+                          <TriangleUpIcon ml={1} mb={0.5} />
+                        )
+                      ) : (
+                        ''
+                      )}
+                    </>
                   </Th>
                 ))}
               </Tr>
             ))}
           </Thead>
+		  
           <Tbody {...getTableBodyProps()}>
-            {page.map((row, i) => {
+            {page.map(row => {
               prepareRow(row);
               return (
                 <Tr {...row.getRowProps()}>
@@ -76,6 +93,13 @@ const ActivityTable = (props: ActivityTableProps) => {
                           <a target='_blank' href={`/ticket/${cell.value}`}>
                             <ExternalLinkIcon />
                           </a>
+                        </Td>
+                      );
+                    }
+                    if (cell.column.id === 'createdAt') {
+                      return (
+                        <Td pl={0} {...cell.getCellProps()}>
+                          {new Date(cell.value).toLocaleString()}
                         </Td>
                       );
                     }

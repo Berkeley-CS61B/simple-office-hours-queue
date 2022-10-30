@@ -18,7 +18,7 @@ export const timeDifferenceInMinutes = (first: Date | null, second: Date | null)
   return Math.round(difference / 60000);
 };
 
-export const getActivityTableColumns = (title: string) => {
+export const getActivityTableColumns = (title: string, shouldShowCreatedBy: boolean) => {
   return [
     {
       Header: title,
@@ -28,6 +28,10 @@ export const getActivityTableColumns = (title: string) => {
           accessor: 'description',
         },
         {
+          Header: 'Created At',
+          accessor: 'createdAt',
+        },
+        {
           Header: 'Assignment',
           accessor: 'assignmentName',
         },
@@ -35,10 +39,13 @@ export const getActivityTableColumns = (title: string) => {
           Header: 'Location',
           accessor: 'locationName',
         },
-        {
-          Header: 'Created by',
-          accessor: 'createdByName',
-        },
+		shouldShowCreatedBy ? ({
+		  Header: 'Created by',
+		  accessor: 'createdByName',
+		}) : ({
+		  Header: 'Helped by',
+		  accessor: 'helpedByName',
+		}),
         {
           Header: 'Duration (m)',
           accessor: 'duration',

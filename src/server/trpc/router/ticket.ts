@@ -414,6 +414,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         userId: z.string(),
+        shouldSortByCreatedAt: z.boolean().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -421,12 +422,14 @@ export const ticketRouter = router({
         where: {
           helpedByUserId: input.userId,
         },
+        ...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
       });
 
       const createdTicketsNoName = await ctx.prisma.ticket.findMany({
         where: {
           createdByUserId: input.userId,
         },
+		...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
       });
 
       const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
