@@ -1,8 +1,14 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth';
+import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '../../../server/db/client';
+import { UserRole } from '@prisma/client';
+
+export type SessionUser = {
+  id: string;
+  role: UserRole;
+} & User;
 
 export const authOptions: NextAuthOptions = {
   // Include user.id and user.role on session
@@ -15,33 +21,33 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-	// Only allow users that either exist in the 'User' table or have been imported (confirmed)
+    // Only allow users that either exist in the 'User' table or have been imported (confirmed)
     async signIn({ user, account }) {
       if (account?.provider !== 'google' || !user?.email) {
         return false;
       }
-	     
+
       const userExists = await prisma.user.findFirst({
         where: {
           email: user.email,
         },
       });
 
-	  if (userExists) {
-		return true;
-	  }
+      if (userExists) {
+        return true;
+      }
 
-	  const userIsConfirmed = await prisma.confirmedUser.findFirst({
-		where: {
-		  email: user.email,
-		},
-	  });
+      const userIsConfirmed = await prisma.confirmedUser.findFirst({
+        where: {
+          email: user.email,
+        },
+      });
 
-	  if (!!userIsConfirmed) {
-		return true;
-	  }
+      if (!!userIsConfirmed) {
+        return true;
+      }
 
-	  return false;
+      return false;
     },
   },
 

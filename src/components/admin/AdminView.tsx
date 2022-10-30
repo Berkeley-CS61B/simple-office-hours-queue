@@ -16,7 +16,6 @@ const AdminView = () => {
   const [locations, setLocations] = useState<Location[]>();
   const [assignmentText, setAssignmentText] = useState('');
   const [locationText, setLocationText] = useState<string>('');
-  // TODO: Figure out why loading is not working fast enough
   const { siteSettings } = useSiteSettings();
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
@@ -69,7 +68,7 @@ const AdminView = () => {
   }
 
   return (
-    <Flex m={10} flexDirection='column'>
+    <Flex ml={4} mt={4} flexDirection='column'>
       <Flex direction='column' w='50%' mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           Assignments

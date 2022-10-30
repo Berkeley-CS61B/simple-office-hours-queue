@@ -154,7 +154,7 @@ export const ticketRouter = router({
       for (const ticketId of input.ticketIds) {
         const ticket: Ticket = await ctx.prisma.ticket.update({
           where: { id: ticketId },
-          data: { status: TicketStatus.RESOLVED },
+          data: { status: TicketStatus.RESOLVED, resolvedAt: new Date() },
         });
         resolvedTickets.push(ticket);
       }
@@ -408,6 +408,37 @@ export const ticketRouter = router({
       const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames(tickets, ctx);
 
       return ticketsWithNames;
+    }),
+
+  getTicketsWithUserId: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        shouldSortByCreatedAt: z.boolean().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
+        where: {
+          helpedByUserId: input.userId,
+        },
+        ...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+      });
+
+      const createdTicketsNoName = await ctx.prisma.ticket.findMany({
+        where: {
+          createdByUserId: input.userId,
+        },
+		...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+      });
+
+      const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
+      const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
+
+      return {
+        helpedTickets,
+        createdTickets,
+      };
     }),
 
   getChatMessages: protectedProcedure
