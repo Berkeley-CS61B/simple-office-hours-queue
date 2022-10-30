@@ -1,7 +1,11 @@
+import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { Box, Table, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
+import Link from 'next/link';
 import { useMemo } from 'react';
 import { useTable, usePagination } from 'react-table';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { addDurationToTickets, getActivityTableColumns } from '../../utils/utils';
+import ActivityTablePagination from './ActivityTablePagination';
 
 interface ActivityTableProps {
   userTickets: {
@@ -12,7 +16,7 @@ interface ActivityTableProps {
 
 // TODO: Take in type (createdTickets, helpedTickets) and use that to determine which tickets to display
 const ActivityTable = (props: ActivityTableProps) => {
-  const columns = useMemo(() => getActivityTableColumns('Your created tickets'), []);
+  const columns = useMemo(() => getActivityTableColumns('Your helped tickets'), []);
   const data = useMemo(() => addDurationToTickets(props.userTickets.helpedTickets), [props.userTickets.helpedTickets]);
 
   const {
@@ -33,76 +37,60 @@ const ActivityTable = (props: ActivityTableProps) => {
   } = useTable({ columns, data }, usePagination);
 
   return (
-    <>
-      <table {...getTableProps()}>
-        <thead>
+	<>
+	   <ActivityTablePagination 
+	   	gotoPage={gotoPage}
+		canPreviousPage={canPreviousPage}
+		previousPage={previousPage}
+		canNextPage={canNextPage}
+		nextPage={nextPage}
+		pageCount={pageCount}
+		pageOptions={pageOptions}
+		pageIndex={pageIndex}
+		pageSize={pageSize}
+		setPageSize={setPageSize}
+	   />
+    <TableContainer>
+      <Table variant='striped' {...getTableProps()}>
+        <Thead>
           {headerGroups.map(headerGroup => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
+            <Tr className='activity-table-header' {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <Th pl={0} {...column.getHeaderProps()}>
+                  {column.render('Header')}
+                </Th>
               ))}
-            </tr>
+            </Tr>
           ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
+        </Thead>
+        <Tbody {...getTableBodyProps()}>
           {page.map((row, i) => {
             prepareRow(row);
             return (
-              <tr {...row.getRowProps()}>
+              <Tr {...row.getRowProps()}>
                 {row.cells.map(cell => {
-                  return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
+                  if (cell.column.id === 'id') {
+                    return (
+                      <Td pl={0} {...cell.getCellProps()}>
+                        <a target='_blank' href={`/ticket/${cell.value}`}>
+                          <ExternalLinkIcon />
+                        </a>
+                      </Td>
+                    );
+                  }
+                  return (
+                    <Td pl={2} {...cell.getCellProps()}>
+                      {cell.render('Cell')}
+                    </Td>
+                  );
                 })}
-              </tr>
+              </Tr>
             );
           })}
-        </tbody>
-      </table>
-
-      <div className='pagination'>
-        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-          {'<<'}
-        </button>{' '}
-        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-          {'<'}
-        </button>{' '}
-        <button onClick={() => nextPage()} disabled={!canNextPage}>
-          {'>'}
-        </button>{' '}
-        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-          {'>>'}
-        </button>{' '}
-        <span>
-          Page{' '}
-          <strong>
-            {pageIndex + 1} of {pageOptions.length}
-          </strong>{' '}
-        </span>
-        <span>
-          | Go to page:{' '}
-          <input
-            type='number'
-            defaultValue={pageIndex + 1}
-            onChange={e => {
-              const page = e.target.value ? Number(e.target.value) - 1 : 0;
-              gotoPage(page);
-            }}
-            style={{ width: '100px' }}
-          />
-        </span>{' '}
-        <select
-          value={pageSize}
-          onChange={e => {
-            setPageSize(Number(e.target.value));
-          }}
-        >
-          {[10, 20, 30, 40, 50].map(pageSize => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
-    </>
+        </Tbody>
+      </Table>
+    </TableContainer>
+	</>
   );
 };
 

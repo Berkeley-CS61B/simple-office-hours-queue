@@ -20,9 +20,6 @@ const ActivityView = (props: ActivityViewProps) => {
         <Text fontSize='3xl' fontWeight='semibold'>
           Activity Log
         </Text>
-        <Text fontSize='xl' fontWeight='semibold'>
-          Your Tickets
-        </Text>
         {isTicketsLoading ? (
           <Spinner />
         ) : (

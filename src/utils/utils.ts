@@ -36,12 +36,16 @@ export const getActivityTableColumns = (title: string) => {
           accessor: 'locationName',
         },
         {
-          Header: 'Helped by',
-          accessor: 'helpedByName',
+          Header: 'Created by',
+          accessor: 'createdByName',
         },
         {
-          Header: 'Duration',
+          Header: 'Duration (m)',
           accessor: 'duration',
+        },
+        {
+          Header: 'Link',
+          accessor: 'id',
         },
       ],
     },
