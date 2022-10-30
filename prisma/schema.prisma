@@ -30,7 +30,7 @@ model Ticket {
     createdBy   User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
     helpedBy    User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
     helpedAt    DateTime?
-	resolvedAt  DateTime?
+    resolvedAt  DateTime?
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @default(now()) @updatedAt
     status      TicketStatus  @default(PENDING)

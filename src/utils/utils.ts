@@ -39,13 +39,15 @@ export const getActivityTableColumns = (title: string, shouldShowCreatedBy: bool
           Header: 'Location',
           accessor: 'locationName',
         },
-		shouldShowCreatedBy ? ({
-		  Header: 'Created by',
-		  accessor: 'createdByName',
-		}) : ({
-		  Header: 'Helped by',
-		  accessor: 'helpedByName',
-		}),
+        shouldShowCreatedBy
+          ? {
+              Header: 'Created by',
+              accessor: 'createdByName',
+            }
+          : {
+              Header: 'Helped by',
+              accessor: 'helpedByName',
+            },
         {
           Header: 'Duration (m)',
           accessor: 'duration',
