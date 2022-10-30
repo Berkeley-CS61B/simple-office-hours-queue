@@ -67,6 +67,11 @@ export const Navbar = () => {
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>
+            <Link href='/activity'>
+              <Text fontWeight='semibold' className='hover-cursor'>
+                Activity
+              </Text>
+            </Link>
             {session?.user?.role === UserRole.STAFF && (
               <Link href='/admin'>
                 <Text fontWeight='semibold' className='hover-cursor'>
