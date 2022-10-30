@@ -18,7 +18,7 @@ interface ActivityTableProps {
  */
 const ActivityTable = (props: ActivityTableProps) => {
   const { tickets, title, shouldShowCreatedBy } = props;
-  const columns = useMemo(() => getActivityTableColumns(title, shouldShowCreatedBy), []);
+  const columns = useMemo(() => getActivityTableColumns(title, shouldShowCreatedBy), [shouldShowCreatedBy, title]);
   const data = useMemo(() => addDurationToTickets(tickets), [tickets]);
 
   const {
@@ -60,9 +60,9 @@ const ActivityTable = (props: ActivityTableProps) => {
         <Table variant='striped' {...getTableProps()}>
           <Thead>
             {headerGroups.map(headerGroup => (
-              <Tr className='activity-table-header' {...headerGroup.getHeaderGroupProps()}>
+              <Tr className='activity-table-header' {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
                 {headerGroup.headers.map(column => (
-                  <Th pl={0} {...column.getHeaderProps(column.getSortByToggleProps())}>
+                  <Th pl={0} {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
                     {column.render('Header')}
                     <>
                       {column.isSorted ? (
@@ -80,17 +80,17 @@ const ActivityTable = (props: ActivityTableProps) => {
               </Tr>
             ))}
           </Thead>
-		  
+
           <Tbody {...getTableBodyProps()}>
             {page.map(row => {
               prepareRow(row);
               return (
-                <Tr {...row.getRowProps()}>
+                <Tr {...row.getRowProps()} key={row.id}>
                   {row.cells.map(cell => {
                     if (cell.column.id === 'id') {
                       return (
-                        <Td pl={0} {...cell.getCellProps()}>
-                          <a target='_blank' href={`/ticket/${cell.value}`}>
+                        <Td pl={0} {...cell.getCellProps()} key={cell.getCellProps().key}>
+                          <a target='_blank' rel='noreferrer' href={`/ticket/${cell.value}`}>
                             <ExternalLinkIcon />
                           </a>
                         </Td>
@@ -98,13 +98,13 @@ const ActivityTable = (props: ActivityTableProps) => {
                     }
                     if (cell.column.id === 'createdAt') {
                       return (
-                        <Td pl={0} {...cell.getCellProps()}>
+                        <Td pl={0} {...cell.getCellProps()} key={cell.getCellProps().key}>
                           {new Date(cell.value).toLocaleString()}
                         </Td>
                       );
                     }
                     return (
-                      <Td pl={2} {...cell.getCellProps()}>
+                      <Td pl={2} {...cell.getCellProps()} key={cell.getCellProps().key}>
                         {cell.render('Cell')}
                       </Td>
                     );

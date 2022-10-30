@@ -33,11 +33,9 @@ const ActivityView = (props: ActivityViewProps) => {
           <>
             <Flex>
               <Button mr={4} onClick={toggleHelpedTable} hidden={user.role !== UserRole.STAFF}>
-                {isHelpedTableOpen ? 'Hide ' : 'Show '} tickets you've helped
+                {isHelpedTableOpen ? 'Hide ' : 'Show '} helped tickets
               </Button>
-              <Button onClick={toggleCreatedTable}>
-                {isCreatedTableOpen ? 'Hide ' : 'Show '} tickets you've created
-              </Button>
+              <Button onClick={toggleCreatedTable}>{isCreatedTableOpen ? 'Hide ' : 'Show '} created tickets</Button>
             </Flex>
 
             <Box hidden={user.role !== UserRole.STAFF}>
