@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Input, Box, Flex, Text, Spinner } from '@chakra-ui/react';
+import { Button, Input, Box, Flex, Text, Spinner, useToast } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
@@ -21,10 +21,12 @@ const Chat = (props: ChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState<string>('');
   const [isChatLoaded, setIsChatLoaded] = useState<boolean>(false);
-  const messageTextIsEmpty: boolean = messageText.trim().length === 0;
+  const toast = useToast();
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
+
+  const messageTextIsEmpty: boolean = messageText.trim().length === 0;
 
   trpc.ticket.getChatMessages.useQuery(
     { ticketId },
@@ -50,6 +52,12 @@ const Chat = (props: ChatProps) => {
 
   useChannel(`ticket-${ticketId}`, 'chat-message', ablyMsg => {
     const { message, userName, userId } = ablyMsg.data as ChatMessageWithUserName;
+
+    // The chat message is from the current user, and it was optimisticly added to the chat
+    if (userId === session?.user?.id) {
+      return;
+    }
+
     const newMessage: Message = {
       content: message,
       sentByName: userName,
@@ -68,15 +76,35 @@ const Chat = (props: ChatProps) => {
       return;
     }
 
-    await sendChatMessageMutation.mutateAsync({
-      ticketId,
-      message: messageText,
-    });
+    const newMessage: Message = {
+      content: messageText,
+      sentByName: session?.user?.name!,
+      sentByUserId: session?.user?.id!,
+    };
+	// Optimistic update on chat message
+    setMessages(prevMessages => [...prevMessages, newMessage]);
 
     setMessageText('');
     if (inputBox) {
       inputBox.focus();
     }
+
+    await sendChatMessageMutation
+      .mutateAsync({
+        ticketId,
+        message: messageText,
+      })
+      .catch(err => {
+        console.error(err);
+        toast({
+          title: 'Error',
+          description: 'There was an error sending your message. Please refresh the page and try again.',
+          status: 'error',
+          position: 'top-right',
+          duration: 3000,
+          isClosable: true,
+        });
+      });
   };
 
   const allMessages = messages.map((message, index: number) => {
