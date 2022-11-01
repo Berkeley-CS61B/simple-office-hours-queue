@@ -174,7 +174,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
         Close
       </Button>
-      {isGetUsersLoading ? (
+      {isGetUsersLoading && ticket.isPublic ? (
         <Spinner />
       ) : (
         <Button

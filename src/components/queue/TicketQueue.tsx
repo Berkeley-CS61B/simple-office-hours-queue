@@ -142,7 +142,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       <Flex flexDir='column' mb={4}>
-        <Text fontSize='2xl'>Your Tickets</Text>
+        <Text fontSize='2xl' mb={2}>Your Tickets</Text>
         {isGetTicketsLoading && <SkeletonText noOfLines={1} mt={2} h={3} w={150} />}
         {getMyTickets()?.length === 0 && (
           <Text fontSize='md' color='gray.500'>
