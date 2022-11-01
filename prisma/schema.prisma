@@ -40,6 +40,8 @@ model Ticket {
     resolution  String        @default("") // TODO
     staffNotes  String?
     ChatMessage ChatMessage[]
+    isPublic        Boolean       @default(false) // Can other students see/join this ticket
+    usersInGroup    User[]        @relation("groupTickets")
 
     helpedByUserId  String?
     createdByUserId String
@@ -76,6 +78,7 @@ model User {
     sessions       Session[]
     ticketsCreated Ticket[]      @relation("ticketsCreatedBy")
     ticketsHelped  Ticket[]      @relation("ticketsHelpedBy")
+    ticketsJoined  Ticket[]      @relation("groupTickets") // For public tickets
     ChatMessage    ChatMessage[]
 }
 
