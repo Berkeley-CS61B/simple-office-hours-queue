@@ -59,6 +59,13 @@ SOHQ uses MySQL as its database, mainly because the free tier of <a href="https:
 
 </details>
 
+<details>
+<summary>NextAuth</summary>
+
+Run `openssl rand -base64 32` (you may need to download openssl) and put the result inside of `NEXTAUTH_SECRET`.
+
+</details>
+
 <br />
 
 
