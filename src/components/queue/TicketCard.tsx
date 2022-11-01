@@ -56,6 +56,7 @@ const TicketCard = (props: TicketCardProps) => {
       boxShadow={ticket.isPublic ? '0 0 10px 5px gold' : 'lg'}
       onClick={handleTicketPress}
       className='hover-cursor'
+	  _hover={{ backgroundColor: useColorModeValue('#dddddd', '#273042'), transition: '0.3s' }}
     >
 	  <Flex hidden={!ticket.isPublic}>
 		<StarIcon mt={-6} ml={-6} color='gold' />
