@@ -56,6 +56,7 @@ const TicketCard = (props: TicketCardProps) => {
       boxShadow='lg'
       onClick={handleTicketPress}
       className='hover-cursor'
+	  _hover={{ backgroundColor: useColorModeValue('#dddddd', '#273042'), transition: '0.3s' }}
     >
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
