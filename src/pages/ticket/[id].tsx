@@ -58,7 +58,7 @@ const TicketPage: NextPage = () => {
 
   const userRole = session?.user?.role;
 
-  const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId;
+  const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId || ticket?.isPublic;
 
   /**
    * If the ticket doesn't exist or user doesn't have correct access,
@@ -89,7 +89,7 @@ const TicketPage: NextPage = () => {
           {isInvalidTicket ? (
             <Text>Invalid ticket</Text>
           ) : (
-            <>{ticket && <InnerTicket ticket={ticket} userRole={userRole} />}</>
+            <>{ticket && <InnerTicket ticket={ticket} userRole={userRole} userId={userId} />}</>
           )}
         </>
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus } from '@prisma/client';
-import { Text, Button } from '@chakra-ui/react';
+import { Text, Button, Spinner } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -12,14 +12,18 @@ import useNotification from '../../utils/hooks/useNotification';
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
   userRole: UserRole;
+  userId: string;
 }
 
 /**
  * InnerTicketInfo component that displays the ticket information (left column)
  */
 const InnerTicketInfo = (props: InnerTicketInfoProps) => {
-  const { ticket, userRole } = props;
+  const { ticket, userRole, userId } = props;
+
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isInGroup, setIsInGroup] = useState(false);
+
   const { showNotification } = useNotification();
   const canSeeName =
     ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
@@ -36,6 +40,19 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const reopenTicketsMutation = trpc.ticket.reopenTickets.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
+  const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+
+  const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
+    { ticketId: ticket.id },
+    {
+      enabled: ticket.isPublic,
+      refetchOnWindowFocus: false,
+      onSuccess: data => {
+        setIsInGroup(data.some(user => user.id === userId));
+      },
+    },
+  );
 
   const context = trpc.useContext();
 
@@ -60,12 +77,21 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-requeued',
       'ticket-staffnote',
       'ticket-closed',
+      'ticket-joined',
+      'ticket-left',
     ];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote'];
 
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });
+
+      // Not too sure why getUsersInTicketGroup.invalidate() doesn't work here
+      if (message === 'ticket-joined') {
+        setIsInGroup(true);
+      } else if (message === 'ticket-left') {
+        setIsInGroup(false);
+      }
 
       // Notify the student when the ticket is updated
       if (userRole === UserRole.STUDENT) {
@@ -103,6 +129,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
+  const handleJoinGroup = async () => {
+    await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+  };
+
+  const handleLeaveGroup = async () => {
+    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+  };
+
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
@@ -113,7 +147,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         </>
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
-      <Text mt={4}>{ticket.description}</Text>
+      <Text mt={4} mb={4}>
+        Description: {ticket.description}
+      </Text>
+      <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
       <Text>Location: {ticket.locationName}</Text>
       <Text>Assignment: {ticket.assignmentName}</Text>
 
@@ -137,6 +174,17 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
         Close
       </Button>
+      {isGetUsersLoading ? (
+        <Spinner />
+      ) : (
+        <Button
+          m={4}
+          onClick={isInGroup ? handleLeaveGroup : handleJoinGroup}
+          hidden={isStaff || !ticket.isPublic || ticket.createdByUserId === userId}
+        >
+          {isInGroup ? 'Leave' : 'Join'} group
+        </Button>
+      )}
       <Confetti
         recycle={false}
         numberOfPieces={200}

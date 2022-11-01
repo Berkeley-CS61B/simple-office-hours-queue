@@ -26,23 +26,22 @@ model ChatMessage {
 }
 
 model Ticket {
-    id          Int           @id @default(autoincrement())
-    createdBy   User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-    helpedBy    User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
-    helpedAt    DateTime?
-    resolvedAt  DateTime?
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @default(now()) @updatedAt
-    status      TicketStatus  @default(PENDING)
-    description String?
-    assignment  Assignment    @relation(fields: [assignmentId], references: [id])
-    location    Location      @relation(fields: [locationId], references: [id])
-    resolution  String        @default("") // TODO
-    staffNotes  String?
-    ChatMessage ChatMessage[]
+    id              Int           @id @default(autoincrement())
+    createdBy       User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+    helpedBy        User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    helpedAt        DateTime?
+    resolvedAt      DateTime?
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @default(now()) @updatedAt
+    status          TicketStatus  @default(PENDING)
+    description     String?
+    assignment      Assignment    @relation(fields: [assignmentId], references: [id])
+    location        Location      @relation(fields: [locationId], references: [id])
+    resolution      String        @default("") // TODO
+    staffNotes      String?
+    ChatMessage     ChatMessage[]
     isPublic        Boolean       @default(false) // Can other students see/join this ticket
     usersInGroup    User[]        @relation("groupTickets")
-
     helpedByUserId  String?
     createdByUserId String
     assignmentId    Int

@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
-import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text } from '@chakra-ui/react';
+import { Flex, Box, FormControl, Input, FormLabel, Button, useToast, Text, Switch, Tooltip } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
 
 interface Assignment {
   id: number;
@@ -25,6 +26,7 @@ const CreateTicketForm = () => {
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
   const [location, setLocation] = useState<Location>();
+  const [isPublic, setIsPublic] = useState<boolean>(false);
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
@@ -63,6 +65,7 @@ const CreateTicketForm = () => {
         description: description.trim(),
         assignmentId: assignment.id,
         locationId: location.id,
+        isPublic,
       })
       .then(ticket => {
         if (!ticket) {
@@ -114,6 +117,22 @@ const CreateTicketForm = () => {
             <FormLabel>Location</FormLabel>
             <Select value={location} onChange={val => setLocation(val!)} options={locationOptions} />
           </FormControl>
+          <FormControl mt={6} display='flex'>
+            <FormLabel>
+              <>
+                <>Public</>
+                <Tooltip
+                  hasArrow
+                  label='Public tickets can be joined by other students. This is great for group work or conceptual questions!'
+                  bg='gray.300'
+                  color='black'
+                >
+                  <InfoIcon ml={2} mb={1} />
+                </Tooltip>
+              </>
+            </FormLabel>
+            <Switch isChecked={isPublic} mt={1} onChange={() => setIsPublic(!isPublic)} />
+          </FormControl>
           <Button type='submit' variant='outline' width='full' mt={4}>
             Request Help
           </Button>
@@ -125,18 +144,12 @@ const CreateTicketForm = () => {
 
 const CreateTicket = () => {
   const endOfForm: any = useRef<HTMLSpanElement>();
-  
+
   return (
     <Flex width='full' align='left' flexDir='column' p={10}>
       <Text fontSize='2xl' mb={5}>
         Welcome back. Create a ticket to get started or{' '}
-        <Button
-          border='1px'
-          borderRadius={8}
-          pl='5px'
-          pr='5px'
-          onClick={() => endOfForm.current.scrollIntoView()}
-        >
+        <Button border='1px' borderRadius={8} pl='5px' pr='5px' onClick={() => endOfForm.current.scrollIntoView()}>
           view the queue
         </Button>
       </Text>

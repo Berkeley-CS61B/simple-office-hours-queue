@@ -17,6 +17,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         description: z.string().optional(),
+        isPublic: z.boolean().optional(),
         assignmentId: z.number(),
         locationId: z.number(),
       }),
@@ -43,6 +44,8 @@ export const ticketRouter = router({
       const ticket = await ctx.prisma.ticket.create({
         data: {
           description: input.description,
+          isPublic: input.isPublic ?? false,
+          usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
           assignment: {
             connect: {
               id: input.assignmentId,
@@ -62,6 +65,16 @@ export const ticketRouter = router({
           status: pendingStageEnabled?.value === SiteSettingsValues.TRUE ? TicketStatus.PENDING : TicketStatus.OPEN,
         },
       });
+
+      // Add the ticket to User.ticketsJoined if it is public
+      if (input.isPublic) {
+        await ctx.prisma.user.update({
+          where: { id: ctx.session.user.id },
+          data: {
+            ticketsJoined: { connect: { id: ticket.id } },
+          },
+        });
+      }
 
       const ticketWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
 
@@ -270,6 +283,90 @@ export const ticketRouter = router({
       });
     }),
 
+  joinTicketGroup: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: {
+          usersInGroup: {
+            connect: {
+              id: ctx.session?.user?.id,
+            },
+          },
+        },
+      });
+
+      await ctx.prisma.user.update({
+        where: { id: ctx.session?.user?.id },
+        data: {
+          ticketsJoined: {
+            connect: {
+              id: input.ticketId,
+            },
+          },
+        },
+      });
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(async ticketsWithNames => {
+        const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        await channel.publish('ticket-joined', ticketWithName);
+
+        // Uses ticket inner page channel
+        const innerChannel = ably.channels.get(`ticket-${ticket.id}`);
+        await innerChannel.publish('ticket-joined', ticketWithName);
+        return ticketWithName;
+      });
+    }),
+
+  leaveTicketGroup: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: {
+          usersInGroup: {
+            disconnect: {
+              id: ctx.session?.user?.id,
+            },
+          },
+        },
+      });
+
+      await ctx.prisma.user.update({
+        where: { id: ctx.session?.user?.id },
+        data: {
+          ticketsJoined: {
+            disconnect: {
+              id: input.ticketId,
+            },
+          },
+        },
+      });
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(async ticketsWithNames => {
+        const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        await channel.publish('ticket-left', ticketWithName);
+
+        // Uses ticket inner page channel
+        const innerChannel = ably.channels.get(`ticket-${ticket.id}`);
+        await innerChannel.publish('ticket-left', ticketWithName);
+        return ticketWithName;
+      });
+    }),
+
   sendChatMessage: protectedProcedure
     .input(
       z.object({
@@ -429,7 +526,7 @@ export const ticketRouter = router({
         where: {
           createdByUserId: input.userId,
         },
-		...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+        ...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
       });
 
       const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
@@ -439,6 +536,24 @@ export const ticketRouter = router({
         helpedTickets,
         createdTickets,
       };
+    }),
+
+  getUsersInTicketGroup: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const users = await ctx.prisma.user.findMany({
+        where: {
+          ticketsJoined: {
+            some: { id: input.ticketId },
+          },
+        },
+      });
+
+      return users;
     }),
 
   getChatMessages: protectedProcedure
@@ -503,6 +618,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
           id: ticket.createdByUserId,
         },
       });
+
       return {
         ...ticket,
         locationName: location?.name,
