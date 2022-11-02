@@ -1,6 +1,7 @@
 import Router from 'next/router';
-import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex } from '@chakra-ui/react';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { useState } from 'react';
+import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } from '@chakra-ui/react';
+import { TicketStatus, User, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
@@ -17,6 +18,10 @@ interface TicketCardProps {
  */
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId } = props;
+  const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
+  const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
+
+  const hoverColor = useColorModeValue('#dddddd', '#273042');
   const isStaff = userRole === UserRole.STAFF;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
@@ -26,6 +31,20 @@ const TicketCard = (props: TicketCardProps) => {
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
+  const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
+  const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+  const context = trpc.useContext();
+
+  const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
+    { ticketId: ticket.id },
+    {
+      enabled: ticket.isPublic,
+      refetchOnWindowFocus: false,
+      onSuccess: users => {
+        setUsersInGroup(users);
+      },
+    },
+  );
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
@@ -51,6 +70,18 @@ const TicketCard = (props: TicketCardProps) => {
     Router.push(`/ticket/${ticket.id}`);
   };
 
+  const handleJoinGroup = async () => {
+    await joinTicketMutation.mutateAsync({ ticketId: ticket.id }).then(() => {
+      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
+    });
+  };
+
+  const handleLeaveGroup = async () => {
+    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id }).then(() => {
+      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
+    });
+  };
+
   return (
     <Box
       mb={4}
@@ -59,12 +90,10 @@ const TicketCard = (props: TicketCardProps) => {
       width='full'
       borderWidth={1}
       borderRadius={8}
-      boxShadow={ticket.isPublic ? '0 0 10px 5px gold' : 'lg'}
+      boxShadow={ticket.isPublic ? '0 0 3px 3px gold' : 'lg'}
       onClick={handleTicketPress}
       className={canUserClickOnTicket ? 'hover-cursor' : ''}
-      _hover={
-        canUserClickOnTicket ? { backgroundColor: useColorModeValue('#dddddd', '#273042'), transition: '0.3s' } : {}
-      }
+      _hover={canUserClickOnTicket ? { backgroundColor: hoverColor, transition: '0.3s' } : {}}
     >
       <Flex hidden={!ticket.isPublic}>
         <StarIcon mt={-6} ml={-6} color='gold' />
@@ -99,6 +128,16 @@ const TicketCard = (props: TicketCardProps) => {
             <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
               Resolve
             </Button>
+            {isGetUsersLoading && ticket.isPublic ? (
+              <Spinner />
+            ) : (
+              <Button
+                onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
+                hidden={isStaff || !ticket.isPublic}
+              >
+                {isCurrentUserInGroup ? 'Leave' : 'Join'}
+              </Button>
+            )}
           </Box>
         </Flex>
       </Flex>

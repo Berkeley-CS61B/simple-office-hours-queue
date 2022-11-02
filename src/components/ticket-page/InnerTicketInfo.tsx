@@ -87,12 +87,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });
 
-      // Not too sure why getUsersInTicketGroup.invalidate() doesn't work here
-      //   if (message === 'ticket-joined') {
-      //     setIsInGroup(true);
-      //   } else if (message === 'ticket-left') {
-      //     setIsInGroup(false);
-      //   }
       if (message === 'ticket-joined' || message === 'ticket-left') {
         context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
       }
