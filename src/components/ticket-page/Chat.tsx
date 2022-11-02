@@ -128,7 +128,7 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName} {sentByUserRole === 'STAFF' ? '(Staff)' : ''}:
+          {sentByName}{sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
         </Text>
         {content}
       </Flex>

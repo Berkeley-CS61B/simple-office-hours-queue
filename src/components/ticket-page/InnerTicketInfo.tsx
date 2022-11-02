@@ -27,13 +27,20 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const { showNotification } = useNotification();
   const canSeeName =
-    ticket.status === TicketStatus.ASSIGNED || ticket.status === TicketStatus.RESOLVED || userRole === UserRole.STUDENT;
+    userId === ticket.createdByUserId ||
+    isCurrentUserInGroup ||
+    (userRole === UserRole.STAFF &&
+      (ticket.status === TicketStatus.ASSIGNED ||
+        ticket.status === TicketStatus.RESOLVED ||
+        ticket.status === TicketStatus.CLOSED));
+
   const isPending = ticket.status === TicketStatus.PENDING;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
   const isStaff = userRole === UserRole.STAFF;
+  const helpOrJoin = isStaff ? 'Help' : 'Join';
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -137,7 +144,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   return (
     <>
-      <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : 'Help to see name'}</Text>
+      <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : <>{helpOrJoin} to see name</>}</Text>
       <Text>Ticket Status: {uppercaseFirstLetter(ticket.status)}</Text>
       <Text hidden={!isAssigned}>
         <>
@@ -148,23 +155,30 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text mt={4} mb={4}>
         Description: {ticket.description}
       </Text>
+
+      <Text>Location: {ticket.locationName}</Text>
+      <Text mb={4}>Assignment: {ticket.assignmentName}</Text>
+
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
       <Box hidden={!ticket.isPublic} mb={3}>
         <Text fontWeight='bold'>Users in group:</Text>
-        {isGetUsersLoading ? (
-          <Spinner />
+        {canSeeName ? (
+          <>
+            {isGetUsersLoading ? (
+              <Spinner />
+            ) : (
+              <List>
+                {usersInGroup.map(user => (
+                  <ListItem key={user.id}>{user.name}</ListItem>
+                ))}
+              </List>
+            )}
+          </>
         ) : (
-          <List>
-            {usersInGroup.map(user => (
-              <ListItem key={user.id}>{user.name}</ListItem>
-            ))}
-          </List>
+          <Text>{helpOrJoin} to see names</Text>
         )}
       </Box>
-
-      <Text>Location: {ticket.locationName}</Text>
-      <Text>Assignment: {ticket.assignmentName}</Text>
 
       <StaffNotes ticket={ticket} userRole={userRole} />
 
