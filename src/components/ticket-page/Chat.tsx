@@ -5,6 +5,7 @@ import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
+import { UserRole } from '@prisma/client';
 
 interface ChatProps {
   ticketId: number;
@@ -14,6 +15,7 @@ interface Message {
   content: string;
   sentByName: string;
   sentByUserId: string;
+  sentByUserRole: UserRole;
 }
 
 const Chat = (props: ChatProps) => {
@@ -39,6 +41,7 @@ const Chat = (props: ChatProps) => {
             content: message.message,
             sentByName: message.userName,
             sentByUserId: message.userId,
+			sentByUserRole: message.userRole,
           };
         });
         setMessages(messages);
@@ -51,7 +54,7 @@ const Chat = (props: ChatProps) => {
   let messageEnd: any = null;
 
   useChannel(`ticket-${ticketId}`, 'chat-message', ablyMsg => {
-    const { message, userName, userId } = ablyMsg.data as ChatMessageWithUserName;
+    const { message, userName, userId, userRole } = ablyMsg.data as ChatMessageWithUserName;
 
     // The chat message is from the current user, and it was optimisticly added to the chat
     if (userId === session?.user?.id) {
@@ -62,6 +65,7 @@ const Chat = (props: ChatProps) => {
       content: message,
       sentByName: userName,
       sentByUserId: userId,
+	  sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
@@ -80,6 +84,7 @@ const Chat = (props: ChatProps) => {
       content: messageText,
       sentByName: session?.user?.name!,
       sentByUserId: session?.user?.id!,
+	  sentByUserRole: session?.user?.role!,
     };
 	// Optimistic update on chat message
     setMessages(prevMessages => [...prevMessages, newMessage]);
@@ -108,7 +113,7 @@ const Chat = (props: ChatProps) => {
   };
 
   const allMessages = messages.map((message, index: number) => {
-    const { content, sentByName, sentByUserId } = message;
+    const { content, sentByName, sentByUserId, sentByUserRole } = message;
     const amISender = sentByUserId === session?.user?.id!;
     return (
       <Flex
@@ -123,7 +128,7 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName}:
+          {sentByName} {sentByUserRole === 'STAFF' ? '(Staff)' : ''}:
         </Text>
         {content}
       </Flex>

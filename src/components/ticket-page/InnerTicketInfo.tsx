@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { UserRole, TicketStatus } from '@prisma/client';
-import { Text, Button, Spinner } from '@chakra-ui/react';
+import { UserRole, TicketStatus, User } from '@prisma/client';
+import { Text, Button, Spinner, Box, List, ListItem } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -22,7 +22,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole, userId } = props;
 
   const [showConfetti, setShowConfetti] = useState(false);
-  const [isInGroup, setIsInGroup] = useState(false);
+  const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
+  const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
   const { showNotification } = useNotification();
   const canSeeName =
@@ -48,8 +49,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     {
       enabled: ticket.isPublic,
       refetchOnWindowFocus: false,
-      onSuccess: data => {
-        setIsInGroup(data.some(user => user.id === userId));
+      onSuccess: users => {
+        setUsersInGroup(users);
       },
     },
   );
@@ -87,10 +88,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       context.ticket.getTicket.invalidate({ id: ticket.id });
 
       // Not too sure why getUsersInTicketGroup.invalidate() doesn't work here
-      if (message === 'ticket-joined') {
-        setIsInGroup(true);
-      } else if (message === 'ticket-left') {
-        setIsInGroup(false);
+      //   if (message === 'ticket-joined') {
+      //     setIsInGroup(true);
+      //   } else if (message === 'ticket-left') {
+      //     setIsInGroup(false);
+      //   }
+      if (message === 'ticket-joined' || message === 'ticket-left') {
+        context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
       }
 
       // Notify the student when the ticket is updated
@@ -151,6 +155,20 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         Description: {ticket.description}
       </Text>
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
+
+      <Box hidden={!ticket.isPublic} mb={3}>
+        <Text fontWeight='bold'>Users in group:</Text>
+        {isGetUsersLoading ? (
+          <Spinner />
+        ) : (
+          <List>
+            {usersInGroup.map(user => (
+              <ListItem key={user.id}>{user.name}</ListItem>
+            ))}
+          </List>
+        )}
+      </Box>
+
       <Text>Location: {ticket.locationName}</Text>
       <Text>Assignment: {ticket.assignmentName}</Text>
 
@@ -179,10 +197,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       ) : (
         <Button
           m={4}
-          onClick={isInGroup ? handleLeaveGroup : handleJoinGroup}
+          onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
           hidden={isStaff || !ticket.isPublic || ticket.createdByUserId === userId}
         >
-          {isInGroup ? 'Leave' : 'Join'} group
+          {isCurrentUserInGroup ? 'Leave' : 'Join'} group
         </Button>
       )}
       <Confetti

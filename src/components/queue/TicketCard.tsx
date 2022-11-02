@@ -9,17 +9,19 @@ import { StarIcon } from '@chakra-ui/icons';
 interface TicketCardProps {
   ticket: TicketWithNames;
   userRole: UserRole;
+  userId: string;
 }
 
 /**
  * TicketCard component that displays the details of a ticket
  */
 const TicketCard = (props: TicketCardProps) => {
-  const { ticket, userRole } = props;
+  const { ticket, userRole, userId } = props;
   const isStaff = userRole === UserRole.STAFF;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
@@ -40,6 +42,9 @@ const TicketCard = (props: TicketCardProps) => {
   };
 
   const handleTicketPress = (event: any) => {
+    if (!canUserClickOnTicket) {
+      return;
+    }
     if (event.target.tagName === 'BUTTON') {
       return;
     }
@@ -53,15 +58,20 @@ const TicketCard = (props: TicketCardProps) => {
       backgroundColor={useColorModeValue('white', 'gray.800')}
       width='full'
       borderWidth={1}
+      borderRadius={8}
       boxShadow={ticket.isPublic ? '0 0 10px 5px gold' : 'lg'}
       onClick={handleTicketPress}
-      className='hover-cursor'
-	  _hover={{ backgroundColor: useColorModeValue('#dddddd', '#273042'), transition: '0.3s' }}
+      className={canUserClickOnTicket ? 'hover-cursor' : ''}
+      _hover={
+        canUserClickOnTicket ? { backgroundColor: useColorModeValue('#dddddd', '#273042'), transition: '0.3s' } : {}
+      }
     >
-	  <Flex hidden={!ticket.isPublic}>
-		<StarIcon mt={-6} ml={-6} color='gold' />
-		<Text mt={-7} ml={1}>Public</Text>
-	  </Flex>
+      <Flex hidden={!ticket.isPublic}>
+        <StarIcon mt={-6} ml={-6} color='gold' />
+        <Text mt={-7} ml={2}>
+          Public
+        </Text>
+      </Flex>
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
       <Flex justifyContent='space-between'>

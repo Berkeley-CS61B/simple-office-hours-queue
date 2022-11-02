@@ -150,7 +150,7 @@ const TicketQueue = (props: TicketQueueProps) => {
           </Text>
         )}
         {getMyTickets()?.map(ticket => (
-          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
         ))}
       </Flex>
       <Text fontSize='2xl' mb={5}>
@@ -173,7 +173,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             return (
               <div key={tab}>
                 <TabPanel padding='20px 0' key={tab}>
-                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
+                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} userId={userId} />
                 </TabPanel>
               </div>
             );

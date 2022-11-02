@@ -8,6 +8,7 @@ import {
   Ticket,
   TicketStatus,
   User,
+  UserRole,
 } from '@prisma/client';
 import { router, protectedProcedure, protectedStaffProcedure } from '../trpc';
 import { z } from 'zod';
@@ -400,6 +401,7 @@ export const ticketRouter = router({
       const chatMessageWithUserName: ChatMessageWithUserName = {
         ...chatMessage,
         userName: user?.name!,
+        userRole: user?.role!,
       };
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
@@ -580,6 +582,7 @@ export const ticketRouter = router({
           return {
             ...message,
             userName: user?.name!,
+            userRole: user?.role!,
           };
         }),
       );
@@ -634,6 +637,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
 
 export interface ChatMessageWithUserName extends ChatMessage {
   userName: string;
+  userRole: UserRole;
 }
 
 // Includes the name of users, location, and assignment

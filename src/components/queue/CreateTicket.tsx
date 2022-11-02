@@ -99,7 +99,7 @@ const CreateTicketForm = () => {
     <Box p={8} width='full' borderWidth={1} borderRadius={8} boxShadow='lg'>
       <Box my={4} textAlign='left'>
         <form onSubmit={onSubmit}>
-          <FormControl>
+          <FormControl isRequired={isPublic}>
             <FormLabel>Description</FormLabel>
             <Input
               value={description}
@@ -123,7 +123,9 @@ const CreateTicketForm = () => {
                 <>Public</>
                 <Tooltip
                   hasArrow
-                  label='Public tickets can be joined by other students. This is great for group work or conceptual questions!'
+                  label='Public tickets can be joined by other students. This is great for group work 
+						 or conceptual questions! If your ticket is public, we are more likely to 
+					     help you for a longer time.'
                   bg='gray.300'
                   color='black'
                 >
