@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Button, Spinner, Box, List, ListItem } from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -8,6 +8,7 @@ import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
+import TicketButtons from './TicketButtons';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -34,22 +35,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         ticket.status === TicketStatus.RESOLVED ||
         ticket.status === TicketStatus.CLOSED));
 
-  const isPending = ticket.status === TicketStatus.PENDING;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
-  const isOpen = ticket.status === TicketStatus.OPEN;
-  const isClosed = ticket.status === TicketStatus.CLOSED;
   const isStaff = userRole === UserRole.STAFF;
   const helpOrJoin = isStaff ? 'Help' : 'Join';
-
-  const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
-  const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
-  const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
-  const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
-  const reopenTicketsMutation = trpc.ticket.reopenTickets.useMutation();
-  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
-  const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
-  const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
 
   const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -108,40 +97,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   });
 
-  const handleResolveTicket = async () => {
-    await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
-      setShowConfetti(true);
-    });
-  };
-
-  const handleRequeueTicket = async () => {
-    await requeueTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-  };
-
-  const handleHelpTicket = async () => {
-    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-  };
-
-  const handleReopenTicket = async () => {
-    await reopenTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-  };
-
-  const handleApproveTicket = async () => {
-    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-  };
-
-  const handleCloseTicket = async () => {
-    await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
-  };
-
-  const handleJoinGroup = async () => {
-    await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
-  };
-
-  const handleLeaveGroup = async () => {
-    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
-  };
-
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : <>{helpOrJoin} to see name</>}</Text>
@@ -181,36 +136,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Box>
 
       <StaffNotes ticket={ticket} userRole={userRole} />
-
-      <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
-        Approve
-      </Button>
-      <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
-        Help
-      </Button>
-      <Button m={4} onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
-        Resolve
-      </Button>
-      <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned}>
-        Requeue
-      </Button>
-      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)}>
-        Reopen
-      </Button>
-      <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
-        Close
-      </Button>
-      {isGetUsersLoading && ticket.isPublic ? (
-        <Spinner />
-      ) : (
-        <Button
-          m={4}
-          onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
-          hidden={isStaff || !ticket.isPublic || ticket.createdByUserId === userId}
-        >
-          {isCurrentUserInGroup ? 'Leave' : 'Join'} group
-        </Button>
-      )}
+      <TicketButtons
+        ticket={ticket}
+        userId={userId}
+        isGetUsersLoading={isGetUsersLoading}
+        userRole={userRole}
+        isCurrentUserInGroup={isCurrentUserInGroup}
+        setShowConfetti={setShowConfetti}
+      />
       <Confetti
         recycle={false}
         numberOfPieces={200}
