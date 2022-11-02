@@ -1,5 +1,4 @@
 import Router from 'next/router';
-import { useState } from 'react';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } from '@chakra-ui/react';
 import { TicketStatus, User, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -18,8 +17,6 @@ interface TicketCardProps {
  */
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId } = props;
-  const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
-  const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
   const hoverColor = useColorModeValue('#dddddd', '#273042');
   const isStaff = userRole === UserRole.STAFF;
@@ -33,18 +30,15 @@ const TicketCard = (props: TicketCardProps) => {
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
-  const context = trpc.useContext();
 
-  const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
+  const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
     {
       enabled: ticket.isPublic,
       refetchOnWindowFocus: false,
-      onSuccess: users => {
-        setUsersInGroup(users);
-      },
     },
   );
+  const isCurrentUserInGroup = usersInGroup?.some(user => user.id === userId);
 
   const handleApproveTicket = async () => {
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
@@ -71,15 +65,11 @@ const TicketCard = (props: TicketCardProps) => {
   };
 
   const handleJoinGroup = async () => {
-    await joinTicketMutation.mutateAsync({ ticketId: ticket.id }).then(() => {
-      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
-    });
+    await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
   const handleLeaveGroup = async () => {
-    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id }).then(() => {
-      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
-    });
+    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
   return (
@@ -97,9 +87,13 @@ const TicketCard = (props: TicketCardProps) => {
     >
       <Flex hidden={!ticket.isPublic}>
         <StarIcon mt={-6} ml={-6} color='gold' />
-        <Text mt={-7} ml={2}>
-          Public
-        </Text>
+        {usersInGroup === undefined ? (
+          <Spinner />
+        ) : (
+          <Text mt={-7} ml={2}>
+            Public ({usersInGroup.length} student{usersInGroup.length === 1 ? '' : 's'} in group)
+          </Text>
+        )}
       </Flex>
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
@@ -128,7 +122,7 @@ const TicketCard = (props: TicketCardProps) => {
             <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
               Resolve
             </Button>
-            {isGetUsersLoading && ticket.isPublic ? (
+            {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />
             ) : (
               <Button

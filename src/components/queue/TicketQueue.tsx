@@ -39,8 +39,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-reopened',
       'ticket-closed',
       'all-tickets-closed',
-      'ticket-joined',
-      'ticket-left',
     ];
     const shouldInvalidateAssigned = [
       'tickets-assigned',
@@ -48,17 +46,12 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'all-tickets-closed',
       'ticket-closed',
-      'ticket-joined',
-      'ticket-left',
     ];
-    const shouldInvalidatePending = [
-      'new-ticket',
-      'tickets-approved',
-      'all-tickets-closed',
-      'ticket-closed',
-      'ticket-joined',
-      'ticket-left',
-    ];
+    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
+
+    if (message === 'ticket-joined' || message === 'ticket-left') {
+      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
+    }
 
     if (shouldInvalidateOpen.includes(message)) {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
@@ -142,7 +135,9 @@ const TicketQueue = (props: TicketQueueProps) => {
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       <Flex flexDir='column' mb={4}>
-        <Text fontSize='2xl' mb={2}>Your Tickets</Text>
+        <Text fontSize='2xl' mb={2}>
+          Your Tickets
+        </Text>
         {isGetTicketsLoading && <SkeletonText noOfLines={1} mt={2} h={3} w={150} />}
         {getMyTickets()?.length === 0 && (
           <Text fontSize='md' color='gray.500'>
