@@ -12,6 +12,7 @@ import useSiteSettings from '../../utils/hooks/useSiteSettings';
  */
 const AdminView = () => {
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
+  const [arePublicTicketsEnabled, setArePublicTicketsEnabled] = useState<boolean>();
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
   const [assignmentText, setAssignmentText] = useState('');
@@ -27,6 +28,7 @@ const AdminView = () => {
   useEffect(() => {
     if (siteSettings) {
       setIsPendingStageEnabled(siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+	  setArePublicTicketsEnabled(siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.TRUE);
     }
   }, [siteSettings]);
 
@@ -60,6 +62,14 @@ const AdminView = () => {
     const valueToSet = isPendingStageEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
     await setSiteSettingsMutation.mutateAsync({
       [SiteSettings.IS_PENDING_STAGE_ENABLED]: valueToSet,
+    });
+  };
+
+  const handleTogglePublicTicketsEnabled = async () => {
+	setArePublicTicketsEnabled(prev => !prev);
+    const valueToSet = arePublicTicketsEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
+    await setSiteSettingsMutation.mutateAsync({
+      [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: valueToSet,
     });
   };
 
@@ -99,13 +109,15 @@ const AdminView = () => {
         <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
       ))}
 
-      <Flex direction='column' w='50%' mt={10} mb={3}>
+      <Flex direction='column' mt={10} mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           General Settings
         </Text>
         <Flex>
           <Text fontSize='xl'>Pending Stage</Text>
-          <Switch ml={2} mt={2} isChecked={isPendingStageEnabled} onChange={handleTogglePendingStageEnabled} />
+          <Switch ml={2} mr={2} mt={2} isChecked={isPendingStageEnabled} onChange={handleTogglePendingStageEnabled} />
+          <Text fontSize='xl'>Public Tickets</Text>
+          <Switch ml={2} mt={2} isChecked={arePublicTicketsEnabled} onChange={handleTogglePublicTicketsEnabled} />
         </Flex>
       </Flex>
 

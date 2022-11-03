@@ -64,7 +64,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
           <OpenOrCloseQueue isQueueOpen={isQueueOpen} />
         </>
       )}
-      {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket />}
+      {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket siteSettings={siteSettings!} />}
       <TicketQueue
         userId={userId}
         userRole={userRole}

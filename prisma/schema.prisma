@@ -143,6 +143,7 @@ enum TicketStatus {
 // Default values for site settings are in utils.ts
 enum SiteSettings {
     IS_PENDING_STAGE_ENABLED
+	ARE_PUBLIC_TICKETS_ENABLED
     IS_QUEUE_OPEN
 }
 
