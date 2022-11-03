@@ -148,7 +148,7 @@ const CreateTicket = () => {
   const endOfForm: any = useRef<HTMLSpanElement>();
 
   return (
-    <Flex width='full' align='left' flexDir='column' p={10}>
+    <Flex width='full' align='left' flexDir='column' p={4}>
       <Text fontSize='2xl' mb={5}>
         Welcome back. Create a ticket to get started or{' '}
         <Button border='1px' borderRadius={8} pl='5px' pr='5px' onClick={() => endOfForm.current.scrollIntoView()}>

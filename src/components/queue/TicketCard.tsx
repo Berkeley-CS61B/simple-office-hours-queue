@@ -65,6 +65,7 @@ const TicketCard = (props: TicketCardProps) => {
   };
 
   const handleJoinGroup = async () => {
+	Router.push(`/ticket/${ticket.id}`);
     await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem } from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -111,8 +111,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         Description: {ticket.description}
       </Text>
 
-      <Text>Location: {ticket.locationName}</Text>
-      <Text mb={4}>Assignment: {ticket.assignmentName}</Text>
+      <Box mb={4}>
+        <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
+          {ticket.assignmentName}
+        </Tag>
+        <Tag p={2.5} size='lg' colorScheme='orange' borderRadius={5}>
+          {ticket.locationName}
+        </Tag>
+      </Box>
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
