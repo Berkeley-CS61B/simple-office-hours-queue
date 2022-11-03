@@ -51,7 +51,22 @@ Google OAuth is used for authentication.
 <details>
 <summary>Database</summary>
 
-SOHQ uses MySQL as its database, mainly because the free tier of <a href="https://planetscale.com">Planetscale</a> is very nice. For local development, I am currently looking into possibly using Docker to have a local MySQL instance.
+#### Local Development 
+For local development we run a docker container serving a mySQL database.
+
+1. Install [Docker](https://docs.docker.com/get-docker/) on your machine.
+
+2. Start the container by running:
+```
+docker compose up
+```
+
+
+#### Production
+
+
+
+For the production environment, the free tier of <a href="https://planetscale.com">Planetscale</a> is very nice.
 
 1. Create a new database on <a target="_blank" href="https://planetscale.com">Planetscale</a>.
 
