@@ -9,6 +9,7 @@ export const uppercaseFirstLetter = (str: string) => {
 export const settingsToDefault = {
   [SiteSettings.IS_PENDING_STAGE_ENABLED]: SiteSettingsValues.TRUE,
   [SiteSettings.IS_QUEUE_OPEN]: SiteSettingsValues.FALSE,
+  [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: SiteSettingsValues.TRUE,
 };
 
 /** Returns the time difference in minutes between a first and second (first - second) */

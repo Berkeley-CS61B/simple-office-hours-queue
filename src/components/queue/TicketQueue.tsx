@@ -49,6 +49,10 @@ const TicketQueue = (props: TicketQueueProps) => {
     ];
     const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
 
+    if (message === 'ticket-joined' || message === 'ticket-left') {
+      context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
+    }
+
     if (shouldInvalidateOpen.includes(message)) {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
     }
@@ -131,7 +135,9 @@ const TicketQueue = (props: TicketQueueProps) => {
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       <Flex flexDir='column' mb={4}>
-        <Text fontSize='2xl'>Your Tickets</Text>
+        <Text fontSize='2xl' mb={2}>
+          Your Tickets
+        </Text>
         {isGetTicketsLoading && <SkeletonText noOfLines={1} mt={2} h={3} w={150} />}
         {getMyTickets()?.length === 0 && (
           <Text fontSize='md' color='gray.500'>
@@ -139,7 +145,7 @@ const TicketQueue = (props: TicketQueueProps) => {
           </Text>
         )}
         {getMyTickets()?.map(ticket => (
-          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
         ))}
       </Flex>
       <Text fontSize='2xl' mb={5}>
@@ -162,7 +168,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             return (
               <div key={tab}>
                 <TabPanel padding='20px 0' key={tab}>
-                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} />
+                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} userId={userId} />
                 </TabPanel>
               </div>
             );

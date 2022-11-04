@@ -4,13 +4,14 @@ import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { useEffect, useState } from 'react';
 import { trpc } from '../../utils/trpc';
-import { useAutoAnimate } from '@formkit/auto-animate/react'
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
   ticketStatus: TicketStatus;
   userRole: UserRole;
+  userId: string;
 }
 
 interface GroupedTicket {
@@ -21,13 +22,13 @@ interface GroupedTicket {
  * TicketList component that displays the list of tickets for a given status
  */
 const TicketList = (props: TicketListProps) => {
+  const { tickets, ticketStatus, userRole, userId } = props;
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
-  const { tickets, ticketStatus, userRole } = props;
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
-  const [parent] : any = useAutoAnimate();
+  const [parent]: any = useAutoAnimate();
 
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
@@ -89,7 +90,7 @@ const TicketList = (props: TicketListProps) => {
             {getButton(groupedTickets[assignment]!, true)}
             <Box ref={parent}>
               {groupedTickets[assignment]!.map((ticket: TicketWithNames) => (
-                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
               ))}
             </Box>
           </Box>
@@ -133,7 +134,7 @@ const TicketList = (props: TicketListProps) => {
           ) : (
             <Box ref={parent}>
               {tickets.map(ticket => (
-                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} />
+                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
               ))}
             </Box>
           )}
