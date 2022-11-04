@@ -24,6 +24,8 @@ const AdminView = () => {
   const createLocationMutation = trpc.admin.createLocation.useMutation();
   const editLocationMutation = trpc.admin.editLocation.useMutation();
   const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
+  const deleteAssignmentMutation = trpc.admin.deleteAssignment.useMutation();
+  const deleteLocationMutation = trpc.admin.deleteLocation.useMutation();
 
   useEffect(() => {
     if (siteSettings) {
@@ -55,6 +57,17 @@ const AdminView = () => {
     const data = await createLocationMutation.mutateAsync({ name: locationText });
     setLocations(prev => [...prev!, data]);
   };
+
+  const handleDeleteAssignment = async (id: number) => {
+	await deleteAssignmentMutation.mutateAsync({ id });
+	// We can also just invalidate the query, but this makes the UI feel more responsive
+	setAssignments(prev => prev!.filter(assignment => assignment.id !== id)); 
+  }
+
+  const handleDeleteLocation = async (id: number) => {
+	await deleteLocationMutation.mutateAsync({ id });
+	setLocations(prev => prev!.filter(location => location.id !== id));
+  }
 
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {
@@ -91,7 +104,7 @@ const AdminView = () => {
         </Flex>
       </Flex>
       {assignments.map(assignment => (
-        <AdminCard key={assignment.id} assignmentOrLocation={assignment} editMutation={editAssignmentMutation} />
+        <AdminCard key={assignment.id} assignmentOrLocation={assignment} editMutation={editAssignmentMutation} handleDelete={handleDeleteAssignment} />
       ))}
 
       <Flex direction='column' w='50%' mt={10} mb={3}>
@@ -106,7 +119,7 @@ const AdminView = () => {
         </Flex>
       </Flex>
       {locations.map(location => (
-        <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
+        <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} handleDelete={handleDeleteLocation} />
       ))}
 
       <Flex direction='column' mt={10} mb={3}>
