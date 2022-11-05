@@ -26,26 +26,27 @@ model ChatMessage {
 }
 
 model Ticket {
-    id              Int           @id @default(autoincrement())
-    createdBy       User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-    helpedBy        User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
-    helpedAt        DateTime?
-    resolvedAt      DateTime?
-    createdAt       DateTime      @default(now())
-    updatedAt       DateTime      @default(now()) @updatedAt
-    status          TicketStatus  @default(PENDING)
-    description     String?
-    assignment      Assignment    @relation(fields: [assignmentId], references: [id])
-    location        Location      @relation(fields: [locationId], references: [id])
-    resolution      String        @default("") // TODO
-    staffNotes      String?
-    ChatMessage     ChatMessage[]
-    isPublic        Boolean       @default(false) // Can other students see/join this ticket
-    usersInGroup    User[]        @relation("groupTickets")
-    helpedByUserId  String?
-    createdByUserId String
-    assignmentId    Int
-    locationId      Int
+    id                  Int           @id @default(autoincrement())
+    createdBy           User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+    helpedBy            User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    helpedAt            DateTime?
+    resolvedAt          DateTime?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @default(now()) @updatedAt
+    status              TicketStatus  @default(PENDING)
+    description         String?
+    assignment          Assignment    @relation(fields: [assignmentId], references: [id])
+    location            Location      @relation(fields: [locationId], references: [id])
+    locationDescription String?       // ie: "Back of the room"
+    resolution          String        @default("") // TODO
+    staffNotes          String?
+    ChatMessage         ChatMessage[]
+    isPublic            Boolean       @default(false) // Can other students see/join this ticket
+    usersInGroup        User[]        @relation("groupTickets")
+    helpedByUserId      String?
+    createdByUserId     String
+    assignmentId        Int
+    locationId          Int
 }
 
 model Account {
@@ -143,7 +144,7 @@ enum TicketStatus {
 // Default values for site settings are in utils.ts
 enum SiteSettings {
     IS_PENDING_STAGE_ENABLED
-	ARE_PUBLIC_TICKETS_ENABLED
+    ARE_PUBLIC_TICKETS_ENABLED
     IS_QUEUE_OPEN
 }
 

@@ -24,6 +24,7 @@ interface CreateTicketFormProps {
 const CreateTicketForm = (props: CreateTicketFormProps) => {
   const { arePublicTicketsEnabled } = props;
   const [description, setDescription] = useState<string>('');
+  const [locationDescription, setLocationDescription] = useState<string>('');
   const [assignment, setAssignment] = useState<Assignment>();
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
@@ -67,6 +68,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         description: description.trim(),
         assignmentId: assignment.id,
         locationId: location.id,
+        locationDescription: locationDescription.trim(),
         isPublic,
       })
       .then(ticket => {
@@ -98,7 +100,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   };
 
   return (
-    <Box p={8} width='full' borderWidth={1} borderRadius={8} boxShadow='lg'>
+    <Box p={8} pt={2} width='full' borderWidth={1} borderRadius={8} boxShadow='lg'>
       <Box my={4} textAlign='left'>
         <form onSubmit={onSubmit}>
           <FormControl isRequired={isPublic}>
@@ -118,6 +120,17 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
             <Select value={location} onChange={val => setLocation(val!)} options={locationOptions} />
+          </FormControl>
+          <FormControl mt={6} isRequired={isPublic}>
+            <FormLabel>Briefly describe where you are</FormLabel>
+            <Input
+              value={locationDescription}
+              onChange={e => setLocationDescription(e.target.value)}
+              type='text'
+              placeholder='Back right corner of the room'
+              name='locationDescription'
+              maxLength={140}
+            />
           </FormControl>
           <FormControl mt={6} display='flex' hidden={!arePublicTicketsEnabled}>
             <FormLabel>

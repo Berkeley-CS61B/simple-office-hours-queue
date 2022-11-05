@@ -15,3 +15,7 @@ body {
 .CSVImporter_Importer {
 	color: black;
 }
+
+.semibold {
+  font-weight: 600;
+}

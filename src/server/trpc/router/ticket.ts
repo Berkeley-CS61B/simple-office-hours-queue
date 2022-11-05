@@ -21,6 +21,7 @@ export const ticketRouter = router({
         isPublic: z.boolean().optional(),
         assignmentId: z.number(),
         locationId: z.number(),
+		locationDescription: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -46,6 +47,7 @@ export const ticketRouter = router({
         data: {
           description: input.description,
           isPublic: input.isPublic ?? false,
+		  locationDescription: input.locationDescription,
           usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
           assignment: {
             connect: {
