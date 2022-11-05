@@ -100,7 +100,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : <>{helpOrJoin} to see name</>}</Text>
-      <Text>Ticket Status: {uppercaseFirstLetter(ticket.status)}</Text>
+      <Text>
+        <span className='semibold'>Ticket Status:</span> {uppercaseFirstLetter(ticket.status)}
+      </Text>
       <Text hidden={!isAssigned}>
         <>
           Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
@@ -108,7 +110,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4} mb={4}>
-        Description: {ticket.description}
+        <span className='semibold'>Description:</span>{' '}
+        {ticket.description}
       </Text>
 
       <Box mb={4}>
@@ -119,6 +122,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           {ticket.locationName}
         </Tag>
       </Box>
+
+      <Text mb={3} hidden={!ticket.locationDescription}>
+        <span className='semibold'>Location Description:</span> {ticket.locationDescription}
+      </Text>
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
