@@ -68,7 +68,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         description: description.trim(),
         assignmentId: assignment.id,
         locationId: location.id,
-		locationDescription: locationDescription.trim(),
+        locationDescription: locationDescription.trim(),
         isPublic,
       })
       .then(ticket => {
@@ -129,7 +129,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               type='text'
               placeholder='Back right corner of the room'
               name='locationDescription'
-			  maxLength={140}
+              maxLength={140}
             />
           </FormControl>
           <FormControl mt={6} display='flex' hidden={!arePublicTicketsEnabled}>
