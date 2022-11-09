@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
+import { Select, SingleValue } from 'chakra-react-select';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
@@ -18,6 +19,22 @@ interface GroupedTicket {
   [key: string]: TicketWithNames[];
 }
 
+enum GroupTypes {
+  Assignment = 'Assignment',
+  Location = 'Location',
+}
+
+const keyToAttribute = {
+  [GroupTypes.Assignment]: 'assignmentName',
+  [GroupTypes.Location]: 'locationName',
+};
+
+const groupByOptions = ['-', GroupTypes.Assignment, GroupTypes.Location].map(option => ({
+  label: option,
+  value: option,
+  id: option,
+}));
+
 /**
  * TicketList component that displays the list of tickets for a given status
  */
@@ -25,6 +42,7 @@ const TicketList = (props: TicketListProps) => {
   const { tickets, ticketStatus, userRole, userId } = props;
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
+  const [groupedBy, setGroupedBy] = useState<keyof TicketWithNames>();
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -52,7 +70,7 @@ const TicketList = (props: TicketListProps) => {
    * Helper method to return appropriate buttons (approve, help, resolve)
    * Note: We can't use isGrouped here because that applies to the entire list
    */
-  const getButton = (tickets: TicketWithNames[], inGroupedView: boolean) => {
+  const getButton = (tickets: TicketWithNames[], inGroupedView: boolean, groupedKey: keyof TicketWithNames) => {
     if (userRole !== UserRole.STAFF) {
       return null;
     }
@@ -61,19 +79,19 @@ const TicketList = (props: TicketListProps) => {
       case TicketStatus.PENDING:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
-            Approve all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
+            Approve all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
       case TicketStatus.OPEN:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
-            Help all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
+            Help all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
       case TicketStatus.ASSIGNED:
         return (
           <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
-            Resolve all {inGroupedView && 'for ' + tickets[0]?.assignmentName}
+            Resolve all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
     }
@@ -82,14 +100,14 @@ const TicketList = (props: TicketListProps) => {
   const GroupedView = () => {
     return (
       <Flex flexDirection='column'>
-        {Object.keys(groupedTickets).map(assignment => (
-          <Box key={assignment} mb='16'>
+        {Object.keys(groupedTickets).map(attribute => (
+          <Box key={attribute} mb='16'>
             <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
-              {assignment}
+              {attribute}
             </Tag>
-            {getButton(groupedTickets[assignment]!, true)}
+            {getButton(groupedTickets[attribute]!, true, groupedBy!)}
             <Box ref={parent}>
-              {groupedTickets[assignment]!.map((ticket: TicketWithNames) => (
+              {groupedTickets[attribute]!.map((ticket: TicketWithNames) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
               ))}
             </Box>
@@ -99,46 +117,51 @@ const TicketList = (props: TicketListProps) => {
     );
   };
 
-  const handleGroupTickets = () => {
-    setIsGrouped(!isGrouped);
+  const handleGroupTickets = (groupBy: SingleValue<typeof groupByOptions[0]>) => {
+    if (groupBy?.value === '-') {
+      setIsGrouped(false);
+      return;
+    }
+
+    if (groupBy?.value === undefined || !keyToAttribute.hasOwnProperty(groupBy?.value)) {
+      return;
+    }
+
+    const attribute = keyToAttribute[groupBy?.value as GroupTypes] as keyof TicketWithNames; // ie: assignmentName
+    setGroupedBy(attribute);
+
+    const groupedTickets: GroupedTicket = {};
+    tickets.forEach(ticket => {
+      const curAttribute = ticket[attribute] as string; // ie: gitlet
+      if (groupedTickets[curAttribute] === undefined) {
+        groupedTickets[curAttribute] = [];
+      }
+      groupedTickets[curAttribute]?.push(ticket);
+    });
+    setGroupedTickets(groupedTickets);
+    setIsGrouped(true);
   };
 
-  useEffect(() => {
-    if (isGrouped) {
-      const groupedTickets = tickets.reduce((acc: any, ticket) => {
-        const key = ticket.assignmentName;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(ticket);
-        return acc;
-      }, {});
-      setGroupedTickets(groupedTickets);
-    }
-  }, [isGrouped, tickets]);
+  if (tickets.length === 0) {
+    return <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text>;
+  }
 
   return (
     <Flex flexDir='column'>
-      {tickets.length === 0 ? (
-        <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text>
+      <Flex justifyContent='end' mb={4}>
+        <Box width='sm'>
+          <Select options={groupByOptions} placeholder='Group by...' onChange={handleGroupTickets} />
+        </Box>
+        {getButton(tickets, false, groupedBy!)}
+      </Flex>
+      {isGrouped ? (
+        <GroupedView />
       ) : (
-        <>
-          <Flex justifyContent='end' mb={4}>
-            <Button onClick={handleGroupTickets} mb={4}>
-              {isGrouped ? 'Ungroup' : 'Group'} By Assignment
-            </Button>
-            {getButton(tickets, false)}
-          </Flex>
-          {isGrouped ? (
-            <GroupedView />
-          ) : (
-            <Box ref={parent}>
-              {tickets.map(ticket => (
-                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
-              ))}
-            </Box>
-          )}
-        </>
+        <Box ref={parent}>
+          {tickets.map(ticket => (
+            <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+          ))}
+        </Box>
       )}
     </Flex>
   );
