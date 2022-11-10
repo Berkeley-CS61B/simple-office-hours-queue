@@ -21,7 +21,7 @@ export const ticketRouter = router({
         isPublic: z.boolean().optional(),
         assignmentId: z.number(),
         locationId: z.number(),
-		locationDescription: z.string().optional(),
+        locationDescription: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -47,7 +47,7 @@ export const ticketRouter = router({
         data: {
           description: input.description,
           isPublic: input.isPublic ?? false,
-		  locationDescription: input.locationDescription,
+          locationDescription: input.locationDescription,
           usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
           assignment: {
             connect: {
@@ -184,6 +184,33 @@ export const ticketRouter = router({
         for (const ticket of tickets) {
           const channel = ably.channels.get(`ticket-${ticket.id}`);
           await channel.publish('ticket-resolved', ticket);
+        }
+        return tickets;
+      });
+    }),
+
+  markAsAbsent: protectedStaffProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        markOrUnmark: z.boolean(), // True for mark, false for unmark
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN },
+      });
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets'); // Change to include queue id
+        await channel.publish('tickets-marked-as-absent', tickets);
+
+        // Uses ticket inner page channel
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          await channel.publish('ticket-marked-as-absent', ticket);
         }
         return tickets;
       });

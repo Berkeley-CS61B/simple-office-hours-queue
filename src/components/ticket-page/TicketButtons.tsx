@@ -27,6 +27,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -68,6 +69,10 @@ const TicketButtons = (props: TicketCardProps) => {
     await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
+  const handleMarkAsAbsent = async () => {
+	await markAsAbsentMutation.mutateAsync({ ticketId: ticket.id, markOrUnmark: ticket.status !== TicketStatus.ABSENT });
+  }
+
   return (
     <>
       <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
@@ -81,6 +86,9 @@ const TicketButtons = (props: TicketCardProps) => {
       </Button>
       <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned}>
         Requeue
+      </Button>
+      <Button m={4} onClick={handleMarkAsAbsent} hidden={!isStaff}>
+        {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
       </Button>
       <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)}>
         Reopen

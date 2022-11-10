@@ -139,6 +139,7 @@ enum TicketStatus {
     ASSIGNED
     RESOLVED
     CLOSED
+    ABSENT
 }
 
 // Default values for site settings are in utils.ts

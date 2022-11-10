@@ -38,6 +38,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'tickets-reopened',
       'ticket-closed',
+      'tickets-marked-as-absent',
       'all-tickets-closed',
     ];
     const shouldInvalidateAssigned = [
@@ -45,9 +46,16 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-resolved',
       'tickets-requeued',
       'all-tickets-closed',
+      'tickets-marked-as-absent',
       'ticket-closed',
     ];
-    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
+    const shouldInvalidatePending = [
+      'new-ticket',
+      'tickets-approved',
+      'all-tickets-closed',
+      'ticket-closed',
+      'tickets-marked-as-absent',
+    ];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
       context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
@@ -67,7 +75,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
       ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
-      : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING];
+      : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
 
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.OPEN },
@@ -81,6 +89,11 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const { data: pendingTickets, isLoading: isGetPendingTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.PENDING },
+    { refetchOnWindowFocus: false },
+  );
+
+  const { data: absentTickets, isLoading: isGetAbsentTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
+    { status: TicketStatus.ABSENT },
     { refetchOnWindowFocus: false },
   );
 
@@ -108,13 +121,17 @@ const TicketQueue = (props: TicketQueueProps) => {
       return assignedTickets?.filter(ticket => ticket.helpedByUserId === userId);
     }
 
-    // Return tickets (pending, open, or assigned) that the current user has created
-    return [...(openTickets ?? []), ...(assignedTickets ?? []), ...(pendingTickets ?? [])].filter(
-      ticket => ticket.createdByUserId === userId,
-    );
+    // Return tickets (pending, open, absent, or assigned) that the current user has created
+    return [
+      ...(openTickets ?? []),
+      ...(assignedTickets ?? []),
+      ...(pendingTickets ?? []),
+      ...(absentTickets ?? []),
+    ].filter(ticket => ticket.createdByUserId === userId);
   };
 
-  const isGetTicketsLoading = isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading;
+  const isGetTicketsLoading =
+    isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading || isGetAbsentTicketsLoading;
 
   /**
    * Helper method to return the correct ticket list based on the tab index (status)
@@ -127,6 +144,8 @@ const TicketQueue = (props: TicketQueueProps) => {
         return assignedTickets ?? [];
       case TicketStatus.PENDING:
         return pendingTickets ?? [];
+      case TicketStatus.ABSENT:
+        return absentTickets ?? [];
       default:
         return [];
     }

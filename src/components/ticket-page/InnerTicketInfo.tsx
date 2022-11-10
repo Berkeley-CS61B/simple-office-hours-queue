@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex } from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem, Tag } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -27,18 +27,19 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
   const { showNotification } = useNotification();
-  const canSeeName =
-    userId === ticket.createdByUserId ||
-    isCurrentUserInGroup ||
-    (userRole === UserRole.STAFF &&
-      (ticket.status === TicketStatus.ASSIGNED ||
-        ticket.status === TicketStatus.RESOLVED ||
-        ticket.status === TicketStatus.CLOSED));
 
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isClosed = ticket.status === TicketStatus.CLOSED;
+  const isAbsent = ticket.status === TicketStatus.ABSENT;
+
   const isStaff = userRole === UserRole.STAFF;
   const helpOrJoin = isStaff ? 'Help' : 'Join';
+
+  const canSeeName =
+    userId === ticket.createdByUserId ||
+    isCurrentUserInGroup ||
+    (isStaff && (isAssigned || isResolved || isClosed || isAbsent));
 
   const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -73,6 +74,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-reopened',
       'ticket-requeued',
       'ticket-staffnote',
+      'ticket-marked-as-absent',
       'ticket-closed',
       'ticket-joined',
       'ticket-left',
@@ -110,8 +112,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4} mb={4}>
-        <span className='semibold'>Description:</span>{' '}
-        {ticket.description}
+        <span className='semibold'>Description:</span> {ticket.description}
       </Text>
 
       <Box mb={4}>
