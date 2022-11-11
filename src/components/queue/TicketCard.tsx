@@ -23,6 +23,7 @@ const TicketCard = (props: TicketCardProps) => {
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isAbsent = ticket.status === TicketStatus.ABSENT;
   const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
@@ -30,6 +31,7 @@ const TicketCard = (props: TicketCardProps) => {
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -72,6 +74,10 @@ const TicketCard = (props: TicketCardProps) => {
   const handleLeaveGroup = async () => {
     await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
+  
+  const handleMarkAsAbsent = async () => {
+	await markAsAbsentMutation.mutateAsync({ ticketId: ticket.id, markOrUnmark: ticket.status !== TicketStatus.ABSENT });
+  }
 
   return (
     <Box
@@ -123,6 +129,9 @@ const TicketCard = (props: TicketCardProps) => {
             <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
               Resolve
             </Button>
+			<Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent}>
+				{ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
+			</Button>
             {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />
             ) : (

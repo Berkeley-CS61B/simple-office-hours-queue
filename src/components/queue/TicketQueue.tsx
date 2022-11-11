@@ -46,7 +46,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-resolved',
       'tickets-requeued',
       'all-tickets-closed',
-      'tickets-marked-as-absent',
       'ticket-closed',
     ];
     const shouldInvalidatePending = [
@@ -54,8 +53,10 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-approved',
       'all-tickets-closed',
       'ticket-closed',
-      'tickets-marked-as-absent',
     ];
+	const shouldInvalidateAbsent = [
+	  'tickets-marked-as-absent',
+	]
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
       context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
@@ -70,6 +71,9 @@ const TicketQueue = (props: TicketQueueProps) => {
     if (shouldInvalidatePending.includes(message)) {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.PENDING });
     }
+	if (shouldInvalidateAbsent.includes(message)) {
+	  context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ABSENT });
+	}
   });
 
   const tabs =

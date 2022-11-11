@@ -199,7 +199,7 @@ export const ticketRouter = router({
     .mutation(async ({ input, ctx }) => {
       const ticket: Ticket = await ctx.prisma.ticket.update({
         where: { id: input.ticketId },
-        data: { status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN },
+        data: { status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN, markedAbsentAt: new Date() },
       });
 
       await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {

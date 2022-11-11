@@ -9,6 +9,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
+import Countdown from './Countdown';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -158,6 +159,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
+	  {isAbsent && ticket.markedAbsentAt && (
+		<Countdown initialTimeInMs={300000 - (new Date().getTime() - ticket.markedAbsentAt.getTime())} />
+	  )}
+
       <Confetti
         recycle={false}
         numberOfPieces={200}
