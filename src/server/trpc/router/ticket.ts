@@ -189,7 +189,7 @@ export const ticketRouter = router({
       });
     }),
 
-  markAsAbsent: protectedStaffProcedure
+  markAsAbsent: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),

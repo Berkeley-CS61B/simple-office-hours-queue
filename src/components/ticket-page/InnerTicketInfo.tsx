@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag } from '@chakra-ui/react';
-import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button } from '@chakra-ui/react';
+import { FIVE_MINUTES_IN_MS, timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
@@ -29,12 +29,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const { showNotification } = useNotification();
 
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
   const isAbsent = ticket.status === TicketStatus.ABSENT;
 
   const isStaff = userRole === UserRole.STAFF;
+  const isStudent = userRole === UserRole.STUDENT;
   const helpOrJoin = isStaff ? 'Help' : 'Join';
 
   const canSeeName =
@@ -100,6 +102,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   });
 
+  const handleMarkAsAbsent = async () => {
+	await markAsAbsentMutation.mutateAsync({ ticketId: ticket.id, markOrUnmark: ticket.status !== TicketStatus.ABSENT });
+  }
+
   return (
     <>
       <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : <>{helpOrJoin} to see name</>}</Text>
@@ -159,9 +165,27 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
-	  {isAbsent && ticket.markedAbsentAt && (
-		<Countdown initialTimeInMs={300000 - (new Date().getTime() - ticket.markedAbsentAt.getTime())} />
-	  )}
+      <Flex
+        hidden={!isAbsent}
+        flexDirection='column'
+        justifyContent='center'
+        backgroundColor='red.500'
+		mt={3}
+        ml={3}
+        borderRadius={4}
+        p={2}
+      >
+        <Text fontWeight='semibold' fontSize='xl'>
+          You have been marked as absent. If you do not click the "I am here" button below, your ticket will be removed
+          from the queue in
+        </Text>
+        {ticket.markedAbsentAt && (
+          <Countdown initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())} />
+        )}
+      </Flex>
+      <Button m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
+        I am here
+      </Button>
 
       <Confetti
         recycle={false}
