@@ -30,6 +30,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { showNotification } = useNotification();
 
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -103,8 +104,17 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   });
 
   const handleMarkAsAbsent = async () => {
-	await markAsAbsentMutation.mutateAsync({ ticketId: ticket.id, markOrUnmark: ticket.status !== TicketStatus.ABSENT });
-  }
+    await markAsAbsentMutation.mutateAsync({
+      ticketId: ticket.id,
+      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+    });
+  };
+
+  const handleCloseTicket = async () => {
+    if (!isClosed) {
+      await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    }
+  };
 
   return (
     <>
@@ -156,7 +166,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         )}
       </Box>
 
-      <StaffNotes ticket={ticket} userRole={userRole} />
       <TicketButtons
         ticket={ticket}
         userId={userId}
@@ -165,12 +174,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
+      <StaffNotes ticket={ticket} userRole={userRole} />
       <Flex
         hidden={!isAbsent}
         flexDirection='column'
         justifyContent='center'
         backgroundColor='red.500'
-		mt={3}
+        mt={3}
         ml={3}
         borderRadius={4}
         p={2}
@@ -180,10 +190,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           from the queue in
         </Text>
         {ticket.markedAbsentAt && (
-          <Countdown initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())} />
+          <Countdown
+            initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())}
+            onComplete={handleCloseTicket}
+          />
         )}
       </Flex>
-      <Button m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
+      <Button colorScheme='whatsapp' m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
         I am here
       </Button>
 

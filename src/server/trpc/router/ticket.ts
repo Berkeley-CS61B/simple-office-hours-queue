@@ -229,7 +229,7 @@ export const ticketRouter = router({
           id: input.ticketId,
         },
       });
-      if (ticket?.createdByUserId !== ctx.session?.user?.id) {
+      if (ticket?.createdByUserId !== ctx.session?.user?.id && ctx.session?.user?.role !== UserRole.STAFF) {
         throw new Error('You are not authorized to close this ticket');
       }
 
@@ -245,7 +245,7 @@ export const ticketRouter = router({
         await channel.publish('ticket-closed', ticketWithName);
 
         // Uses ticket inner page channel
-        const innerChannel = ably.channels.get(`ticket-${ticket.id}`);
+        const innerChannel = ably.channels.get(`ticket-${ticket?.id}`);
         await innerChannel.publish('ticket-closed', ticketWithName);
         return ticketWithName;
       });

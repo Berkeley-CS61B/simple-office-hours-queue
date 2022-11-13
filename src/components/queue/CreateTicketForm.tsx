@@ -150,7 +150,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             </FormLabel>
             <Switch isChecked={isPublic} mt={1} onChange={() => setIsPublic(!isPublic)} />
           </FormControl>
-          <Button type='submit' variant='outline' width='full' mt={4}>
+          <Button type='submit' width='full' mt={4} colorScheme='whatsapp'>
             Request Help
           </Button>
         </form>

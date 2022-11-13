@@ -145,7 +145,7 @@ const Chat = (props: ChatProps) => {
     <>
       {!isChatLoaded && <Spinner />}
       {isChatLoaded && (
-        <Box border='1px solid gray' p={4} mr={4} ml={4} borderRadius={5}>
+        <Box border='1px solid lightgray' p={4} mr={4} ml={4} borderRadius={5}>
           <Flex mb={4} flexDirection='column' gap={2} height='50vh' overflowY='auto'>
             {allMessages}
             <Box ref={element => (messageEnd = element)} />
@@ -160,7 +160,7 @@ const Chat = (props: ChatProps) => {
                 onChange={e => setMessageText(e.target.value)}
                 mr={4}
               />
-              <Button type='submit' disabled={messageTextIsEmpty}>
+              <Button colorScheme='green' type='submit' disabled={messageTextIsEmpty}>
                 Send
               </Button>
             </Flex>
