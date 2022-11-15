@@ -41,7 +41,7 @@ const Chat = (props: ChatProps) => {
             content: message.message,
             sentByName: message.userName,
             sentByUserId: message.userId,
-			sentByUserRole: message.userRole,
+            sentByUserRole: message.userRole,
           };
         });
         setMessages(messages);
@@ -65,7 +65,7 @@ const Chat = (props: ChatProps) => {
       content: message,
       sentByName: userName,
       sentByUserId: userId,
-	  sentByUserRole: userRole,
+      sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
@@ -84,9 +84,9 @@ const Chat = (props: ChatProps) => {
       content: messageText,
       sentByName: session?.user?.name!,
       sentByUserId: session?.user?.id!,
-	  sentByUserRole: session?.user?.role!,
+      sentByUserRole: session?.user?.role!,
     };
-	// Optimistic update on chat message
+    // Optimistic update on chat message
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
     setMessageText('');
@@ -128,7 +128,8 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName}{sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
+          {sentByName}
+          {sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
         </Text>
         {content}
       </Flex>
