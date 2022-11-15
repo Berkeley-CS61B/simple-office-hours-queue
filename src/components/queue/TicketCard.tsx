@@ -1,6 +1,6 @@
 import Router from 'next/router';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } from '@chakra-ui/react';
-import { TicketStatus, User, UserRole } from '@prisma/client';
+import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
@@ -23,6 +23,7 @@ const TicketCard = (props: TicketCardProps) => {
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isAbsent = ticket.status === TicketStatus.ABSENT;
   const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
@@ -30,6 +31,7 @@ const TicketCard = (props: TicketCardProps) => {
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -45,9 +47,8 @@ const TicketCard = (props: TicketCardProps) => {
   };
 
   const handleHelpTicket = async () => {
-    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
-      Router.push(`/ticket/${ticket.id}`);
-    });
+    Router.push(`/ticket/${ticket.id}`);
+    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
   const handleResolveTicket = async () => {
@@ -65,12 +66,19 @@ const TicketCard = (props: TicketCardProps) => {
   };
 
   const handleJoinGroup = async () => {
-	Router.push(`/ticket/${ticket.id}`);
+    Router.push(`/ticket/${ticket.id}`);
     await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
   const handleLeaveGroup = async () => {
     await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+  };
+
+  const handleMarkAsAbsent = async () => {
+    await markAsAbsentMutation.mutateAsync({
+      ticketId: ticket.id,
+      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+    });
   };
 
   return (
@@ -114,14 +122,17 @@ const TicketCard = (props: TicketCardProps) => {
             </>
           </Text>
           <Box textAlign='right'>
-            <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
+            <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
               Approve
             </Button>
-            <Button onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
+            <Button onClick={handleHelpTicket} hidden={!isStaff || !isOpen} colorScheme='whatsapp'>
               Help
             </Button>
-            <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
+            <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned} colorScheme='whatsapp'>
               Resolve
+            </Button>
+            <Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent} colorScheme='red'>
+              {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
             </Button>
             {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />
@@ -129,6 +140,7 @@ const TicketCard = (props: TicketCardProps) => {
               <Button
                 onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
                 hidden={isStaff || !ticket.isPublic}
+                colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
               >
                 {isCurrentUserInGroup ? 'Leave' : 'Join'}
               </Button>

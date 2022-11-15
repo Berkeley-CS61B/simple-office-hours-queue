@@ -1,4 +1,4 @@
-import { Button, Spinner } from '@chakra-ui/react';
+import { Button, Flex, Spinner } from '@chakra-ui/react';
 import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
@@ -27,6 +27,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -68,24 +69,34 @@ const TicketButtons = (props: TicketCardProps) => {
     await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
   };
 
+  const handleMarkAsAbsent = async () => {
+    await markAsAbsentMutation.mutateAsync({
+      ticketId: ticket.id,
+      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+    });
+  };
+
   return (
-    <>
-      <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending}>
+    <Flex justifyContent='center'>
+      <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
         Approve
       </Button>
-      <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen}>
+      <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen} colorScheme='whatsapp'>
         Help
       </Button>
-      <Button m={4} onClick={handleResolveTicket} hidden={!isStaff || !isAssigned}>
+      <Button m={4} onClick={handleResolveTicket} hidden={!isStaff || !isAssigned} colorScheme='whatsapp'>
         Resolve
       </Button>
-      <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned}>
+      <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned} colorScheme='yellow'>
         Requeue
       </Button>
-      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)}>
+      <Button m={4} onClick={handleMarkAsAbsent} hidden={!isStaff || isResolved || isClosed} colorScheme='red'>
+        {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
+      </Button>
+      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)} colorScheme='whatsapp'>
         Reopen
       </Button>
-      <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)}>
+      <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)} colorScheme='red'>
         Close
       </Button>
       {isGetUsersLoading && ticket.isPublic ? (
@@ -95,11 +106,12 @@ const TicketButtons = (props: TicketCardProps) => {
           m={4}
           onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
           hidden={isStaff || !ticket.isPublic || ticket.createdByUserId === userId}
+          colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
         >
           {isCurrentUserInGroup ? 'Leave' : 'Join'} group
         </Button>
       )}
-    </>
+    </Flex>
   );
 };
 

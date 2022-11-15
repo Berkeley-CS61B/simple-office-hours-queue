@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex } from '@chakra-ui/react';
-import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button } from '@chakra-ui/react';
+import { FIVE_MINUTES_IN_MS, timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
@@ -9,6 +9,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
+import Countdown from './Countdown';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -27,18 +28,22 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
   const { showNotification } = useNotification();
+
+  const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const isResolved = ticket.status === TicketStatus.RESOLVED;
+  const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isClosed = ticket.status === TicketStatus.CLOSED;
+  const isAbsent = ticket.status === TicketStatus.ABSENT;
+
+  const isStaff = userRole === UserRole.STAFF;
+  const isStudent = userRole === UserRole.STUDENT;
+  const helpOrJoin = isStaff ? 'Help' : 'Join';
+
   const canSeeName =
     userId === ticket.createdByUserId ||
     isCurrentUserInGroup ||
-    (userRole === UserRole.STAFF &&
-      (ticket.status === TicketStatus.ASSIGNED ||
-        ticket.status === TicketStatus.RESOLVED ||
-        ticket.status === TicketStatus.CLOSED));
-
-  const isResolved = ticket.status === TicketStatus.RESOLVED;
-  const isAssigned = ticket.status === TicketStatus.ASSIGNED;
-  const isStaff = userRole === UserRole.STAFF;
-  const helpOrJoin = isStaff ? 'Help' : 'Join';
+    (isStaff && (isAssigned || isResolved || isClosed || isAbsent));
 
   const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -73,6 +78,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-reopened',
       'ticket-requeued',
       'ticket-staffnote',
+      'ticket-marked-as-absent',
       'ticket-closed',
       'ticket-joined',
       'ticket-left',
@@ -89,13 +95,29 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
       // Notify the student when the ticket is updated
       if (userRole === UserRole.STUDENT) {
-        const update = message.split('-')[1];
+        let update = message.split('-')[1];
+        if (message === 'ticket-marked-as-absent') {
+          update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
+        }
         if (!shouldNotNotifyStudent.includes(message)) {
           showNotification(`Ticket ${update}`, `Your ticket has been ${update}`);
         }
       }
     }
   });
+
+  const handleMarkAsAbsent = async () => {
+    await markAsAbsentMutation.mutateAsync({
+      ticketId: ticket.id,
+      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+    });
+  };
+
+  const handleCloseTicket = async () => {
+    if (!isClosed) {
+      await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    }
+  };
 
   return (
     <>
@@ -110,8 +132,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4} mb={4}>
-        <span className='semibold'>Description:</span>{' '}
-        {ticket.description}
+        <span className='semibold'>Description:</span> {ticket.description}
       </Text>
 
       <Box mb={4}>
@@ -148,7 +169,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         )}
       </Box>
 
-      <StaffNotes ticket={ticket} userRole={userRole} />
       <TicketButtons
         ticket={ticket}
         userId={userId}
@@ -157,6 +177,32 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
+      <StaffNotes ticket={ticket} userRole={userRole} />
+      <Flex
+        hidden={!isAbsent}
+        flexDirection='column'
+        justifyContent='center'
+        backgroundColor='red.500'
+        mt={3}
+        ml={3}
+        borderRadius={4}
+        p={2}
+      >
+        <Text fontWeight='semibold' fontSize='xl'>
+          This ticket has been marked as absent. If you do not click the "{isStaff ? 'Unmark as absent' : 'I am here'}"
+          button {isStaff ? 'above' : 'below'}, the ticket will be closed in
+        </Text>
+        {ticket.markedAbsentAt && (
+          <Countdown
+            initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())}
+            onComplete={handleCloseTicket}
+          />
+        )}
+      </Flex>
+      <Button colorScheme='whatsapp' m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
+        I am here
+      </Button>
+
       <Confetti
         recycle={false}
         numberOfPieces={200}

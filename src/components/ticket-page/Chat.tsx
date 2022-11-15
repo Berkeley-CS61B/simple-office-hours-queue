@@ -41,7 +41,7 @@ const Chat = (props: ChatProps) => {
             content: message.message,
             sentByName: message.userName,
             sentByUserId: message.userId,
-			sentByUserRole: message.userRole,
+            sentByUserRole: message.userRole,
           };
         });
         setMessages(messages);
@@ -65,7 +65,7 @@ const Chat = (props: ChatProps) => {
       content: message,
       sentByName: userName,
       sentByUserId: userId,
-	  sentByUserRole: userRole,
+      sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
@@ -84,9 +84,9 @@ const Chat = (props: ChatProps) => {
       content: messageText,
       sentByName: session?.user?.name!,
       sentByUserId: session?.user?.id!,
-	  sentByUserRole: session?.user?.role!,
+      sentByUserRole: session?.user?.role!,
     };
-	// Optimistic update on chat message
+    // Optimistic update on chat message
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
     setMessageText('');
@@ -128,7 +128,8 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName}{sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
+          {sentByName}
+          {sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
         </Text>
         {content}
       </Flex>
@@ -145,7 +146,7 @@ const Chat = (props: ChatProps) => {
     <>
       {!isChatLoaded && <Spinner />}
       {isChatLoaded && (
-        <Box border='1px solid gray' p={4} mr={4} ml={4} borderRadius={5}>
+        <Box border='1px solid lightgray' p={4} mr={4} ml={4} borderRadius={5}>
           <Flex mb={4} flexDirection='column' gap={2} height='50vh' overflowY='auto'>
             {allMessages}
             <Box ref={element => (messageEnd = element)} />
@@ -160,7 +161,7 @@ const Chat = (props: ChatProps) => {
                 onChange={e => setMessageText(e.target.value)}
                 mr={4}
               />
-              <Button type='submit' disabled={messageTextIsEmpty}>
+              <Button colorScheme='green' type='submit' disabled={messageTextIsEmpty}>
                 Send
               </Button>
             </Flex>
