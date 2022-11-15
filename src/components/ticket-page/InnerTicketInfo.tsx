@@ -189,7 +189,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         p={2}
       >
         <Text fontWeight='semibold' fontSize='xl'>
-          This ticket has been marked as absent. If you do not click the "{isStaff ? 'Unmark as absent' : 'I am here'}"
+          This ticket has been marked as absent. If you do not click the &quot;{isStaff ? 'Unmark as absent' : 'I am here'}&quot;
           button {isStaff ? 'above' : 'below'}, the ticket will be closed in
         </Text>
         {ticket.markedAbsentAt && (
