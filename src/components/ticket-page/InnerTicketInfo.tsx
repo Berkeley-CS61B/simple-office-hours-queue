@@ -95,7 +95,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
       // Notify the student when the ticket is updated
       if (userRole === UserRole.STUDENT) {
-        const update = message.split('-')[1];
+        let update = message.split('-')[1];
+        if (message === 'ticket-marked-as-absent') {
+          update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
+        }
         if (!shouldNotNotifyStudent.includes(message)) {
           showNotification(`Ticket ${update}`, `Your ticket has been ${update}`);
         }
@@ -186,8 +189,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         p={2}
       >
         <Text fontWeight='semibold' fontSize='xl'>
-          You have been marked as absent. If you do not click the "I am here" button below, your ticket will be removed
-          from the queue in
+          This ticket has been marked as absent. If you do not click the "{isStaff ? 'Unmark as absent' : 'I am here'}"
+          button {isStaff ? 'above' : 'below'}, the ticket will be closed in
         </Text>
         {ticket.markedAbsentAt && (
           <Countdown

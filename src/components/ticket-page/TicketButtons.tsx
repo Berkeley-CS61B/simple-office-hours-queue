@@ -93,7 +93,7 @@ const TicketButtons = (props: TicketCardProps) => {
       <Button
         m={4}
         onClick={handleMarkAsAbsent}
-        hidden={!isStaff || !(isOpen || isPending || isAssigned)}
+        hidden={!isStaff || isResolved || isClosed}
         colorScheme='red'
       >
         {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
