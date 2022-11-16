@@ -82,7 +82,7 @@ const Chat = (props: ChatProps) => {
 
     const newMessage: Message = {
       content: messageText,
-      sentByName: session?.user?.name!,
+      sentByName: session?.user?.preferredName ?? session?.user?.name!,
       sentByUserId: session?.user?.id!,
       sentByUserRole: session?.user?.role!,
     };

@@ -429,7 +429,7 @@ export const ticketRouter = router({
       });
       const chatMessageWithUserName: ChatMessageWithUserName = {
         ...chatMessage,
-        userName: user?.name!,
+        userName: user?.preferredName ?? user?.name!,
         userRole: user?.role!,
       };
 
@@ -610,7 +610,7 @@ export const ticketRouter = router({
           });
           return {
             ...message,
-            userName: user?.name!,
+            userName: user?.preferredName ?? user?.name!,
             userRole: user?.role!,
           };
         }),
@@ -655,8 +655,9 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         ...ticket,
         locationName: location?.name,
         assignmentName: assignment?.name,
-        helpedByName: helpedBy?.name,
-        createdByName: createdBy.name,
+        helpedByName: helpedBy?.preferredName ?? helpedBy?.name,
+        createdByName: createdBy?.preferredName ?? createdBy.name,
+		createdByEmail: createdBy.email,
       };
     }),
   );
@@ -673,6 +674,7 @@ export interface ChatMessageWithUserName extends ChatMessage {
 export interface TicketWithNames extends Ticket {
   helpedByName: string | null | undefined;
   createdByName: string | null;
+  createdByEmail: string | null;
   assignmentName: string;
   locationName: string;
 }

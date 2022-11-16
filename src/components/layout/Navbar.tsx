@@ -18,6 +18,7 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
+import PopoverForm from './NamePopoverForm';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
@@ -36,7 +37,11 @@ const AvatarDropdown = () => {
             </Center>
             <br />
             <Center>
-              <Text>{session.user?.name}</Text>
+              {session?.user?.name || session?.user?.preferredName ? (
+                <PopoverForm name={session?.user.preferredName ?? session?.user?.name} />
+              ) : (
+                <Text fontSize='xl'>{session?.user?.email}</Text>
+              )}
             </Center>
             <br />
             <MenuDivider />
