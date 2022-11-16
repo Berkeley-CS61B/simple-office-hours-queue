@@ -26,8 +26,8 @@ const StaffNotes = (props: StaffNotesProps) => {
 
     const newNotes =
       ticket.staffNotes === null
-        ? session?.user?.name + ': ' + notesText
-        : ticket.staffNotes + ' | ' + session?.user?.name + ': ' + notesText;
+        ? (session?.user?.preferredName ?? session?.user?.preferredName) + ': ' + notesText
+        : ticket.staffNotes + ' | ' + (session?.user?.preferredName ?? session?.user?.name) + ': ' + notesText;
 
     await addStaffNotesMutation.mutateAsync({
       ticketId: ticket.id,
@@ -38,7 +38,9 @@ const StaffNotes = (props: StaffNotesProps) => {
 
   return (
     <Box hidden={userRole !== UserRole.STAFF} mt={4}>
-      <Button variant='outline' onClick={toggleNotesBox}>Toggle Notes</Button>
+      <Button variant='outline' onClick={toggleNotesBox}>
+        Toggle Notes
+      </Button>
       <Collapse in={isNotesBoxOpen} animateOpacity>
         <Box p='40px' mr={10} ml={10} mt={4} rounded='md' shadow='md' bg='gray.400'>
           <Text color='black' textAlign='left' mb={2}>
@@ -48,7 +50,7 @@ const StaffNotes = (props: StaffNotesProps) => {
             <Flex>
               <Input
                 color='black'
-				outline='1px solid lightgray'
+                outline='1px solid lightgray'
                 value={notesText}
                 placeholder='Your name will be added automatically'
                 onChange={e => setNotesText(e.target.value)}

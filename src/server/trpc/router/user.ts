@@ -51,4 +51,21 @@ export const userRouter = router({
       },
     });
   }),
+
+  setPreferredName: protectedProcedure
+    .input(
+      z.object({
+        preferredName: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.user.update({
+        where: {
+          email: ctx.session.user.email!,
+        },
+        data: {
+          preferredName: input.preferredName,
+        },
+      });
+    }),
 });

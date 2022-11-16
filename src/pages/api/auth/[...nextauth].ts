@@ -8,15 +8,17 @@ import { UserRole } from '@prisma/client';
 export type SessionUser = {
   id: string;
   role: UserRole;
+  preferredName: string;
 } & User;
 
 export const authOptions: NextAuthOptions = {
-  // Include user.id and user.role on session
+  // Include user.id, user.role, and user.preferredName on session
   callbacks: {
     session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
         session.user.role = user.role;
+        session.user.preferredName = user.preferredName;
       }
       return session;
     },

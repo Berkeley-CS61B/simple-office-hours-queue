@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button } from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip } from '@chakra-ui/react';
 import { FIVE_MINUTES_IN_MS, timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -119,9 +119,20 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   };
 
+  /** Name with an email hover */
+  const TooltipName = ({ createdByName, createdByEmail }: { createdByName: string; createdByEmail: string }) => {
+    return <Tooltip placement='top' isDisabled={!canSeeName} label={createdByEmail}>{createdByName}</Tooltip>;
+  };
+
   return (
     <>
-      <Text fontSize='2xl'>{canSeeName ? ticket.createdByName : <>{helpOrJoin} to see name</>}</Text>
+      <Text fontSize='2xl'>
+        {canSeeName ? (
+          <TooltipName createdByName={ticket.createdByName!} createdByEmail={ticket.createdByEmail!} />
+        ) : (
+          <>{helpOrJoin} to see name</>
+        )}
+      </Text>
       <Text>
         <span className='semibold'>Ticket Status:</span> {uppercaseFirstLetter(ticket.status)}
       </Text>
@@ -159,7 +170,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
             ) : (
               <List>
                 {usersInGroup.map(user => (
-                  <ListItem key={user.id}>{user.name}</ListItem>
+                  <ListItem key={user.id}>{user.preferredName ?? user.name}</ListItem>
                 ))}
               </List>
             )}
@@ -189,8 +200,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         p={2}
       >
         <Text fontWeight='semibold' fontSize='xl'>
-          This ticket has been marked as absent. If you do not click the &quot;{isStaff ? 'Unmark as absent' : 'I am here'}&quot;
-          button {isStaff ? 'above' : 'below'}, the ticket will be closed in
+          This ticket has been marked as absent. If you do not click the &quot;
+          {isStaff ? 'Unmark as absent' : 'I am here'}&quot; button {isStaff ? 'above' : 'below'}, the ticket will be
+          closed in
         </Text>
         {ticket.markedAbsentAt && (
           <Countdown
