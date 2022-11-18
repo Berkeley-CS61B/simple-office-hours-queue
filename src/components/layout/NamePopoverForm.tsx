@@ -14,7 +14,6 @@ import {
   PopoverTrigger,
   Stack,
   useColorModeValue,
-  useDisclosure,
   useToast,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
@@ -23,6 +22,9 @@ import { trpc } from '../../utils/trpc';
 
 interface NamePopoverFormProps {
   name: string;
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
 }
 
 /**
@@ -30,9 +32,8 @@ interface NamePopoverFormProps {
  * @source https://chakra-ui.com/docs/components/popover/usage
  */
 const NamePopoverForm = (props: NamePopoverFormProps) => {
-  const { name } = props;
+  const { name, isOpen, onOpen, onClose } = props;
   const [preferredName, setPreferredName] = useState(name);
-  const { onOpen, onClose, isOpen } = useDisclosure();
   const setPreferredNameMutation = trpc.user.setPreferredName.useMutation();
   const toast = useToast();
 
@@ -69,9 +70,7 @@ const NamePopoverForm = (props: NamePopoverFormProps) => {
 
   return (
     <>
-      <Box display='inline-block' mr={3}>
-        {preferredName}
-      </Box>
+      <Box mr={3}>{preferredName}</Box>
       <Popover isOpen={isOpen} onOpen={onOpen} onClose={handleClose} placement='bottom' closeOnBlur={false}>
         <PopoverTrigger>
           <IconButton aria-label='edit-icon' size='sm' icon={<EditIcon />} />
@@ -88,7 +87,7 @@ const NamePopoverForm = (props: NamePopoverFormProps) => {
               <Button variant='outline' onClick={handleClose}>
                 Cancel
               </Button>
-              <Button isDisabled={preferredName.length <= 0} colorScheme='whatsapp' onClick={handleNameChange}>
+              <Button isDisabled={preferredName.trim().length <= 0} colorScheme='whatsapp' onClick={handleNameChange}>
                 Save
               </Button>
             </ButtonGroup>

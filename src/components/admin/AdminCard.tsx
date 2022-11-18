@@ -15,6 +15,7 @@ import {
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
 import { UseTRPCMutationResult } from '@trpc/react/shared';
+import { DARK_GRAY_COLOR } from '../../utils/constants';
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
@@ -41,7 +42,7 @@ const EditableControls = () => {
  */
 const AdminCard = (props: AdminCardProps) => {
   const { assignmentOrLocation, editMutation } = props;
-  const boxColor = useColorModeValue('gray.100', 'gray.700');
+  const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
   const [isChecked, setIsChecked] = useState(assignmentOrLocation.active);
 
   const handleNameChange = (newName: string) => {

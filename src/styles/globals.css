@@ -19,3 +19,11 @@ body {
 .semibold {
   font-weight: 600;
 }
+
+.group-select > #react-select-3-listbox > div  {
+	background-color: #121212; 
+}	
+
+.first-div-overflow-hidden > div:first-of-type { 
+  overflow: hidden;
+}

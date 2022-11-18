@@ -150,7 +150,12 @@ const TicketList = (props: TicketListProps) => {
     <Flex flexDir='column'>
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
-          <Select options={groupByOptions} placeholder='Group by...' onChange={handleGroupTickets} />
+          <Select
+            className='group-select'
+            options={groupByOptions}
+            placeholder='Group by...'
+            onChange={handleGroupTickets}
+          />
         </Box>
         {getButton(tickets, false, groupedBy!)}
       </Flex>

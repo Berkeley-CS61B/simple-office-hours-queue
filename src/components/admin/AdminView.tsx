@@ -78,7 +78,7 @@ const AdminView = () => {
   }
 
   return (
-    <Flex ml={4} mt={4} flexDirection='column'>
+    <Flex ml={4} mr={4} mt={4} flexDirection='column'>
       <Flex direction='column' w='50%' mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           Assignments
