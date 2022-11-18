@@ -12,13 +12,14 @@ import {
   Input,
   EditableInput,
 } from '@chakra-ui/react';
-import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
 import { UseTRPCMutationResult } from '@trpc/react/shared';
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
+  handleDelete: (id: number) => Promise<void>;
 }
 
 const EditableControls = () => {
@@ -40,7 +41,7 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation } = props;
+  const { assignmentOrLocation, editMutation, handleDelete } = props;
   const boxColor = useColorModeValue('gray.100', 'gray.700');
   const [isChecked, setIsChecked] = useState(assignmentOrLocation.active);
 
@@ -73,6 +74,7 @@ const AdminCard = (props: AdminCardProps) => {
           Active?
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isChecked} />
+		<DeleteIcon ml={5} mt={2} onClick={() => handleDelete(assignmentOrLocation.id)} />
       </Flex>
     </>
   );

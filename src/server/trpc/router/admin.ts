@@ -68,6 +68,34 @@ export const adminRouter = router({
       });
     }),
 
+  deleteLocation: protectedStaffProcedure
+    .input(
+	  z.object({
+		id: z.number(),
+	  }),
+	)
+	.mutation(async ({ input, ctx }) => {
+	  return ctx.prisma.location.delete({
+		where: {
+		  id: input.id,
+		},
+	  });
+	}),
+	 
+  deleteAssignment: protectedStaffProcedure
+    .input(
+	  z.object({
+		id: z.number(),
+	  }),
+	)
+	.mutation(async ({ input, ctx }) => {
+	  return ctx.prisma.assignment.delete({
+		where: {
+		  id: input.id,
+		},
+	  });
+	}),
+
   setSiteSettings: protectedStaffProcedure
     .input(
       z.object({
