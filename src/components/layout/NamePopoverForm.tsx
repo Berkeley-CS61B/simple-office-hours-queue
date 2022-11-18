@@ -13,10 +13,12 @@ import {
   PopoverContent,
   PopoverTrigger,
   Stack,
+  useColorModeValue,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import { DARK_MODE_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 
 interface NamePopoverFormProps {
@@ -70,11 +72,11 @@ const NamePopoverForm = (props: NamePopoverFormProps) => {
       <Box display='inline-block' mr={3}>
         {preferredName}
       </Box>
-      <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement='bottom' closeOnBlur={false}>
+      <Popover isOpen={isOpen} onOpen={onOpen} onClose={handleClose} placement='bottom' closeOnBlur={false}>
         <PopoverTrigger>
           <IconButton aria-label='edit-icon' size='sm' icon={<EditIcon />} />
         </PopoverTrigger>
-        <PopoverContent p={5}>
+        <PopoverContent p={5} backgroundColor={useColorModeValue('white', DARK_MODE_COLOR)}>
           <PopoverArrow />
           <PopoverCloseButton />
           <Stack spacing={4}>

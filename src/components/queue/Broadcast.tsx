@@ -12,6 +12,7 @@ import {
   ModalCloseButton,
   useToast,
   Center,
+  useColorModeValue,
 } from '@chakra-ui/react';
 
 /**
@@ -47,7 +48,7 @@ const Broadcast = () => {
   };
 
   return (
-    <Flex>
+    <Flex borderColor={useColorModeValue('', 'whiteAlpha.500')}>
       <Input
         m={4}
         placeholder='Broadcast Message'

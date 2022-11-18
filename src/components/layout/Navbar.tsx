@@ -18,10 +18,13 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
-import PopoverForm from './NamePopoverForm';
+import NamePopoverForm from './NamePopoverForm';
+import { DARK_MODE_COLOR } from '../../utils/constants';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
+  const bgColor = useColorModeValue('white', DARK_MODE_COLOR);
+
   return (
     <>
       {status === 'loading' && <SkeletonCircle />}
@@ -30,7 +33,7 @@ const AvatarDropdown = () => {
           <MenuButton as={Button} rounded={'full'} variant={'link'} cursor={'pointer'} minW={0}>
             <Avatar size={'sm'} src={session?.user?.image ?? undefined} />
           </MenuButton>
-          <MenuList alignItems={'center'}>
+          <MenuList alignItems={'center'} backgroundColor={bgColor}>
             <br />
             <Center>
               <Avatar size={'2xl'} src={session?.user?.image ?? undefined} />
@@ -38,7 +41,7 @@ const AvatarDropdown = () => {
             <br />
             <Center>
               {session?.user?.name || session?.user?.preferredName ? (
-                <PopoverForm name={session?.user.preferredName ?? session?.user?.name} />
+                <NamePopoverForm name={session?.user.preferredName ?? session?.user?.name} />
               ) : (
                 <Text fontSize='xl'>{session?.user?.email}</Text>
               )}
@@ -62,7 +65,7 @@ export const Navbar = () => {
   const { data: session } = useSession();
 
   return (
-    <Box bg={useColorModeValue('gray.100', 'gray.900')}>
+    <Box bg={useColorModeValue('gray.100', '')} boxShadow='0 0 2px #4a4a4a'>
       <Flex pl={4} pr={4} h={16} alignItems='center' justifyContent='space-between'>
         <Link href='/'>
           <Text className='hover-cursor' fontWeight='semibold' fontSize='2xl'>
