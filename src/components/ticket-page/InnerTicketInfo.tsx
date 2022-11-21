@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
 import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip } from '@chakra-ui/react';
-import { FIVE_MINUTES_IN_MS, timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
@@ -121,7 +122,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   /** Name with an email hover */
   const TooltipName = ({ createdByName, createdByEmail }: { createdByName: string; createdByEmail: string }) => {
-    return <Tooltip placement='top' isDisabled={!canSeeName} label={createdByEmail}>{createdByName}</Tooltip>;
+    return (
+      <Tooltip placement='top' isDisabled={!canSeeName} label={createdByEmail}>
+        {createdByName}
+      </Tooltip>
+    );
   };
 
   return (

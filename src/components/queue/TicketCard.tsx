@@ -5,6 +5,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
+import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -18,7 +19,7 @@ interface TicketCardProps {
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId } = props;
 
-  const hoverColor = useColorModeValue('#dddddd', '#273042');
+  const hoverColor = useColorModeValue('#dddddd', DARK_HOVER_COLOR);
   const isStaff = userRole === UserRole.STAFF;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
@@ -85,7 +86,7 @@ const TicketCard = (props: TicketCardProps) => {
     <Box
       mb={4}
       p={8}
-      backgroundColor={useColorModeValue('white', 'gray.800')}
+      backgroundColor={useColorModeValue('white', DARK_GRAY_COLOR)}
       width='full'
       borderWidth={1}
       borderRadius={8}

@@ -1,5 +1,6 @@
 import { PrismaClient, SiteSettings, UserRole } from '@prisma/client';
-import { EMAIL_REGEX, settingsToDefault } from '../src/utils/utils';
+import { settingsToDefault } from '../src/utils/utils';
+import { EMAIL_REGEX } from '../src/utils/constants';
 const prisma = new PrismaClient();
 
 // Update this variable with your email address to add yourself as STAFF

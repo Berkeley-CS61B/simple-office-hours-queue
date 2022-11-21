@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Importer, ImporterField } from 'react-csv-importer';
 import 'react-csv-importer/dist/index.css';
 import { trpc } from '../../utils/trpc';
-import { EMAIL_REGEX } from '../../utils/utils';
+import { EMAIL_REGEX } from '../../utils/constants';
 
 interface ImportedUser {
   email: string;
@@ -46,7 +46,7 @@ const ImportUsers = () => {
           return true;
         });
 
-        handleAddUsers((users as unknown) as ImportedUser[]);
+        handleAddUsers(users as unknown as ImportedUser[]);
       }}
       onComplete={() => {
         if (invalidEmails.length > 0) {

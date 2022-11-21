@@ -1,7 +1,17 @@
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, ModalFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from '@chakra-ui/react';
+import {
+  Button,
+  ModalFooter,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useColorModeValue,
+} from '@chakra-ui/react';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { useState } from 'react';
+import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 
 interface OpenOrCloseQueueProps {
@@ -28,10 +38,7 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     }
     channel.publish({
       name: 'broadcast',
-      data:
-        'The queue has been ' +
-        (isQueueOpen ? 'closed' : 'opened') +
-        (shouldClearQueue ? ' and cleared' : ''),
+      data: 'The queue has been ' + (isQueueOpen ? 'closed' : 'opened') + (shouldClearQueue ? ' and cleared' : ''),
     });
   };
 
@@ -48,7 +55,10 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
       </Button>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ModalContent>
+        <ModalContent
+          backgroundColor={useColorModeValue('', DARK_GRAY_COLOR)}
+          boxShadow={`0 0 1px 2px ${DARK_HOVER_COLOR}`}
+        >
           <ModalHeader>{isQueueOpen ? 'Close' : 'Open'} Queue</ModalHeader>
           <ModalCloseButton />
           <ModalBody>Are you sure you want to {isQueueOpen ? 'close' : 'open'} the queue?</ModalBody>

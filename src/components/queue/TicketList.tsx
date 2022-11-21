@@ -2,7 +2,7 @@ import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
 import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -150,7 +150,12 @@ const TicketList = (props: TicketListProps) => {
     <Flex flexDir='column'>
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
-          <Select options={groupByOptions} placeholder='Group by...' onChange={handleGroupTickets} />
+          <Select
+            className='group-select'
+            options={groupByOptions}
+            placeholder='Group by...'
+            onChange={handleGroupTickets}
+          />
         </Box>
         {getButton(tickets, false, groupedBy!)}
       </Flex>
