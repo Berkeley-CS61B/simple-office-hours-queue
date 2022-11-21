@@ -28,7 +28,7 @@ const AdminView = () => {
   useEffect(() => {
     if (siteSettings) {
       setIsPendingStageEnabled(siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
-	  setArePublicTicketsEnabled(siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.TRUE);
+      setArePublicTicketsEnabled(siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.TRUE);
     }
   }, [siteSettings]);
 
@@ -48,12 +48,12 @@ const AdminView = () => {
 
   const handleCreateAssignment = async () => {
     const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });
-    setAssignments(prev => [...prev!, data]);
+    setAssignments(prev => [...(prev ?? []), data]);
   };
 
   const handleCreateLocation = async () => {
     const data = await createLocationMutation.mutateAsync({ name: locationText });
-    setLocations(prev => [...prev!, data]);
+    setLocations(prev => [...(prev ?? []), data]);
   };
 
   // Sets the pending stage to enabled or disabled depending on the current state
@@ -66,7 +66,7 @@ const AdminView = () => {
   };
 
   const handleTogglePublicTicketsEnabled = async () => {
-	setArePublicTicketsEnabled(prev => !prev);
+    setArePublicTicketsEnabled(prev => !prev);
     const valueToSet = arePublicTicketsEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
     await setSiteSettingsMutation.mutateAsync({
       [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: valueToSet,

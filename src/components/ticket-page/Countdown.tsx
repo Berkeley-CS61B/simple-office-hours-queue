@@ -1,6 +1,5 @@
 import { Text } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { trpc } from '../../utils/trpc';
 
 /**
  * Countdown component that displays the time remaining for a ticket.
@@ -30,7 +29,7 @@ const Countdown = (props: CountdownProps) => {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [timeRemaining]);
+  }, [timeRemaining, onComplete]);
 
   // If the time remaining is less than 0, return 0
   if (timeRemaining < 0) {

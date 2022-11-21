@@ -135,8 +135,8 @@ export const adminRouter = router({
   // This is used inside of the useSiteSettings custom hook
   getSettings: protectedProcedure.query(async ({ ctx }) => {
     const settings = await ctx.prisma.settings.findMany();
-    // Add missing settings to the database if they dont exist. I initially 
-	// had upsert, but it was very slow so I changed it to manually add
+    // Add missing settings to the database if they dont exist. I initially
+    // had upsert, but it was very slow so I changed it to manually add
     for (const setting of Object.keys(settingsToDefault)) {
       if (!settings.some(s => s.setting === setting)) {
         await ctx.prisma.settings.create({

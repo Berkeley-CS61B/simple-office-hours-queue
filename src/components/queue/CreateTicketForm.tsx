@@ -115,11 +115,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Select value={assignment} onChange={val => setAssignment(val!)} options={assignmentOptions} />
+            <Select value={assignment} onChange={val => setAssignment(val ?? undefined)} options={assignmentOptions} />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Select value={location} onChange={val => setLocation(val!)} options={locationOptions} />
+            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={locationOptions} />
           </FormControl>
           <FormControl mt={6} isRequired={isPublic}>
             <FormLabel>Briefly describe where you are</FormLabel>

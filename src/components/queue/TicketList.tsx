@@ -2,7 +2,7 @@ import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
 import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
-import { useState } from 'react';
+import { RefObject, useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -46,7 +46,7 @@ const TicketList = (props: TicketListProps) => {
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
-  const [parent]: any = useAutoAnimate();
+  const [parent]: [RefObject<HTMLDivElement>, (enabled: boolean) => void] = useAutoAnimate();
 
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
@@ -105,9 +105,9 @@ const TicketList = (props: TicketListProps) => {
             <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
               {attribute}
             </Tag>
-            {getButton(groupedTickets[attribute]!, true, groupedBy!)}
+            {getButton(groupedTickets[attribute] ?? [], true, groupedBy ?? 'assignmentName')}
             <Box ref={parent}>
-              {groupedTickets[attribute]!.map((ticket: TicketWithNames) => (
+              {(groupedTickets[attribute] ?? []).map((ticket: TicketWithNames) => (
                 <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
               ))}
             </Box>
@@ -157,7 +157,7 @@ const TicketList = (props: TicketListProps) => {
             onChange={handleGroupTickets}
           />
         </Box>
-        {getButton(tickets, false, groupedBy!)}
+        {getButton(tickets, false, groupedBy ?? 'assignmentName')}
       </Flex>
       {isGrouped ? (
         <GroupedView />

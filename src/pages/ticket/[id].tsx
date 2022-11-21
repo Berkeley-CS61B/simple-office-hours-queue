@@ -43,8 +43,8 @@ const TicketPage: NextPage = () => {
   );
 
   useEffect(() => {
-    if (session) {
-      setUserId(session.user?.id!);
+    if (session && session.user) {
+      setUserId(session.user.id);
 
       new Promise(resolve => {
         configureAbly({
@@ -80,7 +80,7 @@ const TicketPage: NextPage = () => {
       });
       Router.push('/');
     }
-  }, [userRole, isInvalidTicket, authorized]);
+  }, [userRole, isInvalidTicket, authorized, toast]);
 
   return (
     <Layout isAblyConnected={isAblyConnected}>

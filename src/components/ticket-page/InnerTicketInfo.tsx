@@ -67,7 +67,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       }
     }, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [context.ticket.getTicket, ticket.id, ticket.status]);
 
   // Listens for updates on the ticket status
   useChannel(`ticket-${ticket.id}`, ticketData => {
@@ -133,7 +133,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     <>
       <Text fontSize='2xl'>
         {canSeeName ? (
-          <TooltipName createdByName={ticket.createdByName!} createdByEmail={ticket.createdByEmail!} />
+          <TooltipName
+            createdByName={ticket.createdByName ?? ''}
+            createdByEmail={ticket.createdByEmail ?? ''}
+          />
         ) : (
           <>{helpOrJoin} to see name</>
         )}

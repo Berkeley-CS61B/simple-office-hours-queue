@@ -31,7 +31,7 @@ const AdminPage: NextPage = () => {
       });
       Router.push('/');
     }
-  }, [authorized, userRole]);
+  }, [authorized, userRole, toast]);
 
   return <Layout>{userRole && authorized && <AdminView />}</Layout>;
 };

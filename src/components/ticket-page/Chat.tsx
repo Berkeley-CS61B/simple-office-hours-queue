@@ -74,17 +74,18 @@ const Chat = (props: ChatProps) => {
     }
   });
 
-  const handleFormSubmission = async (event: any) => {
+  const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (messageTextIsEmpty) {
       return;
     }
 
+    // Note: The 'Unknown' should never happen, it's just to make Typescript happy
     const newMessage: Message = {
       content: messageText,
-      sentByName: session?.user?.preferredName ?? session?.user?.name!,
-      sentByUserId: session?.user?.id!,
-      sentByUserRole: session?.user?.role!,
+      sentByName: session?.user?.preferredName ?? session?.user?.name ?? 'Unknown',
+      sentByUserId: session?.user?.id ?? 'Unknown',
+      sentByUserRole: session?.user?.role ?? 'STUDENT',
     };
     // Optimistic update on chat message
     setMessages(prevMessages => [...prevMessages, newMessage]);
@@ -114,7 +115,7 @@ const Chat = (props: ChatProps) => {
 
   const allMessages = messages.map((message, index: number) => {
     const { content, sentByName, sentByUserId, sentByUserRole } = message;
-    const amISender = sentByUserId === session?.user?.id!;
+    const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
     return (
       <Flex
         key={index}
@@ -140,7 +141,7 @@ const Chat = (props: ChatProps) => {
     if (messageEnd) {
       messageEnd.scrollIntoView({ behaviour: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, messageEnd]);
 
   return (
     <>

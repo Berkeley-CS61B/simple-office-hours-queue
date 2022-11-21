@@ -38,7 +38,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
         });
       }
     })();
-  }, []);
+  }, [changeUserRoleMutation]);
 
   useEffect(() => {
     if (siteSettings) {
@@ -64,7 +64,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
           <OpenOrCloseQueue isQueueOpen={isQueueOpen} />
         </>
       )}
-      {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket siteSettings={siteSettings!} />}
+      {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket siteSettings={siteSettings ?? new Map()} />}
       <TicketQueue
         userId={userId}
         userRole={userRole}

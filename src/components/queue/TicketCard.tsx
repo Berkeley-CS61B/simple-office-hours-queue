@@ -6,6 +6,7 @@ import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
+import React from 'react';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -56,13 +57,11 @@ const TicketCard = (props: TicketCardProps) => {
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
-  const handleTicketPress = (event: any) => {
-    if (!canUserClickOnTicket) {
+  const handleTicketPress = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!canUserClickOnTicket || (event.target as HTMLElement).tagName === 'BUTTON') {
       return;
     }
-    if (event.target.tagName === 'BUTTON') {
-      return;
-    }
+
     Router.push(`/ticket/${ticket.id}`);
   };
 
