@@ -34,7 +34,7 @@ const Broadcast = () => {
   };
 
   const handleModalOpen = () => {
-    if (broadcastMsg === '') {
+    if (broadcastMsg.trim() === '') {
       toast({
         title: 'Please enter a message to broadcast',
         position: 'top-right',
@@ -54,6 +54,7 @@ const Broadcast = () => {
         placeholder='Broadcast Message'
         value={broadcastMsg}
         onChange={e => setBroadcastMsg(e.target.value)}
+        _placeholder={{ color: useColorModeValue('gray.500', 'white') }}
       />
       <Button m={4} onClick={handleModalOpen}>
         Broadcast
