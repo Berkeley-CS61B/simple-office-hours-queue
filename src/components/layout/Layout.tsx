@@ -1,9 +1,10 @@
 import Head from 'next/head';
-import { useSession, signIn } from 'next-auth/react';
-import { Text, Flex, Button } from '@chakra-ui/react';
+import { useSession } from 'next-auth/react';
+import { Flex } from '@chakra-ui/react';
 import { Navbar } from './Navbar';
 import { ReactNode, useEffect } from 'react';
 import ReceiveBroadcast from '../queue/ReceiveBroadcast';
+import Landing from './Landing';
 
 interface LayoutProps {
   children: ReactNode;
@@ -40,17 +41,7 @@ const Layout = (props: LayoutProps) => {
       <Flex h='100%' direction='column'>
         <>
           <Navbar />
-          {!session && status !== 'loading' && (
-            <Flex flexDirection='column' alignItems='center'>
-              <Text fontSize='4xl'>
-                Welcome back,{' '}
-                <Button border='1px' onClick={() => signIn('google')}>
-                  Sign in
-                </Button>{' '}
-                to continue
-              </Text>
-            </Flex>
-          )}
+          {!session && status !== 'loading' && <Landing />}
           {status === 'authenticated' && <>{children}</>}
           {isAblyConnected && <ReceiveBroadcast />}
         </>

@@ -20,7 +20,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
 import NamePopoverForm from './NamePopoverForm';
-import { DARK_MODE_COLOR } from '../../utils/constants';
+import { COURSE_ID, DARK_MODE_COLOR } from '../../utils/constants';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
@@ -79,7 +79,7 @@ export const Navbar = () => {
       <Flex pl={4} pr={4} h={16} alignItems='center' justifyContent='space-between'>
         <Link href='/'>
           <Text className='hover-cursor' fontWeight='semibold' fontSize='2xl'>
-            61B OH
+            {COURSE_ID} OH
           </Text>
         </Link>
 
