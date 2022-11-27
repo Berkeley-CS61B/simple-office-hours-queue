@@ -15,8 +15,11 @@ const AdminView = () => {
   const [arePublicTicketsEnabled, setArePublicTicketsEnabled] = useState<boolean>();
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
+  // TODO: Put this in a separate component
   const [assignmentText, setAssignmentText] = useState('');
   const [locationText, setLocationText] = useState<string>('');
+  const [areHiddenAssignmentsVisible, setAreHiddenAssignmentsVisible] = useState<boolean>(false);
+
   const { siteSettings } = useSiteSettings();
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
@@ -77,21 +80,40 @@ const AdminView = () => {
     return <Spinner />;
   }
 
+  const numVisibleAssignments = assignments.filter(assignment => !assignment.isHidden).length;
+  const numVisibleLocations = locations.filter(location => !location.isHidden).length;
+
+  // TODO: Move this to an AdminList component to reuse for assignments and locations
   return (
     <Flex ml={4} mr={4} mt={4} flexDirection='column'>
-      <Flex direction='column' w='50%' mb={3}>
-        <Text fontSize='3xl' fontWeight='semibold'>
+      <Flex direction='column' w='100%' mb={3}>
+        <Text fontSize='3xl' fontWeight='semibold' mb={2}>
           Assignments
         </Text>
-        <Flex>
-          <Input onChange={e => setAssignmentText(e.target.value)} value={assignmentText} placeholder='Gitlet' />
-          <Button onClick={handleCreateAssignment} ml={3}>
-            Create
+        <Flex justifyContent='space-between'>
+          <Flex w='100%'>
+            <Input
+              width='50%'
+              onChange={e => setAssignmentText(e.target.value)}
+              value={assignmentText}
+              placeholder='Gitlet'
+            />
+            <Button onClick={handleCreateAssignment} ml={3}>
+              Create
+            </Button>
+          </Flex>
+          <Button onClick={() => setAreHiddenAssignmentsVisible(!areHiddenAssignmentsVisible)}>
+            {areHiddenAssignmentsVisible ? 'Hide' : 'Show'} hidden
           </Button>
         </Flex>
       </Flex>
+      {numVisibleAssignments === 0 && <Text>No visible assignments! You can add or unhide assignments above.</Text>}
       {assignments.map(assignment => (
-        <AdminCard key={assignment.id} assignmentOrLocation={assignment} editMutation={editAssignmentMutation} />
+        <div key={assignment.id}>
+          {(areHiddenAssignmentsVisible || !assignment.isHidden) && (
+            <AdminCard assignmentOrLocation={assignment} editMutation={editAssignmentMutation} />
+          )}
+        </div>
       ))}
 
       <Flex direction='column' w='50%' mt={10} mb={3}>
@@ -105,10 +127,14 @@ const AdminView = () => {
           </Button>
         </Flex>
       </Flex>
+      {numVisibleLocations === 0 && <Text>No visible locations! You can add or unhide locations above.</Text>}
       {locations.map(location => (
-        <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
+        <div key={location.id}>
+          {!location.isHidden && (
+            <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
+          )}
+        </div>
       ))}
-
       <Flex direction='column' mt={10} mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           General Settings
