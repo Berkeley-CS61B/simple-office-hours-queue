@@ -16,6 +16,7 @@ import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
 import { UseTRPCMutationResult } from '@trpc/react/shared';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
@@ -43,20 +44,32 @@ const EditableControls = () => {
 const AdminCard = (props: AdminCardProps) => {
   const { assignmentOrLocation, editMutation } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
-  const [isChecked, setIsChecked] = useState(assignmentOrLocation.active);
+  const [isChecked, setIsChecked] = useState(assignmentOrLocation.isActive);
 
   const handleNameChange = (newName: string) => {
-    editMutation.mutateAsync({ id: assignmentOrLocation.id, name: newName, active: assignmentOrLocation.active });
+    editMutation.mutateAsync({
+      id: assignmentOrLocation.id,
+      name: newName,
+      isActive: assignmentOrLocation.isActive,
+      isHidden: assignmentOrLocation.isHidden,
+    });
   };
 
   const handleActiveChange = () => {
     setIsChecked(!isChecked);
-    editMutation.mutateAsync({ id: assignmentOrLocation.id, name: assignmentOrLocation.name, active: !isChecked });
+    editMutation.mutateAsync({
+      id: assignmentOrLocation.id,
+      name: assignmentOrLocation.name,
+      isActive: !isChecked,
+      isHidden: assignmentOrLocation.isHidden,
+    });
   };
 
+  const handleHidden = () => {};
+
   return (
-    <>
-      <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor}>
+    <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor} justifyContent='space-between'>
+      <Flex>
         <Editable
           onSubmit={handleNameChange}
           textAlign='center'
@@ -75,7 +88,10 @@ const AdminCard = (props: AdminCardProps) => {
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isChecked} />
       </Flex>
-    </>
+      <Flex>
+        <FaEye size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+      </Flex>
+    </Flex>
   );
 };
 
