@@ -22,6 +22,7 @@ import { trpc } from '../../utils/trpc';
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
+  updateAssignmentsOrLocations: (isAssignment: boolean) => void;
 }
 
 const EditableControls = () => {
@@ -43,7 +44,7 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation } = props;
+  const { assignmentOrLocation, editMutation, updateAssignmentsOrLocations } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
   const [isActiveChecked, setIsActiveChecked] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
@@ -60,25 +61,31 @@ const AdminCard = (props: AdminCardProps) => {
 
   const handleActiveChange = async () => {
     setIsActiveChecked(!isActiveChecked);
-    await editMutation.mutateAsync({
-      id: assignmentOrLocation.id,
-      name: assignmentOrLocation.name,
-      isActive: !isActiveChecked,
-      isHidden: assignmentOrLocation.isHidden,
-    });
+    await editMutation
+      .mutateAsync({
+        id: assignmentOrLocation.id,
+        name: assignmentOrLocation.name,
+        isActive: !isActiveChecked,
+        isHidden: assignmentOrLocation.isHidden,
+      })
+      .then(() => {
+		updateAssignmentsOrLocations(true)
+      });
   };
 
   const handleHidden = async () => {
-	setIsHidden(!isHidden);
-	await editMutation.mutateAsync({
-	  id: assignmentOrLocation.id,
-	  name: assignmentOrLocation.name,
-	  isActive: assignmentOrLocation.isActive,
-	  isHidden: !isHidden,
-	}).then(() => {
-		context.admin.getAllLocations.invalidate();
-		context.admin.getAllAssignments.invalidate();
-	});
+    setIsHidden(!isHidden);
+    await editMutation
+      .mutateAsync({
+        id: assignmentOrLocation.id,
+        name: assignmentOrLocation.name,
+        isActive: assignmentOrLocation.isActive,
+        isHidden: !isHidden,
+      })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      });
   };
 
   return (
@@ -102,13 +109,15 @@ const AdminCard = (props: AdminCardProps) => {
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActiveChecked} />
       </Flex>
-      <Flex>
-        {isHidden ? (
-          <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
-        ) : (
-          <FaEye size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
-        )}
-      </Flex>
+      {!assignmentOrLocation.isActive && (
+        <Flex>
+          {isHidden ? (
+            <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+          ) : (
+            <FaEye size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+          )}
+        </Flex>
+      )}
     </Flex>
   );
 };
