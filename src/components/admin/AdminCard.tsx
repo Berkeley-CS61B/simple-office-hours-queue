@@ -23,7 +23,7 @@ import { trpc } from '../../utils/trpc';
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
-  updateAssignmentsOrLocations: (isAssignment: boolean) => void;
+  isHiddenVisible: boolean;
 }
 
 const EditableControls = () => {
@@ -45,7 +45,7 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation, updateAssignmentsOrLocations } = props;
+  const { assignmentOrLocation, editMutation, isHiddenVisible } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
   const [isActiveChecked, setIsActiveChecked] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
@@ -72,11 +72,10 @@ const AdminCard = (props: AdminCardProps) => {
         isHidden: newActive ? false : assignmentOrLocation.isHidden,
       })
       .then(() => {
-        // updateAssignmentsOrLocations(true);
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
       })
-	  .catch(err => {
+      .catch(err => {
         toast({
           title: 'Error',
           description: err.message,
@@ -85,8 +84,7 @@ const AdminCard = (props: AdminCardProps) => {
           isClosable: true,
           position: 'top-right',
         });
-
-	  });
+      });
   };
 
   const handleHidden = async () => {
@@ -114,9 +112,9 @@ const AdminCard = (props: AdminCardProps) => {
       });
   };
 
-//   if (isHidden && !isActiveChecked) {
-// 	return null;
-//   }
+  if (isHidden && !isHiddenVisible) {
+    return null;
+  }
 
   return (
     <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor} justifyContent='space-between'>

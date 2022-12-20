@@ -27,27 +27,20 @@ const AdminView = () => {
     }
   }, [siteSettings]);
 
-  const { refetch: refetchAssignments } = trpc.admin.getAllAssignments.useQuery(undefined, {
+  trpc.admin.getAllAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
       setAssignments(data); // Puthing this in state to edit the list
     },
   });
 
-  const { refetch: refetchLocations } = trpc.admin.getAllLocations.useQuery(undefined, {
+  trpc.admin.getAllLocations.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
       setLocations(data);
     },
   });
 
-  const updateAssignmentsOrLocations = (isAssignment: boolean) => {
-    if (isAssignment) {
-      refetchAssignments().then(data => setAssignments(data.data));
-    } else {
-      refetchLocations().then(data => setAssignments(data.data));
-    }
-  };
 
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {
@@ -75,12 +68,10 @@ const AdminView = () => {
       <AdminList
         assignmentsOrLocationsProps={assignments}
         isAssignment={true}
-        updateAssignmentsOrLocations={updateAssignmentsOrLocations}
       />
       <AdminList
         assignmentsOrLocationsProps={locations}
         isAssignment={false}
-        updateAssignmentsOrLocations={updateAssignmentsOrLocations}
       />
       <Flex direction='column' mt={10} mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>

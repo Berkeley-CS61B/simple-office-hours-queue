@@ -7,14 +7,13 @@ import AdminCard from './AdminCard';
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
   isAssignment: boolean;
-  updateAssignmentsOrLocations: (isAssigment: boolean) => void;
 }
 
 /**
  * Component for displaying a list of assignments/location
  */
 const AdminList = (props: AdminListProps) => {
-  const { assignmentsOrLocationsProps, isAssignment, updateAssignmentsOrLocations } = props;
+  const { assignmentsOrLocationsProps, isAssignment } = props;
   const [assignmentsOrLocations, setAssignmentsOrLocations] = useState<Assignment[] | Location[]>(
     assignmentsOrLocationsProps,
   );
@@ -25,7 +24,7 @@ const AdminList = (props: AdminListProps) => {
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
   const createLocationMutation = trpc.admin.createLocation.useMutation();
   const editLocationMutation = trpc.admin.editLocation.useMutation();
-  const numVisible = assignmentsOrLocations.filter(a => !a.isHidden).length;
+  const numVisible = assignmentsOrLocations.filter(a => !a?.isHidden).length;
 
   const handleCreateAssignment = async () => {
     const data = await createAssignmentMutation.mutateAsync({ name: createText });
@@ -65,13 +64,11 @@ const AdminList = (props: AdminListProps) => {
       )}
       {assignmentsOrLocations.map(al => (
         <div key={al.id}>
-          {(isHiddenVisible || !al.isHidden) && (
-            <AdminCard
-              assignmentOrLocation={al}
-              editMutation={isAssignment ? editAssignmentMutation : editLocationMutation}
-              updateAssignmentsOrLocations={updateAssignmentsOrLocations}
-            />
-          )}
+          <AdminCard
+            assignmentOrLocation={al}
+            editMutation={isAssignment ? editAssignmentMutation : editLocationMutation}
+			isHiddenVisible={isHiddenVisible}
+          />
         </div>
       ))}
     </>
