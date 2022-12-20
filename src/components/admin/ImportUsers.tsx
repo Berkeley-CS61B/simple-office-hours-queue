@@ -55,6 +55,7 @@ const ImportUsers = () => {
             description: `Added valid users. The following emails are invalid: ${invalidEmails.join(', ')}`,
             status: 'error',
             isClosable: true,
+			position: 'top-right',
           });
         }
 
@@ -64,6 +65,7 @@ const ImportUsers = () => {
             description: `Added valid usres. The following roles are invalid: ${invlidRoles.join(', ')}`,
             status: 'error',
             isClosable: true,
+			position: 'top-right',
           });
         }
       }}

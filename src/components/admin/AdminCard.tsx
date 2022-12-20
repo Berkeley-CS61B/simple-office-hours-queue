@@ -11,6 +11,7 @@ import {
   EditablePreview,
   Input,
   EditableInput,
+  useToast,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
@@ -49,6 +50,7 @@ const AdminCard = (props: AdminCardProps) => {
   const [isActiveChecked, setIsActiveChecked] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
   const context = trpc.useContext();
+  const toast = useToast();
 
   const handleNameChange = async (newName: string) => {
     await editMutation.mutateAsync({
@@ -60,17 +62,31 @@ const AdminCard = (props: AdminCardProps) => {
   };
 
   const handleActiveChange = async () => {
-    setIsActiveChecked(!isActiveChecked);
+    const newActive = !isActiveChecked;
+    setIsActiveChecked(newActive);
     await editMutation
       .mutateAsync({
         id: assignmentOrLocation.id,
         name: assignmentOrLocation.name,
-        isActive: !isActiveChecked,
-        isHidden: assignmentOrLocation.isHidden,
+        isActive: newActive,
+        isHidden: newActive ? false : assignmentOrLocation.isHidden,
       })
       .then(() => {
-		updateAssignmentsOrLocations(true)
-      });
+        // updateAssignmentsOrLocations(true);
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+	  .catch(err => {
+        toast({
+          title: 'Error',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
+
+	  });
   };
 
   const handleHidden = async () => {
@@ -85,8 +101,22 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+      })
+      .catch(err => {
+        toast({
+          title: 'Error',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
       });
   };
+
+//   if (isHidden && !isActiveChecked) {
+// 	return null;
+//   }
 
   return (
     <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor} justifyContent='space-between'>
@@ -109,7 +139,7 @@ const AdminCard = (props: AdminCardProps) => {
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActiveChecked} />
       </Flex>
-      {!assignmentOrLocation.isActive && (
+      {!isActiveChecked && (
         <Flex>
           {isHidden ? (
             <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
