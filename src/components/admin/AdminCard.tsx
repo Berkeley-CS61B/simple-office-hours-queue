@@ -47,7 +47,7 @@ const EditableControls = () => {
 const AdminCard = (props: AdminCardProps) => {
   const { assignmentOrLocation, editMutation, isHiddenVisible } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
-  const [isActiveChecked, setIsActiveChecked] = useState(assignmentOrLocation.isActive);
+  const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
   const context = trpc.useContext();
   const toast = useToast();
@@ -62,14 +62,14 @@ const AdminCard = (props: AdminCardProps) => {
   };
 
   const handleActiveChange = async () => {
-    const newActive = !isActiveChecked;
-    setIsActiveChecked(newActive);
+    const newActive = !isActive;
+    setIsActive(newActive);
     await editMutation
       .mutateAsync({
         id: assignmentOrLocation.id,
         name: assignmentOrLocation.name,
         isActive: newActive,
-        isHidden: newActive ? false : assignmentOrLocation.isHidden,
+        isHidden: newActive ? false : isHidden,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -112,7 +112,7 @@ const AdminCard = (props: AdminCardProps) => {
       });
   };
 
-  if (isHidden && !isHiddenVisible) {
+  if (!isActive && isHidden && !isHiddenVisible) {
     return null;
   }
 
@@ -135,9 +135,9 @@ const AdminCard = (props: AdminCardProps) => {
         <Text fontSize='large' mt={1.5} ml={5}>
           Active?
         </Text>
-        <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActiveChecked} />
+        <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActive} />
       </Flex>
-      {!isActiveChecked && (
+      {!isActive && (
         <Flex>
           {isHidden ? (
             <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
