@@ -1,28 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Assignment, Location, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
-import { Button, Flex, Input, Spinner, Switch, Text, Tooltip } from '@chakra-ui/react';
-import AdminCard from './AdminCard';
+import { Flex, Spinner, Switch, Text, Tooltip } from '@chakra-ui/react';
 import ImportUsers from './ImportUsers';
 import { InfoIcon } from '@chakra-ui/icons';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
+import AdminList from './AdminList';
 
 /**
- * Component which allows staff to edit the available locations and assignments
+ * Component which allows staff to edit site settings and locations/assignments
  */
 const AdminView = () => {
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
   const [arePublicTicketsEnabled, setArePublicTicketsEnabled] = useState<boolean>();
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
-  const [assignmentText, setAssignmentText] = useState('');
-  const [locationText, setLocationText] = useState<string>('');
+
   const { siteSettings } = useSiteSettings();
 
-  const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
-  const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
-  const createLocationMutation = trpc.admin.createLocation.useMutation();
-  const editLocationMutation = trpc.admin.editLocation.useMutation();
   const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
 
   useEffect(() => {
@@ -35,7 +30,7 @@ const AdminView = () => {
   trpc.admin.getAllAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
-      setAssignments(data); // Putting this in state so that we can edit the assignments
+      setAssignments(data); // Puthing this in state to edit the list
     },
   });
 
@@ -46,15 +41,6 @@ const AdminView = () => {
     },
   });
 
-  const handleCreateAssignment = async () => {
-    const data = await createAssignmentMutation.mutateAsync({ name: assignmentText });
-    setAssignments(prev => [...(prev ?? []), data]);
-  };
-
-  const handleCreateLocation = async () => {
-    const data = await createLocationMutation.mutateAsync({ name: locationText });
-    setLocations(prev => [...(prev ?? []), data]);
-  };
 
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {
@@ -79,36 +65,14 @@ const AdminView = () => {
 
   return (
     <Flex ml={4} mr={4} mt={4} flexDirection='column'>
-      <Flex direction='column' w='50%' mb={3}>
-        <Text fontSize='3xl' fontWeight='semibold'>
-          Assignments
-        </Text>
-        <Flex>
-          <Input onChange={e => setAssignmentText(e.target.value)} value={assignmentText} placeholder='Gitlet' />
-          <Button onClick={handleCreateAssignment} ml={3}>
-            Create
-          </Button>
-        </Flex>
-      </Flex>
-      {assignments.map(assignment => (
-        <AdminCard key={assignment.id} assignmentOrLocation={assignment} editMutation={editAssignmentMutation} />
-      ))}
-
-      <Flex direction='column' w='50%' mt={10} mb={3}>
-        <Text fontSize='3xl' fontWeight='semibold'>
-          Locations
-        </Text>
-        <Flex>
-          <Input onChange={e => setLocationText(e.target.value)} value={locationText} placeholder='Woz' />
-          <Button onClick={handleCreateLocation} ml={3}>
-            Create
-          </Button>
-        </Flex>
-      </Flex>
-      {locations.map(location => (
-        <AdminCard key={location.id} assignmentOrLocation={location} editMutation={editLocationMutation} />
-      ))}
-
+      <AdminList
+        assignmentsOrLocationsProps={assignments}
+        isAssignment={true}
+      />
+      <AdminList
+        assignmentsOrLocationsProps={locations}
+        isAssignment={false}
+      />
       <Flex direction='column' mt={10} mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           General Settings

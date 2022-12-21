@@ -11,15 +11,19 @@ import {
   EditablePreview,
   Input,
   EditableInput,
+  useToast,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
 import { UseTRPCMutationResult } from '@trpc/react/shared';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { trpc } from '../../utils/trpc';
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
+  isHiddenVisible: boolean;
 }
 
 const EditableControls = () => {
@@ -41,22 +45,80 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation } = props;
+  const { assignmentOrLocation, editMutation, isHiddenVisible } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
-  const [isChecked, setIsChecked] = useState(assignmentOrLocation.active);
+  const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
+  const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
+  const context = trpc.useContext();
+  const toast = useToast();
 
-  const handleNameChange = (newName: string) => {
-    editMutation.mutateAsync({ id: assignmentOrLocation.id, name: newName, active: assignmentOrLocation.active });
+  const handleNameChange = async (newName: string) => {
+    await editMutation.mutateAsync({
+      id: assignmentOrLocation.id,
+      name: newName,
+      isActive: assignmentOrLocation.isActive,
+      isHidden: assignmentOrLocation.isHidden,
+    });
   };
 
-  const handleActiveChange = () => {
-    setIsChecked(!isChecked);
-    editMutation.mutateAsync({ id: assignmentOrLocation.id, name: assignmentOrLocation.name, active: !isChecked });
+  const handleActiveChange = async () => {
+    const newActive = !isActive;
+    setIsActive(newActive);
+    await editMutation
+      .mutateAsync({
+        id: assignmentOrLocation.id,
+        name: assignmentOrLocation.name,
+        isActive: newActive,
+        isHidden: newActive ? false : isHidden,
+      })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch(err => {
+        toast({
+          title: 'Error',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
+      });
   };
+
+  const handleHidden = async () => {
+    setIsHidden(!isHidden);
+    await editMutation
+      .mutateAsync({
+        id: assignmentOrLocation.id,
+        name: assignmentOrLocation.name,
+        isActive: assignmentOrLocation.isActive,
+        isHidden: !isHidden,
+      })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch(err => {
+        toast({
+          title: 'Error',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
+      });
+  };
+
+  if (!isActive && isHidden && !isHiddenVisible) {
+    return null;
+  }
 
   return (
-    <>
-      <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor}>
+    <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor} justifyContent='space-between'>
+      <Flex>
         <Editable
           onSubmit={handleNameChange}
           textAlign='center'
@@ -73,9 +135,18 @@ const AdminCard = (props: AdminCardProps) => {
         <Text fontSize='large' mt={1.5} ml={5}>
           Active?
         </Text>
-        <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isChecked} />
+        <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActive} />
       </Flex>
-    </>
+      {!isActive && (
+        <Flex>
+          {isHidden ? (
+            <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+          ) : (
+            <FaEye size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+          )}
+        </Flex>
+      )}
+    </Flex>
   );
 };
 

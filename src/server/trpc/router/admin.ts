@@ -33,7 +33,8 @@ export const adminRouter = router({
       z.object({
         id: z.number(),
         name: z.string(),
-        active: z.boolean(),
+        isActive: z.boolean(),
+        isHidden: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -43,7 +44,8 @@ export const adminRouter = router({
         },
         data: {
           name: input.name,
-          active: input.active,
+          isActive: input.isActive,
+          isHidden: input.isHidden,
         },
       });
     }),
@@ -53,7 +55,8 @@ export const adminRouter = router({
       z.object({
         id: z.number(),
         name: z.string(),
-        active: z.boolean(),
+        isActive: z.boolean(),
+        isHidden: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -63,7 +66,8 @@ export const adminRouter = router({
         },
         data: {
           name: input.name,
-          active: input.active,
+          isActive: input.isActive,
+          isHidden: input.isHidden,
         },
       });
     }),
@@ -119,7 +123,7 @@ export const adminRouter = router({
   getActiveAssignments: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.assignment.findMany({
       where: {
-        active: true,
+        isActive: true,
       },
     });
   }),
@@ -127,7 +131,7 @@ export const adminRouter = router({
   getActiveLocations: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany({
       where: {
-        active: true,
+        isHidden: true,
       },
     });
   }),
