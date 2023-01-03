@@ -131,7 +131,7 @@ export const adminRouter = router({
   getActiveLocations: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany({
       where: {
-        isHidden: true,
+        isActive: true,
       },
     });
   }),

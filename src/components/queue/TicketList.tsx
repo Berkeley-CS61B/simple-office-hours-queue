@@ -35,6 +35,37 @@ const groupByOptions = ['-', GroupTypes.Assignment, GroupTypes.Location].map(opt
   id: option,
 }));
 
+interface GroupedViewProps {
+  groupedTickets: GroupedTicket;
+  groupedBy: keyof TicketWithNames;
+  userRole: UserRole;
+  userId: string;
+  getButton: ((tickets: TicketWithNames[], inGroupedView: boolean, groupedKey: keyof TicketWithNames) => JSX.Element | null | undefined);
+  parent: RefObject<HTMLDivElement>;
+}
+
+/** Component that is rendered when the group button is pressed */
+const GroupedView = (props: GroupedViewProps) => {
+  const { groupedTickets, groupedBy, userRole, userId, getButton, parent } = props;
+  return (
+    <Flex flexDirection='column'>
+      {Object.keys(groupedTickets).map(attribute => (
+        <Box key={attribute} mb='16'>
+          <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
+            {attribute}
+          </Tag>
+          {getButton(groupedTickets[attribute] ?? [], true, groupedBy)}
+          <Box ref={parent}>
+            {(groupedTickets[attribute] ?? []).map((ticket: TicketWithNames) => (
+              <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+            ))}
+          </Box>
+        </Box>
+      ))}
+    </Flex>
+  );
+};
+
 /**
  * TicketList component that displays the list of tickets for a given status
  */
@@ -97,26 +128,6 @@ const TicketList = (props: TicketListProps) => {
     }
   };
 
-  const GroupedView = () => {
-    return (
-      <Flex flexDirection='column'>
-        {Object.keys(groupedTickets).map(attribute => (
-          <Box key={attribute} mb='16'>
-            <Tag p={2.5} mr={2} size='lg' mb={3} colorScheme='green' borderRadius={5}>
-              {attribute}
-            </Tag>
-            {getButton(groupedTickets[attribute] ?? [], true, groupedBy ?? 'assignmentName')}
-            <Box ref={parent}>
-              {(groupedTickets[attribute] ?? []).map((ticket: TicketWithNames) => (
-                <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
-              ))}
-            </Box>
-          </Box>
-        ))}
-      </Flex>
-    );
-  };
-
   const handleGroupTickets = (groupBy: SingleValue<typeof groupByOptions[0]>) => {
     if (groupBy?.value === '-') {
       setIsGrouped(false);
@@ -160,7 +171,14 @@ const TicketList = (props: TicketListProps) => {
         {getButton(tickets, false, groupedBy ?? 'assignmentName')}
       </Flex>
       {isGrouped ? (
-        <GroupedView />
+        <GroupedView
+		  groupedTickets={groupedTickets}
+		  groupedBy={groupedBy ?? 'assignmentName'}
+		  userRole={userRole}
+		  userId={userId}
+		  getButton={getButton}
+		  parent={parent}
+		/>
       ) : (
         <Box ref={parent}>
           {tickets.map(ticket => (

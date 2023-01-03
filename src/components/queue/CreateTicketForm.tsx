@@ -41,6 +41,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       );
     },
   });
+
   trpc.admin.getActiveLocations.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: data => {

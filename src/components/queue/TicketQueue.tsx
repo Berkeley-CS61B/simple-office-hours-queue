@@ -7,6 +7,7 @@ import { uppercaseFirstLetter } from '../../utils/utils';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import TicketList from './TicketList';
 import TicketCard from './TicketCard';
+import { DARK_GRAY_COLOR, DARK_MODE_COLOR } from '../../utils/constants';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -178,7 +179,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         <TabPanels>
           {tabs.map(tab => {
             if (isGetTicketsLoading) {
-              return <Skeleton key={tab} height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} />;
+              return <Skeleton key={tab} height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} startColor={DARK_GRAY_COLOR} endColor={DARK_MODE_COLOR} />;
             }
             const tickets = getTickets(tab);
             return (
