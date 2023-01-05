@@ -18,7 +18,8 @@ const AdminView = () => {
 
   const { siteSettings } = useSiteSettings();
 
-  const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
+  const setArePublicTicketsEnabledMutation = trpc.admin.setArePublicTicketsEnabled.useMutation();
+  const setIsPendingStageEnabledMutation = trpc.admin.setIsPendingStageEnabled.useMutation();
 
   useEffect(() => {
     if (siteSettings) {
@@ -30,7 +31,7 @@ const AdminView = () => {
   trpc.admin.getAllAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
-      setAssignments(data); // Puthing this in state to edit the list
+      setAssignments(data); // Putting this in state to edit the list
     },
   });
 
@@ -41,21 +42,20 @@ const AdminView = () => {
     },
   });
 
-
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {
-    setIsPendingStageEnabled(prev => !prev);
-    const valueToSet = isPendingStageEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
-    await setSiteSettingsMutation.mutateAsync({
-      [SiteSettings.IS_PENDING_STAGE_ENABLED]: valueToSet,
+    const valueToSet = !isPendingStageEnabled;
+    setIsPendingStageEnabled(valueToSet);
+    await setIsPendingStageEnabledMutation.mutateAsync({
+      shouldBeEnabled: valueToSet,
     });
   };
 
   const handleTogglePublicTicketsEnabled = async () => {
-    setArePublicTicketsEnabled(prev => !prev);
-    const valueToSet = arePublicTicketsEnabled ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
-    await setSiteSettingsMutation.mutateAsync({
-      [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: valueToSet,
+    const valueToSet = !arePublicTicketsEnabled;
+    setArePublicTicketsEnabled(valueToSet);
+    await setArePublicTicketsEnabledMutation.mutateAsync({
+      shouldBeEnabled: valueToSet,
     });
   };
 
@@ -65,14 +65,8 @@ const AdminView = () => {
 
   return (
     <Flex ml={4} mr={4} mt={4} flexDirection='column'>
-      <AdminList
-        assignmentsOrLocationsProps={assignments}
-        isAssignment={true}
-      />
-      <AdminList
-        assignmentsOrLocationsProps={locations}
-        isAssignment={false}
-      />
+      <AdminList assignmentsOrLocationsProps={assignments} isAssignment={true} />
+      <AdminList assignmentsOrLocationsProps={locations} isAssignment={false} />
       <Flex direction='column' mt={10} mb={3}>
         <Text fontSize='3xl' fontWeight='semibold'>
           General Settings

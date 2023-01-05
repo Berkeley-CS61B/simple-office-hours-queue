@@ -8,6 +8,11 @@ import { trpc } from '../trpc';
 const useSiteSettings = () => {
   const [siteSettings, setSiteSettings] = useState<Map<SiteSettings, SiteSettingsValues>>();
 
+  // If all settings are already in state, don't refetch
+  if (siteSettings && siteSettings.size === Object.keys(siteSettings).length) {
+    return { siteSettings, isLoading: false };
+  }
+
   const { isLoading } = trpc.admin.getSettings.useQuery(undefined, {
     refetchOnWindowFocus: false,
 

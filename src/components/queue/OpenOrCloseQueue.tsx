@@ -9,7 +9,6 @@ import {
   ModalCloseButton,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { useState } from 'react';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
@@ -22,16 +21,16 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
   const [channel] = useChannel('broadcast', () => {});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isQueueOpen } = props;
-  const setSiteSettingsMutation = trpc.admin.setSiteSettings.useMutation();
+  const openOrCloseQueueMutation = trpc.admin.openOrCloseQueue.useMutation();
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const context = trpc.useContext();
 
   const handleOpenOrCloseQueue = async (shouldClearQueue: boolean) => {
-    const valueToSet = isQueueOpen ? SiteSettingsValues.FALSE : SiteSettingsValues.TRUE;
-    await setSiteSettingsMutation.mutateAsync({
-      [SiteSettings.IS_QUEUE_OPEN]: valueToSet,
-    });
     setIsModalOpen(false);
+	await openOrCloseQueueMutation.mutateAsync({
+		shouldOpen: !isQueueOpen,
+	});
+	   
     if (shouldClearQueue) {
       await clearQueueMutation.mutateAsync();
       context.ticket.getTicketsWithStatus.invalidate();

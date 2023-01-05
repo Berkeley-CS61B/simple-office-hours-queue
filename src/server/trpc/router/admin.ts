@@ -72,44 +72,70 @@ export const adminRouter = router({
       });
     }),
 
-  setSiteSettings: protectedStaffProcedure
+  setArePublicTicketsEnabled: protectedStaffProcedure
     .input(
       z.object({
-        // Map each key in SiteSettings to type SiteSettingsValues, where theyre all optional
-        ...Object.fromEntries(
-          Object.keys(SiteSettings).map(key => [key, z.optional(z.nativeEnum(SiteSettingsValues))]),
-        ),
+        shouldBeEnabled: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      for (const key in input) {
-        if (!Object.keys(SiteSettings).includes(key)) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: `Invalid settings key: ${key}`,
-          });
-        }
+      await ctx.prisma.settings.upsert({
+        where: {
+          setting: SiteSettings.ARE_PUBLIC_TICKETS_ENABLED,
+        },
+        update: {
+          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+        create: {
+          setting: SiteSettings.ARE_PUBLIC_TICKETS_ENABLED,
+          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+      });
+    }),
 
-        const setting = key as SiteSettings;
-        await ctx.prisma.settings.upsert({
-          where: {
-            setting,
-          },
-          update: {
-            value: input[setting],
-          },
-          create: {
-            setting,
-            value: input[setting] ?? settingsToDefault[setting],
-          },
-        });
+  setIsPendingStageEnabled: protectedStaffProcedure
+    .input(
+      z.object({
+        shouldBeEnabled: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.settings.upsert({
+        where: {
+          setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
+        },
+        update: {
+          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+        create: {
+          setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
+          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+      });
+    }),
 
-        if (setting === SiteSettings.IS_QUEUE_OPEN) {
-          const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-          const channel = ably.channels.get('settings');
-          await channel.publish('queue-open-close', input[setting]);
-        }
-      }
+  openOrCloseQueue: protectedStaffProcedure
+    .input(
+      z.object({
+        shouldOpen: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('settings');
+      await channel.publish('queue-open-close', input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE);
+      await ctx.prisma.settings.upsert({
+        where: {
+          setting: SiteSettings.IS_QUEUE_OPEN,
+        },
+        update: {
+          value: input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+        create: {
+          setting: SiteSettings.IS_QUEUE_OPEN,
+          value: input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        },
+      });
     }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
