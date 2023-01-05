@@ -2,7 +2,17 @@ import { useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
-import { Box, FormControl, Input, FormLabel, Button, useToast, Switch, Tooltip } from '@chakra-ui/react';
+import {
+  Box,
+  FormControl,
+  Input,
+  FormLabel,
+  Button,
+  useToast,
+  Switch,
+  Tooltip,
+  useColorModeValue,
+} from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 
 interface Assignment {
@@ -116,11 +126,21 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Select value={assignment} onChange={val => setAssignment(val ?? undefined)} options={assignmentOptions} />
+            <Select
+              className={useColorModeValue('', 'assignment-select-dark')}
+              value={assignment}
+              onChange={val => setAssignment(val ?? undefined)}
+              options={assignmentOptions}
+            />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={locationOptions} />
+            <Select
+              className={useColorModeValue('', 'location-select-dark')}
+              value={location}
+              onChange={val => setLocation(val ?? undefined)}
+              options={locationOptions}
+            />
           </FormControl>
           <FormControl mt={6} isRequired={isPublic}>
             <FormLabel>Briefly describe where you are</FormLabel>

@@ -1,6 +1,6 @@
 import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
-import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
+import { Text, Button, Flex, Box, Tag, useColorModeValue } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { RefObject, useState } from 'react';
 import { trpc } from '../../utils/trpc';
@@ -40,7 +40,11 @@ interface GroupedViewProps {
   groupedBy: keyof TicketWithNames;
   userRole: UserRole;
   userId: string;
-  getButton: ((tickets: TicketWithNames[], inGroupedView: boolean, groupedKey: keyof TicketWithNames) => JSX.Element | null | undefined);
+  getButton: (
+    tickets: TicketWithNames[],
+    inGroupedView: boolean,
+    groupedKey: keyof TicketWithNames,
+  ) => JSX.Element | null | undefined;
   parent: RefObject<HTMLDivElement>;
 }
 
@@ -162,7 +166,7 @@ const TicketList = (props: TicketListProps) => {
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
           <Select
-            className='group-select'
+            className={useColorModeValue('', 'group-select-dark')}
             options={groupByOptions}
             placeholder='Group by...'
             onChange={handleGroupTickets}
@@ -172,13 +176,13 @@ const TicketList = (props: TicketListProps) => {
       </Flex>
       {isGrouped ? (
         <GroupedView
-		  groupedTickets={groupedTickets}
-		  groupedBy={groupedBy ?? 'assignmentName'}
-		  userRole={userRole}
-		  userId={userId}
-		  getButton={getButton}
-		  parent={parent}
-		/>
+          groupedTickets={groupedTickets}
+          groupedBy={groupedBy ?? 'assignmentName'}
+          userRole={userRole}
+          userId={userId}
+          getButton={getButton}
+          parent={parent}
+        />
       ) : (
         <Box ref={parent}>
           {tickets.map(ticket => (

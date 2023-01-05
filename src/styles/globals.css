@@ -2,8 +2,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
+    Helvetica Neue, sans-serif;
   box-sizing: border-box;
   scroll-behavior: smooth;
 }
@@ -13,17 +13,25 @@ body {
 }
 
 .CSVImporter_Importer {
-	color: black;
+  color: black;
 }
 
 .semibold {
   font-weight: 600;
 }
 
-.group-select > #react-select-3-listbox > div  {
-	background-color: #121212; 
-}	
+.group-select-dark > #react-select-3-listbox > div {
+  background-color: #222222;
+}
 
-.first-div-overflow-hidden > div:first-of-type { 
+.assignment-select-dark > #react-select-3-listbox > div {
+  background-color: #222222;
+}
+
+.location-select-dark > #react-select-5-listbox > div {
+  background-color: #222222;
+}
+
+.first-div-overflow-hidden > div:first-of-type {
   overflow: hidden;
 }
