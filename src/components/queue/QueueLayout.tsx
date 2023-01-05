@@ -27,10 +27,10 @@ const QueueLayout = (props: QueueLayoutProps) => {
   // If the user was added as STAFF, change their role
   useEffect(() => {
     (async () => {
-      const roleVerified = localStorage.getItem('roleVerified');
+      const roleVerified = sessionStorage.getItem('roleVerified');
       if (!roleVerified || roleVerified === 'false') {
         changeUserRoleMutation.mutateAsync().then(res => {
-          localStorage.setItem('roleVerified', 'true');
+          sessionStorage.setItem('roleVerified', 'true');
           if (res) {
             alert('Your role has been updated. Press OK to continue.');
             window.location.reload();
