@@ -40,6 +40,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
   const [location, setLocation] = useState<Location>();
   const [isPublic, setIsPublic] = useState<boolean>(false);
+  const assignmentSelectClass = useColorModeValue('', 'assignment-select-dark');
+  const locationSelectClass = useColorModeValue('', 'location-select-dark');
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
@@ -127,7 +129,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
             <Select
-              className={useColorModeValue('', 'assignment-select-dark')}
+              className={assignmentSelectClass}
               value={assignment}
               onChange={val => setAssignment(val ?? undefined)}
               options={assignmentOptions}
@@ -136,7 +138,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
             <Select
-              className={useColorModeValue('', 'location-select-dark')}
+              className={locationSelectClass}
               value={location}
               onChange={val => setLocation(val ?? undefined)}
               options={locationOptions}

@@ -20,15 +20,15 @@ body {
   font-weight: 600;
 }
 
-.group-select-dark > #react-select-3-listbox > div {
+.group-select-dark > [id^='react-select-'] > div {
   background-color: #222222;
 }
 
-.assignment-select-dark > #react-select-3-listbox > div {
+.assignment-select-dark > [id^='react-select-'] > div {
   background-color: #222222;
 }
 
-.location-select-dark > #react-select-5-listbox > div {
+.location-select-dark > [id^='react-select-'] > div {
   background-color: #222222;
 }
 
