@@ -31,7 +31,7 @@ const PeronalQueuePage: NextPage = () => {
             duration: 3000,
             isClosable: true,
           });
-		  
+
           if (session?.user?.role === UserRole.STAFF) {
             Router.push('/create-queue');
           } else {
@@ -41,8 +41,9 @@ const PeronalQueuePage: NextPage = () => {
       },
     },
   );
-
-  return <Layout>{queue && <p>Welcome to Queue {queueName}</p>}</Layout>;
+  
+  
+  return <Layout>{queue && <p>Queue name: {queueName}. Owned by {queue.ownerId}</p>}</Layout>;
 };
 
 export default PeronalQueuePage;

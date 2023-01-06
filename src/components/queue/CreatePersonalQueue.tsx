@@ -3,6 +3,7 @@ import { Box, Button, Flex, Heading, Input, Text, useColorModeValue, useToast } 
 import { sanitizeString } from '../../utils/utils';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
+import Router from 'next/router';
 
 const MAX_QUEUE_NAME_LENGTH = 25;
 const MIN_QUEUE_NAME_LENGTH = 3;
@@ -13,9 +14,10 @@ const CreatePersonalQueue = () => {
   const toast = useToast();
 
   const { refetch: getQueue } = trpc.queue.getQueue.useQuery({ queueName }, { enabled: false });
+  const createQueueMutation = trpc.queue.createQueue.useMutation();
 
   const handleCreateQueue = async () => {
-    // a valid queuen name must be between 3 and 25 characters long
+    // A valid queue name must be between 3 and 25 characters long
     // and contain only alphanumeric characters and dashes/underscores
     const isValid = /^[a-zA-Z0-9-_]{3,25}$/.test(queueName);
     if (!isValid) {
@@ -31,21 +33,31 @@ const CreatePersonalQueue = () => {
       return;
     }
 
-	const { data: queue } = await getQueue();
+    const { data: queue } = await getQueue();
 
-	if (queue) {
-	  toast({
-		title: 'Queue already exists',
-		description: `Queue "${queueName}" already exists.`,
-		status: 'error',
-		position: 'top-right',
-		duration: 3000,
-		isClosable: true,
-	  });
-	  return;
-	}
+    if (queue) {
+      toast({
+        title: 'Queue already exists',
+        description: `Queue "${queueName}" already exists.`,
+        status: 'error',
+        position: 'top-right',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
 
-	// 
+    createQueueMutation.mutateAsync({ name: queueName }).then(() => {
+      toast({
+        title: 'Queue created',
+        description: `Queue "${queueName}" has been created.`,
+        status: 'success',
+        position: 'top-right',
+        duration: 3000,
+        isClosable: true,
+      });
+    });
+    Router.push(`/queue/${queueName}`);
   };
 
   return (
