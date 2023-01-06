@@ -3,8 +3,6 @@ import Layout from '../../components/layout/Layout';
 import { useSession } from 'next-auth/react';
 import { trpc } from '../../utils/trpc';
 import { useEffect, useState } from 'react';
-import { configureAbly } from '@ably-labs/react-hooks';
-import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router, { useRouter } from 'next/router';
 import { Text, useToast } from '@chakra-ui/react';
@@ -12,7 +10,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import InnerTicket from '../../components/ticket-page/InnerTicket';
 
 /**
- * Component that renders the ticket page. It ensures that ably is configured and
+ * Component that renders the ticket page. It ensures that
  * the current user is authorized to view the ticket.
  */
 const TicketPage: NextPage = () => {
@@ -21,7 +19,6 @@ const TicketPage: NextPage = () => {
   const { data: session } = useSession();
 
   const [userId, setUserId] = useState<string>('');
-  const [isAblyConnected, setIsAblyConnected] = useState(false);
   const [ticket, setTicket] = useState<TicketWithNames>();
   const [isInvalidTicket, setIsInvalidTicket] = useState<boolean | null>(null); // Start with null to indicate loading
   const toast = useToast();
@@ -45,14 +42,6 @@ const TicketPage: NextPage = () => {
   useEffect(() => {
     if (session && session.user) {
       setUserId(session.user.id);
-
-      new Promise(resolve => {
-        configureAbly({
-          key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
-          clientId: session?.user?.id,
-        });
-        resolve(setIsAblyConnected(true));
-      }).catch(err => console.error(err));
     }
   }, [session]);
 
@@ -83,8 +72,8 @@ const TicketPage: NextPage = () => {
   }, [userRole, isInvalidTicket, authorized, toast]);
 
   return (
-    <Layout isAblyConnected={isAblyConnected}>
-      {userRole && isAblyConnected && authorized && (
+    <Layout>
+      {userRole && authorized && (
         <>
           {isInvalidTicket ? (
             <Text>Invalid ticket</Text>
