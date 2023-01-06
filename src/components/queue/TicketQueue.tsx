@@ -72,7 +72,7 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
-      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
+      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT]
       : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
 
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
