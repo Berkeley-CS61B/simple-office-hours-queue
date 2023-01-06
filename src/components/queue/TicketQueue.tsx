@@ -70,10 +70,17 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   });
 
-  const tabs =
-    userRole === UserRole.STUDENT || !isPendingStageEnabled
-      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT]
-      : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
+  const setTabs = () => {
+    if (userRole == UserRole.STUDENT) {
+      return [TicketStatus.OPEN, TicketStatus.ASSIGNED];
+    } else if (!isPendingStageEnabled) {
+      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
+    } else {
+      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
+    }
+  };
+
+  const tabs = setTabs();
 
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.OPEN },
