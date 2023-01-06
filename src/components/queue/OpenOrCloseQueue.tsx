@@ -9,36 +9,43 @@ import {
   ModalCloseButton,
   useColorModeValue,
 } from '@chakra-ui/react';
+import { PersonalQueue } from '@prisma/client';
 import { useState } from 'react';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 
 interface OpenOrCloseQueueProps {
   isQueueOpen: boolean;
+  personalQueue?: PersonalQueue;
 }
 
 const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
   const [channel] = useChannel('broadcast', () => {});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isQueueOpen } = props;
+  const { isQueueOpen, personalQueue } = props;
   const openOrCloseQueueMutation = trpc.admin.openOrCloseQueue.useMutation();
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const context = trpc.useContext();
 
   const handleOpenOrCloseQueue = async (shouldClearQueue: boolean) => {
     setIsModalOpen(false);
-	await openOrCloseQueueMutation.mutateAsync({
-		shouldOpen: !isQueueOpen,
-	});
-	   
+    await openOrCloseQueueMutation.mutateAsync({
+      shouldOpen: !isQueueOpen,
+      personalQueueName: personalQueue?.name,
+    });
+
     if (shouldClearQueue) {
       await clearQueueMutation.mutateAsync();
       context.ticket.getTicketsWithStatus.invalidate();
     }
-    channel.publish({
-      name: 'broadcast',
-      data: 'The queue has been ' + (isQueueOpen ? 'closed' : 'opened') + (shouldClearQueue ? ' and cleared' : ''),
-    });
+
+    // Only broadcast if the user is not in a personal queue
+    if (!personalQueue) {
+      channel.publish({
+        name: 'broadcast',
+        data: 'The queue has been ' + (isQueueOpen ? 'closed' : 'opened') + (shouldClearQueue ? ' and cleared' : ''),
+      });
+    }
   };
 
   return (

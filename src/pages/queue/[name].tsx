@@ -1,9 +1,11 @@
-import { useToast } from '@chakra-ui/react';
+import { SettingsIcon } from '@chakra-ui/icons';
+import { Box, Flex, Spinner, Text, useToast } from '@chakra-ui/react';
 import { UserRole } from '@prisma/client';
 import { NextPage } from 'next';
 import { useSession } from 'next-auth/react';
 import Router, { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
+import QueueLayout from '../../components/queue/QueueLayout';
 import { trpc } from '../../utils/trpc';
 
 /**
@@ -41,9 +43,24 @@ const PeronalQueuePage: NextPage = () => {
       },
     },
   );
-  
-  
-  return <Layout>{queue && <p>Queue name: {queueName}. Owned by {queue.ownerId}</p>}</Layout>;
+
+  if (!queue) {
+    return <Spinner />;
+  }
+
+  return (
+    <Layout>
+      <Flex p={4} justifyContent='space-between'>
+        <Text fontSize='2xl'>Queue name: {queue.name}</Text>
+        {queue.ownerId === session?.user?.id && (
+          <Box>
+            <SettingsIcon boxSize={5} className='hover-cursor' mt={2.5} />
+          </Box>
+        )}
+      </Flex>
+      <QueueLayout personalQueue={queue} />
+    </Layout>
+  );
 };
 
 export default PeronalQueuePage;
