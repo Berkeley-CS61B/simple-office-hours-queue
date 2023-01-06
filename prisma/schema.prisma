@@ -27,33 +27,39 @@ model ChatMessage {
 }
 
 model Ticket {
-    id                  Int           @id @default(autoincrement())
-    createdBy           User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-    helpedBy            User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    id                  Int            @id @default(autoincrement())
+    createdBy           User           @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+    helpedBy            User?          @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
     helpedAt            DateTime?
     resolvedAt          DateTime?
     markedAbsentAt      DateTime?
-    createdAt           DateTime      @default(now())
-    updatedAt           DateTime      @default(now()) @updatedAt
-    status              TicketStatus  @default(PENDING)
+    createdAt           DateTime       @default(now())
+    updatedAt           DateTime       @default(now()) @updatedAt
+    status              TicketStatus   @default(PENDING)
     description         String?
-    assignment          Assignment    @relation(fields: [assignmentId], references: [id])
-    location            Location      @relation(fields: [locationId], references: [id])
+    assignment          Assignment     @relation(fields: [assignmentId], references: [id])
+    location            Location       @relation(fields: [locationId], references: [id])
     locationDescription String?
-    resolution          String        @default("")
+    resolution          String         @default("")
     staffNotes          String?
     ChatMessage         ChatMessage[]
-    isPublic            Boolean       @default(false)
-    usersInGroup        User[]        @relation("groupTickets")
-    helpedByUserId      String?
-    createdByUserId     String
-    assignmentId        Int
-    locationId          Int
+    isPublic            Boolean        @default(false)
+    usersInGroup        User[]         @relation("groupTickets")
+    PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
+
+    helpedByUserId    String?
+    createdByUserId   String
+    assignmentId      Int
+    locationId        Int
+    personalQueueId   Int?
+    personalQueueName String?
 
     @@index([locationId])
     @@index([assignmentId])
     @@index([helpedByUserId])
     @@index([createdByUserId])
+    @@index([personalQueueId])
+    @@index([personalQueueName])
 }
 
 model Account {
@@ -76,19 +82,20 @@ model Account {
 }
 
 model User {
-    id             String        @id @default(cuid())
+    id             String         @id @default(cuid())
     name           String?
     preferredName  String?
-    email          String?       @unique
+    email          String?        @unique
     emailVerified  DateTime?
     image          String?
-    role           User_role     @default(STUDENT)
+    role           User_role      @default(STUDENT)
     accounts       Account[]
     sessions       Session[]
-    ticketsCreated Ticket[]      @relation("ticketsCreatedBy")
-    ticketsHelped  Ticket[]      @relation("ticketsHelpedBy")
-    ticketsJoined  Ticket[]      @relation("groupTickets")
+    ticketsCreated Ticket[]       @relation("ticketsCreatedBy")
+    ticketsHelped  Ticket[]       @relation("ticketsHelpedBy")
+    ticketsJoined  Ticket[]       @relation("groupTickets")
     ChatMessage    ChatMessage[]
+    PersonalQueue  PersonalQueue?
 }
 
 model Session {
@@ -119,6 +126,18 @@ model Location {
     isActive  Boolean  @default(true)
     isHidden  Boolean  @default(false)
     Ticket    Ticket[]
+}
+
+model PersonalQueue {
+    name      String   @id
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    owner     User     @relation(fields: [ownerId], references: [id])
+    ownerId   String   @unique
+    isOpen    Boolean  @default(false)
+    Ticket    Ticket[]
+
+    @@index([ownerId])
 }
 
 model ConfirmedUser {

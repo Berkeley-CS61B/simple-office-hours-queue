@@ -657,7 +657,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         assignmentName: assignment?.name,
         helpedByName: helpedBy?.preferredName ?? helpedBy?.name,
         createdByName: createdBy?.preferredName ?? createdBy.name,
-		createdByEmail: createdBy.email,
+        createdByEmail: createdBy.email,
       };
     }),
   );

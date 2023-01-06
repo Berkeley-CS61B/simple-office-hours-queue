@@ -70,3 +70,7 @@ export const addDurationToTickets = (tickets: TicketWithNames[]) => {
     };
   });
 };
+
+/** Takes in a string and returns that string without any spaces 
+ * Only allow letters, digits, underscores, and hyphens */
+export const sanitizeString = (str: string) => str.replace(/[^a-zA-Z0-9-_]/g, '');

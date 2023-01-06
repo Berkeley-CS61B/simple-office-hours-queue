@@ -72,7 +72,7 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const tabs =
     userRole === UserRole.STUDENT || !isPendingStageEnabled
-      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED]
+      ? [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT]
       : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
 
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
@@ -179,7 +179,18 @@ const TicketQueue = (props: TicketQueueProps) => {
         <TabPanels>
           {tabs.map(tab => {
             if (isGetTicketsLoading) {
-              return <Skeleton key={tab} height='150px' mt='100px' mb='-75px' borderRadius={8} fadeDuration={1} startColor={DARK_GRAY_COLOR} endColor={DARK_MODE_COLOR} />;
+              return (
+                <Skeleton
+                  key={tab}
+                  height='150px'
+                  mt='100px'
+                  mb='-75px'
+                  borderRadius={8}
+                  fadeDuration={1}
+                  startColor={DARK_GRAY_COLOR}
+                  endColor={DARK_MODE_COLOR}
+                />
+              );
             }
             const tickets = getTickets(tab);
             return (

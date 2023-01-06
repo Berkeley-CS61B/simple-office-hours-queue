@@ -3,7 +3,6 @@ import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { settingsToDefault } from '../../../utils/utils';
-import { TRPCError } from '@trpc/server';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
