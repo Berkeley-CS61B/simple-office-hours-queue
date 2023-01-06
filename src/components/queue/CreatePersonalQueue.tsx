@@ -14,10 +14,10 @@ const CreatePersonalQueue = () => {
 
   // Redirect to personal queue if it already exists
   const { isLoading: isGetCurrentUserQueueLoading } = trpc.queue.getCurrentUserQueue.useQuery(undefined, {
-	refetchOnWindowFocus: false,
-    onSuccess: data => {
-      if (data) {
-        Router.push(`/queue/${data.name}`, undefined, { shallow: true });
+    refetchOnWindowFocus: false,
+    onSuccess: queue => {
+      if (queue) {
+        Router.push(`/queue/${queue.name}`, undefined, { shallow: true });
       }
     },
   });
@@ -73,7 +73,7 @@ const CreatePersonalQueue = () => {
   };
 
   if (isGetCurrentUserQueueLoading) {
-	return <Spinner />
+    return <Spinner />;
   }
 
   return (

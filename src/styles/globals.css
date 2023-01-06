@@ -12,6 +12,10 @@ body {
   cursor: pointer;
 }
 
+.hover-cursor:hover {
+	filter: brightness(85%);
+}
+
 .CSVImporter_Importer {
   color: black;
 }

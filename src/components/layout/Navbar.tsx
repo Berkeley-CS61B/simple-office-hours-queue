@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Flex,
@@ -21,6 +22,7 @@ import Link from 'next/link';
 import { UserRole } from '@prisma/client';
 import NamePopoverForm from './NamePopoverForm';
 import { COURSE_ID, DARK_MODE_COLOR } from '../../utils/constants';
+import { trpc } from '../../utils/trpc';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
@@ -73,6 +75,17 @@ const AvatarDropdown = () => {
 
 export const Navbar = () => {
   const { data: session } = useSession();
+  // Start the link at /create-queue and update it if the user has a personal queue
+  const [personalQueueLink, setPersonalQueueLink] = useState('/create-queue');
+  trpc.queue.getCurrentUserQueue.useQuery(undefined, {
+    enabled: session?.user?.role === UserRole.STAFF,
+    refetchOnWindowFocus: false,
+    onSuccess: queue => {
+      if (queue) {
+        setPersonalQueueLink(`/queue/${queue.name}`);
+      }
+    },
+  });
 
   return (
     <Box bg={useColorModeValue('gray.100', DARK_MODE_COLOR)} boxShadow='0 0 2px #4a4a4a'>
@@ -85,6 +98,13 @@ export const Navbar = () => {
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>
+            {session?.user?.role === UserRole.STAFF && (
+              <Link href={personalQueueLink}>
+                <Text fontWeight='semibold' className='hover-cursor'>
+                  Personal Queue
+                </Text>
+              </Link>
+            )}
             {session?.user && (
               <Link href='/activity'>
                 <Text fontWeight='semibold' className='hover-cursor'>
