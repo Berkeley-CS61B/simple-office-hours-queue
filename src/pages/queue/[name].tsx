@@ -16,7 +16,7 @@ const PeronalQueuePage: NextPage = () => {
   const { data: session } = useSession();
   const toast = useToast();
 
-  const { data: queue } = trpc.queue.getQueue.useQuery(
+  const { data: queue } = trpc.queue.getQueueByName.useQuery(
     { queueName },
     {
       enabled: queueName !== undefined && session?.user !== undefined,

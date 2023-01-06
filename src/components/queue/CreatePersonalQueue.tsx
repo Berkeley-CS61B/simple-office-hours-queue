@@ -1,19 +1,27 @@
 import { useState } from 'react';
-import { Box, Button, Flex, Heading, Input, Text, useColorModeValue, useToast } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Input, Spinner, Text, useColorModeValue, useToast } from '@chakra-ui/react';
 import { sanitizeString } from '../../utils/utils';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import Router from 'next/router';
-
-const MAX_QUEUE_NAME_LENGTH = 25;
-const MIN_QUEUE_NAME_LENGTH = 3;
 
 const CreatePersonalQueue = () => {
   const [queueName, setQueueName] = useState('');
   const borderColor = useColorModeValue(DARK_GRAY_COLOR, 'white');
   const toast = useToast();
 
-  const { refetch: getQueue } = trpc.queue.getQueue.useQuery({ queueName }, { enabled: false });
+  const { refetch: getQueue } = trpc.queue.getQueueByName.useQuery({ queueName }, { enabled: false });
+
+  // Redirect to personal queue if it already exists
+  const { isLoading: isGetCurrentUserQueueLoading } = trpc.queue.getCurrentUserQueue.useQuery(undefined, {
+	refetchOnWindowFocus: false,
+    onSuccess: data => {
+      if (data) {
+        Router.push(`/queue/${data.name}`, undefined, { shallow: true });
+      }
+    },
+  });
+
   const createQueueMutation = trpc.queue.createQueue.useMutation();
 
   const handleCreateQueue = async () => {
@@ -47,18 +55,26 @@ const CreatePersonalQueue = () => {
       return;
     }
 
-    createQueueMutation.mutateAsync({ name: queueName }).then(() => {
-      toast({
-        title: 'Queue created',
-        description: `Queue "${queueName}" has been created.`,
-        status: 'success',
-        position: 'top-right',
-        duration: 3000,
-        isClosable: true,
+    createQueueMutation
+      .mutateAsync({ name: queueName })
+      .then(() => {
+        toast({
+          title: 'Queue created',
+          description: `Queue "${queueName}" has been created.`,
+          status: 'success',
+          position: 'top-right',
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .then(() => {
+        Router.push(`/queue/${queueName}`);
       });
-    });
-    Router.push(`/queue/${queueName}`);
   };
+
+  if (isGetCurrentUserQueueLoading) {
+	return <Spinner />
+  }
 
   return (
     <Flex direction='column' align='center' justify='center' p={8}>
@@ -84,13 +100,13 @@ const CreatePersonalQueue = () => {
             value={queueName}
             onChange={e => setQueueName(sanitizeString(e.target.value))}
             border='none'
-            maxLength={MAX_QUEUE_NAME_LENGTH}
+            maxLength={25}
             _focusVisible={{ boxShadow: 'none', outline: 'none' }}
             ml={-4}
           />
         </Box>
       </Flex>
-      <Button fontSize='xl' colorScheme='blue' p={8} onClick={handleCreateQueue}>
+      <Button fontSize='xl' colorScheme='green' p={8} onClick={handleCreateQueue}>
         Check Availability and Create
       </Button>
     </Flex>
