@@ -1,167 +1,181 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider             = "mysql"
-  url                  = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
 }
 
 model Settings {
-  setting SiteSettings       @id
-  value   SiteSettingsValues
+    setting SiteSettings       @id
+    value   SiteSettingsValues
 }
 
 model ChatMessage {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  message   String
-  author    User     @relation(fields: [userId], references: [id])
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-  userId    String
-  ticketId  Int
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    message   String
+    author    User     @relation(fields: [userId], references: [id])
+    ticket    Ticket   @relation(fields: [ticketId], references: [id])
+    userId    String
+    ticketId  Int
+
+    @@index([userId])
+    @@index([ticketId])
 }
 
 model Ticket {
-  id                  Int           @id @default(autoincrement())
-  createdBy           User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-  helpedBy            User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
-  helpedAt            DateTime?
-  resolvedAt          DateTime?
-  markedAbsentAt      DateTime?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @default(now()) @updatedAt
-  status              TicketStatus  @default(PENDING)
-  description         String?
-  assignment          Assignment    @relation(fields: [assignmentId], references: [id])
-  location            Location      @relation(fields: [locationId], references: [id])
-  locationDescription String?
-  resolution          String        @default("")
-  staffNotes          String?
-  ChatMessage         ChatMessage[]
-  isPublic            Boolean       @default(false)
-  usersInGroup        User[]        @relation("groupTickets")
-  helpedByUserId      String?
-  createdByUserId     String
-  assignmentId        Int
-  locationId          Int
+    id                  Int           @id @default(autoincrement())
+    createdBy           User          @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+    helpedBy            User?         @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+    helpedAt            DateTime?
+    resolvedAt          DateTime?
+    markedAbsentAt      DateTime?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @default(now()) @updatedAt
+    status              TicketStatus  @default(PENDING)
+    description         String?
+    assignment          Assignment    @relation(fields: [assignmentId], references: [id])
+    location            Location      @relation(fields: [locationId], references: [id])
+    locationDescription String?
+    resolution          String        @default("")
+    staffNotes          String?
+    ChatMessage         ChatMessage[]
+    isPublic            Boolean       @default(false)
+    usersInGroup        User[]        @relation("groupTickets")
+    helpedByUserId      String?
+    createdByUserId     String
+    assignmentId        Int
+    locationId          Int
+
+    @@index([locationId])
+    @@index([assignmentId])
+    @@index([helpedByUserId])
+    @@index([createdByUserId])
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([provider, providerAccountId])
+    id                String  @id @default(cuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+    @@index([userId])
 }
 
 model User {
-  id             String        @id @default(cuid())
-  name           String?
-  preferredName  String?
-  email          String?       @unique
-  emailVerified  DateTime?
-  image          String?
-  role           User_role     @default(STUDENT)
-  accounts       Account[]
-  sessions       Session[]
-  ticketsCreated Ticket[]      @relation("ticketsCreatedBy")
-  ticketsHelped  Ticket[]      @relation("ticketsHelpedBy")
-  ticketsJoined  Ticket[]      @relation("groupTickets")
-  ChatMessage    ChatMessage[]
+    id             String        @id @default(cuid())
+    name           String?
+    preferredName  String?
+    email          String?       @unique
+    emailVerified  DateTime?
+    image          String?
+    role           User_role     @default(STUDENT)
+    accounts       Account[]
+    sessions       Session[]
+    ticketsCreated Ticket[]      @relation("ticketsCreatedBy")
+    ticketsHelped  Ticket[]      @relation("ticketsHelpedBy")
+    ticketsJoined  Ticket[]      @relation("groupTickets")
+    ChatMessage    ChatMessage[]
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
 }
 
 model Assignment {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isActive  Boolean  @default(true)
-  isHidden  Boolean  @default(false)
-  Ticket    Ticket[]
+    id        Int      @id @default(autoincrement())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    isActive  Boolean  @default(true)
+    isHidden  Boolean  @default(false)
+    Ticket    Ticket[]
 }
 
 model Location {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isActive  Boolean  @default(true)
-  isHidden  Boolean  @default(false)
-  Ticket    Ticket[]
+    id        Int      @id @default(autoincrement())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    isActive  Boolean  @default(true)
+    isHidden  Boolean  @default(false)
+    Ticket    Ticket[]
 }
 
 model ConfirmedUser {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  role      UserRole @default(STUDENT)
-  createdAt DateTime @default(now())
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    role      UserRole @default(STUDENT)
+    createdAt DateTime @default(now())
 }
 
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  @@unique([identifier, token])
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
 }
 
+// This is automatically generated by Prisma
 model groupTickets {
-  A Int
-  B String
-  @@unique([A, B], map: "_groupTickets_AB_unique")
-  @@index([B], map: "_groupTickets_B_index")
-  @@map("_groupTickets")
+    A Int
+    B String
+
+    @@unique([A, B], map: "_groupTickets_AB_unique")
+    @@index([B], map: "_groupTickets_B_index")
+    @@map("_groupTickets")
 }
 
 enum UserRole {
-  STUDENT
-  STAFF
-  CONCIERGE
-  ADMIN
+    STUDENT
+    STAFF
+    CONCIERGE
+    ADMIN
 }
 
 enum TicketStatus {
-  PENDING
-  OPEN
-  ASSIGNED
-  RESOLVED
-  CLOSED
-  ABSENT
+    PENDING
+    OPEN
+    ASSIGNED
+    RESOLVED
+    CLOSED
+    ABSENT
 }
 
 enum SiteSettings {
-  IS_PENDING_STAGE_ENABLED
-  ARE_PUBLIC_TICKETS_ENABLED
-  IS_QUEUE_OPEN
+    IS_PENDING_STAGE_ENABLED
+    ARE_PUBLIC_TICKETS_ENABLED
+    IS_QUEUE_OPEN
 }
 
 enum SiteSettingsValues {
-  TRUE
-  FALSE
+    TRUE
+    FALSE
 }
 
 enum User_role {
-  STUDENT
-  STAFF
-  CONCIERGE
-  ADMIN
+    STUDENT
+    STAFF
+    CONCIERGE
+    ADMIN
 }

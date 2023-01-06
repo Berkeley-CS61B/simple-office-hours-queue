@@ -29,7 +29,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
     (async () => {
       const roleVerified = sessionStorage.getItem('roleVerified');
       if (!roleVerified || roleVerified === 'false') {
-        changeUserRoleMutation.mutateAsync().then(res => {
+        await changeUserRoleMutation.mutateAsync().then(res => {
           sessionStorage.setItem('roleVerified', 'true');
           if (res) {
             alert('Your role has been updated. Press OK to continue.');
@@ -38,7 +38,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
         });
       }
     })();
-  }, [changeUserRoleMutation]);
+  }, []);
 
   useEffect(() => {
     if (siteSettings) {
