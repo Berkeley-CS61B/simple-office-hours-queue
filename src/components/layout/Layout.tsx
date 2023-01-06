@@ -1,21 +1,32 @@
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
-import { Flex } from '@chakra-ui/react';
+import { Flex, useToast } from '@chakra-ui/react';
 import { Navbar } from './Navbar';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import ReceiveBroadcast from '../queue/ReceiveBroadcast';
 import Landing from './Landing';
+import { configureAbly } from '@ably-labs/react-hooks';
+import { clientEnv } from '../../env/schema.mjs';
+import { UserRole } from '@prisma/client';
+import Router from 'next/router';
 
 interface LayoutProps {
   children: ReactNode;
-  isAblyConnected: boolean;
+  // If specified, the user must have one of the roles to view the page
+  restrictedTo?: UserRole[];
 }
+
 /**
  * Layout component that wraps all pages.
- * Provides a navbar and ensures that the user is logged in.
+ * Provides a navbar and ensures that the user is logged in and authorized.
+ * Also configures Ably.
  */
 const Layout = (props: LayoutProps) => {
-  const { children, isAblyConnected } = props;
+  const { children } = props;
+  const [isAblyConnected, setIsAblyConnected] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const toast = useToast();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     if (!('Notification' in window)) {
@@ -29,7 +40,31 @@ const Layout = (props: LayoutProps) => {
     }
   }, []);
 
-  const { data: session, status } = useSession();
+  useEffect(() => {
+    if (session && session.user) {
+      if (props.restrictedTo && !props.restrictedTo.includes(session.user.role)) {
+        toast({
+          title: 'Not Authorized',
+          description: 'You are not authorized to view this page.',
+          status: 'error',
+          position: 'top-right',
+          duration: 3000,
+          isClosable: true,
+        });
+        Router.push('/');
+      } else {
+        setIsAuthorized(true);
+      }
+
+      new Promise(resolve => {
+        configureAbly({
+          key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
+          clientId: session?.user?.id,
+        });
+        resolve(setIsAblyConnected(true));
+      }).catch(err => console.error(err));
+    }
+  }, [session]);
 
   return (
     <>
@@ -42,16 +77,12 @@ const Layout = (props: LayoutProps) => {
         <>
           <Navbar />
           {!session && status !== 'loading' && <Landing />}
-          {status === 'authenticated' && <>{children}</>}
+          {status === 'authenticated' && isAuthorized && <>{children}</>}
           {isAblyConnected && <ReceiveBroadcast />}
         </>
       </Flex>
     </>
   );
-};
-
-Layout.defaultProps = {
-  isAblyConnected: false,
 };
 
 export default Layout;
