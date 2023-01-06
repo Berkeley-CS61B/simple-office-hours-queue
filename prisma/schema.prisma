@@ -88,7 +88,7 @@ model User {
     email          String?        @unique
     emailVerified  DateTime?
     image          String?
-    role           User_role      @default(STUDENT)
+    role           UserRole       @default(STUDENT)
     accounts       Account[]
     sessions       Session[]
     ticketsCreated Ticket[]       @relation("ticketsCreatedBy")
@@ -190,11 +190,4 @@ enum SiteSettings {
 enum SiteSettingsValues {
     TRUE
     FALSE
-}
-
-enum User_role {
-    STUDENT
-    STAFF
-    CONCIERGE
-    ADMIN
 }
