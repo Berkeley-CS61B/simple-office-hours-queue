@@ -11,7 +11,6 @@ import {
   useToast,
   Switch,
   Tooltip,
-  useColorModeValue,
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 import { PersonalQueue } from '@prisma/client';
@@ -42,8 +41,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
   const [location, setLocation] = useState<Location>();
   const [isPublic, setIsPublic] = useState<boolean>(false);
-  const assignmentSelectClass = useColorModeValue('', 'assignment-select-dark');
-  const locationSelectClass = useColorModeValue('', 'location-select-dark');
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
@@ -84,7 +81,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         assignmentId: assignment.id,
         locationId: location.id,
         locationDescription: locationDescription.trim(),
-		personalQueueName: personalQueue?.name,
+        personalQueueName: personalQueue?.name,
         isPublic,
       })
       .then(ticket => {
@@ -131,21 +128,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Select
-              className={assignmentSelectClass}
-              value={assignment}
-              onChange={val => setAssignment(val ?? undefined)}
-              options={assignmentOptions}
-            />
+            <Select value={assignment} onChange={val => setAssignment(val ?? undefined)} options={assignmentOptions} />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Select
-              className={locationSelectClass}
-              value={location}
-              onChange={val => setLocation(val ?? undefined)}
-              options={locationOptions}
-            />
+            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={locationOptions} />
           </FormControl>
           <FormControl mt={6} isRequired={isPublic}>
             <FormLabel>Briefly describe where you are</FormLabel>

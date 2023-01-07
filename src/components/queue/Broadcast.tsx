@@ -14,6 +14,7 @@ import {
   Center,
   useColorModeValue,
 } from '@chakra-ui/react';
+import { DARK_GRAY_COLOR } from '../../utils/constants';
 
 /**
  * Broadcast component that allows staff to broadcast messages everyone
@@ -61,7 +62,7 @@ const Broadcast = () => {
       </Button>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ModalContent>
+        <ModalContent backgroundColor={useColorModeValue('', DARK_GRAY_COLOR)}>
           <ModalHeader>Confirm Broadcast</ModalHeader>
           <ModalCloseButton />
           <ModalBody>

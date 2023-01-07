@@ -35,7 +35,8 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     });
 
     if (shouldClearQueue) {
-      await clearQueueMutation.mutateAsync();
+      // Add queue name to clearQueue mutation
+      await clearQueueMutation.mutateAsync({ personalQueueName: personalQueue?.name });
       context.ticket.getTicketsWithStatus.invalidate();
     }
 

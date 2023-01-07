@@ -24,18 +24,6 @@ body {
   font-weight: 600;
 }
 
-.group-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
-}
-
-.assignment-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
-}
-
-.location-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
-}
-
 .first-div-overflow-hidden > div:first-of-type {
   overflow: hidden;
 }
