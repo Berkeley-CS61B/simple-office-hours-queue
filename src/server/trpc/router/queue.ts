@@ -48,7 +48,7 @@ export const queueRouter = router({
       });
 
       if (queueExists) {
-        throw new TRPCClientError('Queue with this name already exists');
+        throw new TRPCClientError('Queue with this name already exists or you already have a queue.');
       }
 
       return ctx.prisma.personalQueue.create({

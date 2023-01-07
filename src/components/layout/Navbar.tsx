@@ -15,6 +15,7 @@ import {
   Text,
   SkeletonCircle,
   useDisclosure,
+  Divider,
 } from '@chakra-ui/react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
@@ -88,13 +89,20 @@ export const Navbar = () => {
   });
 
   return (
-    <Box bg={useColorModeValue('gray.100', DARK_MODE_COLOR)} boxShadow='0 0 2px #4a4a4a'>
+    <Box
+      bg={useColorModeValue('gray.100', DARK_MODE_COLOR)}
+      boxShadow='0 0 2px #4a4a4a'
+      fontSize={['sm', 'md', 'md', 'md']}
+    >
       <Flex pl={4} pr={4} h={16} alignItems='center' justifyContent='space-between'>
-        <Link href='/'>
-          <Text className='hover-cursor' fontWeight='semibold' fontSize='2xl'>
-            {COURSE_ID} OH
-          </Text>
-        </Link>
+        <Flex>
+          <Link href='/'>
+            <Text className='hover-cursor' mt={[4, 2, 2, 2]} fontWeight='semibold' fontSize={['sm', 'xl', 'xl', 'xl']}>
+              {COURSE_ID} OH
+            </Text>
+          </Link>
+          <Divider orientation='vertical' height='50px' ml={4} />
+        </Flex>
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>

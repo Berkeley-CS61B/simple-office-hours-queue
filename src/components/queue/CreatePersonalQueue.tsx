@@ -74,7 +74,7 @@ const CreatePersonalQueue = () => {
         Create your personal queue!
       </Heading>
       <Flex
-        direction='row'
+        direction='column'
         align='center'
         justify='center'
         m={8}
@@ -85,8 +85,10 @@ const CreatePersonalQueue = () => {
         <Box>
           <Text fontSize='2xl'>{window.location.origin}/queue/</Text>
         </Box>
+			  
         <Box>
           <Input
+		    textAlign='center'
             fontSize='2xl'
             placeholder='queue-name'
             value={queueName}
