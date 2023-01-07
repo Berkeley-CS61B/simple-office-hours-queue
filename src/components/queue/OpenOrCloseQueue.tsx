@@ -48,7 +48,7 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
       });
     }
   };
-
+  
   return (
     <>
       <Button

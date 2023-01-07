@@ -1,5 +1,6 @@
 import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
+import { TRPCClientError } from '@trpc/client';
 
 export const queueRouter = router({
   getQueueByName: protectedProcedure
@@ -47,7 +48,7 @@ export const queueRouter = router({
       });
 
       if (queueExists) {
-        throw new Error('Queue already exists');
+        throw new TRPCClientError('Queue with this name already exists');
       }
 
       return ctx.prisma.personalQueue.create({
@@ -76,6 +77,51 @@ export const queueRouter = router({
         },
         data: {
           isOpen: input.shouldOpen,
+        },
+      });
+    }),
+
+  editQueueName: protectedStaffProcedure
+    .input(
+      z.object({
+        queueName: z.string(),
+        newName: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Dont allow users to create a queue with the same name as an existing queue
+      const queueExists = await ctx.prisma.personalQueue.findFirst({
+        where: { name: input.newName },
+      });
+
+      if (queueExists) {
+        throw new TRPCClientError('Queue with this name already exists');
+      }
+
+      return ctx.prisma.personalQueue.update({
+        where: {
+          name: input.queueName,
+        },
+        data: {
+          name: input.newName,
+        },
+      });
+    }),
+
+  editAllowStaffToOpen: protectedStaffProcedure
+    .input(
+      z.object({
+        queueName: z.string(),
+        allowStaffToOpen: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.personalQueue.update({
+        where: {
+          name: input.queueName,
+        },
+        data: {
+          allowStaffToOpen: input.allowStaffToOpen,
         },
       });
     }),

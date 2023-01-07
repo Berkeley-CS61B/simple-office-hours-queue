@@ -72,13 +72,15 @@ const QueueLayout = (props: QueueLayoutProps) => {
   if (isQueueOpen === undefined || isPendingStageEnabled === undefined) {
     return <Spinner />;
   }
-
+  
   return (
     <>
       {userRole === UserRole.STAFF && (
         <>
           {!personalQueue && <Broadcast />}
-          <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
+          {(!personalQueue || personalQueue.ownerId === userId || personalQueue.allowStaffToOpen) && (
+            <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
+          )}
         </>
       )}
       {userRole === UserRole.STUDENT && isQueueOpen && (

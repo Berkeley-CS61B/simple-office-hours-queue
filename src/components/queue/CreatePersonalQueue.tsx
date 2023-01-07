@@ -10,8 +10,6 @@ const CreatePersonalQueue = () => {
   const borderColor = useColorModeValue(DARK_GRAY_COLOR, 'white');
   const toast = useToast();
 
-  const { refetch: getQueue } = trpc.queue.getQueueByName.useQuery({ queueName }, { enabled: false });
-
   // Redirect to personal queue if it already exists
   const { isLoading: isGetCurrentUserQueueLoading } = trpc.queue.getCurrentUserQueue.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -41,20 +39,6 @@ const CreatePersonalQueue = () => {
       return;
     }
 
-    const { data: queue } = await getQueue();
-
-    if (queue) {
-      toast({
-        title: 'Queue already exists',
-        description: `Queue "${queueName}" already exists.`,
-        status: 'error',
-        position: 'top-right',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
     createQueueMutation
       .mutateAsync({ name: queueName })
       .then(() => {
@@ -66,10 +50,18 @@ const CreatePersonalQueue = () => {
           duration: 3000,
           isClosable: true,
         });
-      })
-      .then(() => {
         Router.push(`/queue/${queueName}`);
-      });
+      })
+      .catch(err => {
+        toast({
+          title: 'Error creating queue',
+          description: err.message,
+          status: 'error',
+          position: 'top-right',
+          duration: 3000,
+          isClosable: true,
+        });
+      })
   };
 
   if (isGetCurrentUserQueueLoading) {

@@ -129,13 +129,14 @@ model Location {
 }
 
 model PersonalQueue {
-    name      String   @id
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    owner     User     @relation(fields: [ownerId], references: [id])
-    ownerId   String   @unique
-    isOpen    Boolean  @default(false)
-    Ticket    Ticket[]
+    name             String   @id
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @default(now()) @updatedAt
+    owner            User     @relation(fields: [ownerId], references: [id])
+    ownerId          String   @unique
+    isOpen           Boolean  @default(false)
+    allowStaffToOpen Boolean  @default(false)
+    Ticket           Ticket[]
 
     @@index([ownerId])
 }
