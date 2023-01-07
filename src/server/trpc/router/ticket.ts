@@ -22,14 +22,21 @@ export const ticketRouter = router({
         assignmentId: z.number(),
         locationId: z.number(),
         locationDescription: z.string().optional(),
+        personalQueueName: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      // Limits students to 1 ticket at a time
+      // Limits students to 1 ticket at a time per queue
       const doesStudentHaveActiveTicket = await ctx.prisma.ticket.findFirst({
         where: {
           createdByUserId: ctx.session.user.id,
-          OR: [{ status: TicketStatus.PENDING }, { status: TicketStatus.OPEN }, { status: TicketStatus.ASSIGNED }],
+          OR: [
+            { status: TicketStatus.PENDING },
+            { status: TicketStatus.OPEN },
+            { status: TicketStatus.ASSIGNED },
+            { status: TicketStatus.ABSENT },
+          ],
+          ...(input.personalQueueName && { personalQueueName: input.personalQueueName }),
         },
       });
 
@@ -524,12 +531,16 @@ export const ticketRouter = router({
     .input(
       z.object({
         status: z.nativeEnum(TicketStatus),
+        personalQueueName: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
+          ...(input.personalQueueName && {
+            personalQueueName: input.personalQueueName,
+          }),
         },
       });
 

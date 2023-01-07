@@ -59,15 +59,14 @@ const QueueLayout = (props: QueueLayoutProps) => {
   useChannel('settings', ablyMsg => {
     const queueName = ablyMsg.name.split('-').slice(3).join('-');
     const shouldUpdateQueue =
-	  // On main queue
+      // On main queue
       (ablyMsg.name === 'queue-open-close' && !personalQueue) ||
-	  // On personal queue
+      // On personal queue
       (ablyMsg.name.startsWith('queue-open-close-') && personalQueue && personalQueue.name === queueName);
 
     if (shouldUpdateQueue) {
       setIsQueueOpen(ablyMsg.data === SiteSettingsValues.TRUE);
     }
-	
   });
 
   if (isQueueOpen === undefined || isPendingStageEnabled === undefined) {
@@ -82,19 +81,18 @@ const QueueLayout = (props: QueueLayoutProps) => {
           <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
         </>
       )}
-      {userRole === UserRole.STUDENT && isQueueOpen && <CreateTicket siteSettings={siteSettings ?? new Map()} />}
+      {userRole === UserRole.STUDENT && isQueueOpen && (
+        <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
+      )}
       <TicketQueue
         userId={userId}
         userRole={userRole}
         isPendingStageEnabled={isPendingStageEnabled}
         isQueueOpen={isQueueOpen}
+        personalQueue={personalQueue}
       />
     </>
   );
-};
-
-QueueLayout.defaultProps = {
-  personalQueue: undefined,
 };
 
 export default QueueLayout;

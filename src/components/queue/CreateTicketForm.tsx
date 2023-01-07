@@ -14,6 +14,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
+import { PersonalQueue } from '@prisma/client';
 
 interface Assignment {
   id: number;
@@ -29,10 +30,11 @@ interface Location {
 
 interface CreateTicketFormProps {
   arePublicTicketsEnabled: boolean;
+  personalQueue?: PersonalQueue;
 }
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
-  const { arePublicTicketsEnabled } = props;
+  const { arePublicTicketsEnabled, personalQueue } = props;
   const [description, setDescription] = useState<string>('');
   const [locationDescription, setLocationDescription] = useState<string>('');
   const [assignment, setAssignment] = useState<Assignment>();
@@ -82,6 +84,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         assignmentId: assignment.id,
         locationId: location.id,
         locationDescription: locationDescription.trim(),
+		personalQueueName: personalQueue?.name,
         isPublic,
       })
       .then(ticket => {

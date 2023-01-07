@@ -1,17 +1,18 @@
 import { useRef } from 'react';
-import { Flex, Button,Text } from '@chakra-ui/react';
-import { SiteSettings, SiteSettingsValues } from '@prisma/client';
+import { Flex, Button, Text } from '@chakra-ui/react';
+import { PersonalQueue, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import CreateTicketForm from './CreateTicketForm';
 
 interface CreateTicketProps {
-  siteSettings: Map<SiteSettings, SiteSettingsValues>
+  siteSettings: Map<SiteSettings, SiteSettingsValues>;
+  personalQueue?: PersonalQueue;
 }
 
 /**
  * CreateTicket component that allows studnets to create a new ticket
  */
 const CreateTicket = (props: CreateTicketProps) => {
-  const { siteSettings } = props;
+  const { siteSettings, personalQueue } = props;
   const endOfForm: any = useRef<HTMLSpanElement>();
 
   return (
@@ -22,7 +23,10 @@ const CreateTicket = (props: CreateTicketProps) => {
           view the queue
         </Button>
       </Text>
-      <CreateTicketForm arePublicTicketsEnabled={siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.TRUE} />
+      <CreateTicketForm
+        personalQueue={personalQueue}
+        arePublicTicketsEnabled={siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.TRUE}
+      />
       <span ref={endOfForm}></span> {/* Start of queue */}
     </Flex>
   );

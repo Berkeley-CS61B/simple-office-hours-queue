@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -14,6 +14,7 @@ interface TicketQueueProps {
   userId: string;
   isPendingStageEnabled: boolean;
   isQueueOpen: boolean;
+  personalQueue?: PersonalQueue;
 }
 
 /**
@@ -21,7 +22,7 @@ interface TicketQueueProps {
  * and renders the TicketList component for each tab
  */
 const TicketQueue = (props: TicketQueueProps) => {
-  const { userRole, isPendingStageEnabled, isQueueOpen, userId } = props;
+  const { userRole, isPendingStageEnabled, isQueueOpen, userId, personalQueue } = props;
 
   const context = trpc.useContext();
 
@@ -76,22 +77,22 @@ const TicketQueue = (props: TicketQueueProps) => {
       : [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
 
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
-    { status: TicketStatus.OPEN },
+    { status: TicketStatus.OPEN, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
   );
 
   const { data: assignedTickets, isLoading: isGetAssignedTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
-    { status: TicketStatus.ASSIGNED },
+    { status: TicketStatus.ASSIGNED, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
   );
 
   const { data: pendingTickets, isLoading: isGetPendingTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
-    { status: TicketStatus.PENDING },
+    { status: TicketStatus.PENDING, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
   );
 
   const { data: absentTickets, isLoading: isGetAbsentTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
-    { status: TicketStatus.ABSENT },
+    { status: TicketStatus.ABSENT, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
   );
 
