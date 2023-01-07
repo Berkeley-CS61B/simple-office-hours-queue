@@ -73,6 +73,14 @@ export const ticketRouter = router({
           },
           // If pending stage is enabled, set status to pending
           status: pendingStageEnabled?.value === SiteSettingsValues.TRUE ? TicketStatus.PENDING : TicketStatus.OPEN,
+          // If personal queue name is provided, connect to it
+          ...(input.personalQueueName && {
+            PersonalQueue: {
+              connect: {
+                name: input.personalQueueName,
+              },
+            },
+          }),
         },
       });
 
@@ -538,9 +546,9 @@ export const ticketRouter = router({
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
-          ...(input.personalQueueName && {
-            personalQueueName: input.personalQueueName,
-          }),
+          // If personal queue name is provided, only return tickets that are in that queue.
+          // Otherwise, return all tickets with the given status where the queue is not personal.
+          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
         },
       });
 
