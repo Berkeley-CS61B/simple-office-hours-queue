@@ -3,6 +3,7 @@ import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { settingsToDefault, ImportUsersMethodPossiblities } from '../../../utils/utils';
+import { TRPCClientError } from '@trpc/client';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -168,14 +169,14 @@ export const adminRouter = router({
   setImportUsersMethod: protectedStaffProcedure
     .input(
       z.object({
-		method: z.literal(ImportUsersMethodPossiblities.IMPORT_STAFF) || z.literal(ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS),
+		method: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
 
-	//   if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
-	// 	throw new Error('Invalid import users method');
-	//   }
+	  if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
+		throw new TRPCClientError('Invalid import users method');
+	  }
 
 	//   const newMethod: typeof ImportUsersMethodPossiblities = input.method!;
 
