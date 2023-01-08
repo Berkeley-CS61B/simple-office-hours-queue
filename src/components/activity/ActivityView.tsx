@@ -1,24 +1,22 @@
 import { Box, Button, Collapse, Flex, Spinner, Text, useDisclosure } from '@chakra-ui/react';
 import { UserRole } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 import { SessionUser } from '../../pages/api/auth/[...nextauth]';
 import { trpc } from '../../utils/trpc';
 import ActivityTable from './ActivityTable';
 
-interface ActivityViewProps {
-  user: SessionUser;
-}
-
 /**
  * Displays the activity log for the current user
  */
-const ActivityView = (props: ActivityViewProps) => {
-  const { user } = props;
+const ActivityView = () => {
+  const { data: session } = useSession();
+  const user = session?.user as SessionUser;
   const { isOpen: isHelpedTableOpen, onToggle: toggleHelpedTable } = useDisclosure();
   const { isOpen: isCreatedTableOpen, onToggle: toggleCreatedTable } = useDisclosure();
 
   const { data: userTickets, isLoading: isTicketsLoading } = trpc.ticket.getTicketsWithUserId.useQuery(
     { userId: user.id, shouldSortByCreatedAt: true },
-    { refetchOnWindowFocus: false },
+    { refetchOnWindowFocus: false, enabled: !!user },
   );
 
   return (

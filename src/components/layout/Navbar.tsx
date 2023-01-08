@@ -66,9 +66,9 @@ const AvatarDropdown = () => {
         </Box>
       )}
       {!session && status !== 'loading' && (
-        <Button border='1px' onClick={() => signIn('google')}>
+        <Text className='hover-cursor' onClick={() => signIn('google')}>
           Sign in
-        </Button>
+        </Text>
       )}
     </>
   );
