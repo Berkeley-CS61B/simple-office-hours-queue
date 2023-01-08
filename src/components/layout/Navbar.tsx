@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Flex,
@@ -14,6 +15,7 @@ import {
   Text,
   SkeletonCircle,
   useDisclosure,
+  Divider,
 } from '@chakra-ui/react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { signIn, signOut, useSession } from 'next-auth/react';
@@ -21,6 +23,7 @@ import Link from 'next/link';
 import { UserRole } from '@prisma/client';
 import NamePopoverForm from './NamePopoverForm';
 import { COURSE_ID, DARK_MODE_COLOR } from '../../utils/constants';
+import { trpc } from '../../utils/trpc';
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
@@ -63,9 +66,9 @@ const AvatarDropdown = () => {
         </Box>
       )}
       {!session && status !== 'loading' && (
-        <Button border='1px' onClick={() => signIn('google')}>
+        <Text className='hover-cursor' onClick={() => signIn('google')}>
           Sign in
-        </Button>
+        </Text>
       )}
     </>
   );
@@ -73,18 +76,43 @@ const AvatarDropdown = () => {
 
 export const Navbar = () => {
   const { data: session } = useSession();
+  // Start the link at /create-queue and update it if the user has a personal queue
+  const [personalQueueLink, setPersonalQueueLink] = useState('/create-queue');
+  trpc.queue.getCurrentUserQueue.useQuery(undefined, {
+    enabled: session?.user?.role === UserRole.STAFF,
+    refetchOnWindowFocus: false,
+    onSuccess: queue => {
+      if (queue) {
+        setPersonalQueueLink(`/queue/${queue.name}`);
+      }
+    },
+  });
 
   return (
-    <Box bg={useColorModeValue('gray.100', DARK_MODE_COLOR)} boxShadow='0 0 2px #4a4a4a'>
+    <Box
+      bg={useColorModeValue('gray.100', DARK_MODE_COLOR)}
+      boxShadow='0 0 2px #4a4a4a'
+      fontSize={['sm', 'md', 'md', 'md']}
+    >
       <Flex pl={4} pr={4} h={16} alignItems='center' justifyContent='space-between'>
-        <Link href='/'>
-          <Text className='hover-cursor' fontWeight='semibold' fontSize='2xl'>
-            {COURSE_ID} OH
-          </Text>
-        </Link>
+        <Flex>
+          <Link href='/'>
+            <Text className='hover-cursor' mt={[4, 2, 2, 2]} fontWeight='semibold' fontSize={['sm', 'xl', 'xl', 'xl']}>
+              {COURSE_ID} OH
+            </Text>
+          </Link>
+          <Divider orientation='vertical' height='50px' ml={4} />
+        </Flex>
 
         <Flex alignItems='center'>
           <Stack direction='row' spacing={5} alignItems='center'>
+            {session?.user?.role === UserRole.STAFF && (
+              <Link href={personalQueueLink}>
+                <Text fontWeight='semibold' className='hover-cursor'>
+                  Personal Queue
+                </Text>
+              </Link>
+            )}
             {session?.user && (
               <Link href='/activity'>
                 <Text fontWeight='semibold' className='hover-cursor'>

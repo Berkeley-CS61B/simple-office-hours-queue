@@ -3,7 +3,6 @@ import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { settingsToDefault } from '../../../utils/utils';
-import { TRPCError } from '@trpc/server';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -118,12 +117,40 @@ export const adminRouter = router({
     .input(
       z.object({
         shouldOpen: z.boolean(),
+        personalQueueName: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // If we're opening/closing a personal queue, do that instead of the site-wide queue
+      if (input.personalQueueName) {
+        await ctx.prisma.personalQueue.update({
+          where: {
+            name: input.personalQueueName,
+          },
+          data: {
+            isOpen: input.shouldOpen,
+          },
+        });
+      }
+
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('settings');
-      await channel.publish('queue-open-close', input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE);
+      if (input.personalQueueName) {
+        await channel.publish(
+          'queue-open-close-' + input.personalQueueName,
+          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        );
+      } else {
+        await channel.publish(
+          'queue-open-close',
+          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+        );
+      }
+
+      if (input.personalQueueName) {
+        return;
+      }
+
       await ctx.prisma.settings.upsert({
         where: {
           setting: SiteSettings.IS_QUEUE_OPEN,

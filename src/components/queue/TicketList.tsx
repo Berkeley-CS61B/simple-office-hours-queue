@@ -1,6 +1,6 @@
 import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
-import { Text, Button, Flex, Box, Tag, useColorModeValue } from '@chakra-ui/react';
+import { Text, Button, Flex, Box, Tag } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
 import { RefObject, useState } from 'react';
 import { trpc } from '../../utils/trpc';
@@ -82,7 +82,6 @@ const TicketList = (props: TicketListProps) => {
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const [parent]: [RefObject<HTMLDivElement>, (enabled: boolean) => void] = useAutoAnimate();
-  const groupSelectClass = useColorModeValue('', 'group-select-dark');
 
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
@@ -167,7 +166,6 @@ const TicketList = (props: TicketListProps) => {
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
           <Select
-            className={groupSelectClass}
             options={groupByOptions}
             placeholder='Group by...'
             onChange={handleGroupTickets}

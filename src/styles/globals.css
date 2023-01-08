@@ -12,24 +12,16 @@ body {
   cursor: pointer;
 }
 
+.hover-cursor:hover {
+	filter: brightness(85%);
+}
+
 .CSVImporter_Importer {
   color: black;
 }
 
 .semibold {
   font-weight: 600;
-}
-
-.group-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
-}
-
-.assignment-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
-}
-
-.location-select-dark > [id^='react-select-'] > div {
-  background-color: #222222;
 }
 
 .first-div-overflow-hidden > div:first-of-type {

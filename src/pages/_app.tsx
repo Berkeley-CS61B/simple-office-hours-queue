@@ -5,7 +5,7 @@ import { Session } from 'next-auth';
 import { ChakraProvider, ColorModeScript, extendTheme, StyleFunctionProps } from '@chakra-ui/react';
 import { trpc } from '../utils/trpc';
 import { mode } from '@chakra-ui/theme-tools';
-import { DARK_MODE_COLOR } from '../utils/constants';
+import { DARK_GRAY_COLOR, DARK_MODE_COLOR } from '../utils/constants';
 import '../styles/globals.css';
 
 // Make dark mode the default
@@ -20,6 +20,12 @@ const theme = extendTheme({
   config: {
     initialColorMode: 'dark',
     useSystemColorMode: false,
+  },
+
+  colors: {
+    gray: {
+      700: DARK_GRAY_COLOR,
+    },
   },
 
   styles: {

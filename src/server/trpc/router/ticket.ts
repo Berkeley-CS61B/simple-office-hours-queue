@@ -22,14 +22,21 @@ export const ticketRouter = router({
         assignmentId: z.number(),
         locationId: z.number(),
         locationDescription: z.string().optional(),
+        personalQueueName: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      // Limits students to 1 ticket at a time
+      // Limits students to 1 ticket at a time per queue
       const doesStudentHaveActiveTicket = await ctx.prisma.ticket.findFirst({
         where: {
           createdByUserId: ctx.session.user.id,
-          OR: [{ status: TicketStatus.PENDING }, { status: TicketStatus.OPEN }, { status: TicketStatus.ASSIGNED }],
+          OR: [
+            { status: TicketStatus.PENDING },
+            { status: TicketStatus.OPEN },
+            { status: TicketStatus.ASSIGNED },
+            { status: TicketStatus.ABSENT },
+          ],
+          ...(input.personalQueueName && { personalQueueName: input.personalQueueName }),
         },
       });
 
@@ -66,6 +73,14 @@ export const ticketRouter = router({
           },
           // If pending stage is enabled, set status to pending
           status: pendingStageEnabled?.value === SiteSettingsValues.TRUE ? TicketStatus.PENDING : TicketStatus.OPEN,
+          // If personal queue name is provided, connect to it
+          ...(input.personalQueueName && {
+            PersonalQueue: {
+              connect: {
+                name: input.personalQueueName,
+              },
+            },
+          }),
         },
       });
 
@@ -439,39 +454,46 @@ export const ticketRouter = router({
       return chatMessage;
     }),
 
-  clearQueue: protectedStaffProcedure.mutation(async ({ ctx }) => {
-    // Closes all open, pending, and assigned tickets.
-    // Note: This is slower than using updateMany but it allows us to push to Ably
-    const closedTickets: Ticket[] = [];
+  clearQueue: protectedStaffProcedure
+    .input(
+      z.object({
+        personalQueueName: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Closes all open, pending, and assigned tickets.
+      // Note: This is slower than using updateMany but it allows us to push to Ably
+      const closedTickets: Ticket[] = [];
 
-    const tickets = await ctx.prisma.ticket.findMany({
-      where: {
-        status: {
-          in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ASSIGNED],
+      const tickets = await ctx.prisma.ticket.findMany({
+        where: {
+          status: {
+            in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ASSIGNED, TicketStatus.ABSENT],
+          },
+          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
         },
-      },
-    });
-
-    for (const ticket of tickets) {
-      const closedTicket: Ticket = await ctx.prisma.ticket.update({
-        where: { id: ticket.id },
-        data: { status: TicketStatus.CLOSED },
       });
-      closedTickets.push(closedTicket);
-    }
-
-    await convertTicketToTicketWithNames(closedTickets, ctx).then(async tickets => {
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets'); // Change to include queue id
-      await channel.publish('all-tickets-closed', tickets);
 
       for (const ticket of tickets) {
-        const channel = ably.channels.get(`ticket-${ticket.id}`);
-        await channel.publish('ticket-closed', ticket);
+        const closedTicket: Ticket = await ctx.prisma.ticket.update({
+          where: { id: ticket.id },
+          data: { status: TicketStatus.CLOSED },
+        });
+        closedTickets.push(closedTicket);
       }
-      return tickets;
-    });
-  }),
+
+      await convertTicketToTicketWithNames(closedTickets, ctx).then(async tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets');
+        await channel.publish('all-tickets-closed', tickets);
+
+        for (const ticket of tickets) {
+          const channel = ably.channels.get(`ticket-${ticket.id}`);
+          await channel.publish('ticket-closed', ticket);
+        }
+        return tickets;
+      });
+    }),
 
   setStaffNotes: protectedStaffProcedure
     .input(
@@ -524,12 +546,16 @@ export const ticketRouter = router({
     .input(
       z.object({
         status: z.nativeEnum(TicketStatus),
+        personalQueueName: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
+          // If personal queue name is provided, only return tickets that are in that queue.
+          // Otherwise, return all tickets with the given status where the queue is not personal.
+          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
         },
       });
 
@@ -657,7 +683,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         assignmentName: assignment?.name,
         helpedByName: helpedBy?.preferredName ?? helpedBy?.name,
         createdByName: createdBy?.preferredName ?? createdBy.name,
-		createdByEmail: createdBy.email,
+        createdByEmail: createdBy.email,
       };
     }),
   );
