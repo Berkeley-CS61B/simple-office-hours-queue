@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Assignment, Location, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
-import { Flex, Spinner, Switch, Text, Tooltip } from '@chakra-ui/react';
-import ImportUsers from './ImportUsers';
-import { InfoIcon } from '@chakra-ui/icons';
+import { Flex, Spinner, Switch, Text, Tooltip, Radio, RadioGroup } from '@chakra-ui/react';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
 import AdminList from './AdminList';
+import ImportUsersMethod from './ImportUsersMethod';
 
 /**
  * Component which allows staff to edit site settings and locations/assignments
@@ -79,22 +78,8 @@ const AdminView = () => {
         </Flex>
       </Flex>
 
-      <Flex direction='column'>
-        <Flex>
-          <Text mr={2} mb={5} fontSize='xl'>
-            Import Users
-          </Text>
-          <Tooltip
-            hasArrow
-            label='The CSV should have 2 columns. One for email and one for role (STUDENT or STAFF)'
-            bg='gray.300'
-            color='black'
-          >
-            <InfoIcon mt={2} />
-          </Tooltip>
-        </Flex>
-        <ImportUsers />
-      </Flex>
+      <ImportUsersMethod />
+
     </Flex>
   );
 };

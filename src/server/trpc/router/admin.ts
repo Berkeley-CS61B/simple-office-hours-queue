@@ -2,7 +2,7 @@ import Ably from 'ably/promises';
 import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
-import { settingsToDefault } from '../../../utils/utils';
+import { settingsToDefault, ImportUsersMethodPossiblities } from '../../../utils/utils';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -164,6 +164,48 @@ export const adminRouter = router({
         },
       });
     }),
+
+  setImportUsersMethod: protectedStaffProcedure
+    .input(
+      z.object({
+		method: z.literal(ImportUsersMethodPossiblities.IMPORT_STAFF) || z.literal(ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+
+	//   if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
+	// 	throw new Error('Invalid import users method');
+	//   }
+
+	//   const newMethod: typeof ImportUsersMethodPossiblities = input.method!;
+
+      await ctx.prisma.settings.upsert({
+        where: {
+          setting: SiteSettings.IMPORT_USERS_METHOD,
+        },
+        update: {
+          value: input.method as SiteSettingsValues,
+        },
+        create: {
+          setting: SiteSettings.IMPORT_USERS_METHOD,
+          value: input.method as SiteSettingsValues,
+        },
+      });
+    }),
+
+  getImportUsersMethod: protectedStaffProcedure.query(async ({ ctx }) => {
+    const setting = await ctx.prisma.settings.upsert({
+      where: {
+        setting: SiteSettings.IMPORT_USERS_METHOD,
+      },
+      update: {}, // THis is blank because thi query is acting like a findOrCreate
+      create: {
+        setting: SiteSettings.IMPORT_USERS_METHOD,
+        value: settingsToDefault[SiteSettings.IMPORT_USERS_METHOD],
+      },
+    });
+	return setting.value;
+  }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.assignment.findMany();

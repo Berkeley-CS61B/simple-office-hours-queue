@@ -10,6 +10,7 @@ export const settingsToDefault = {
   [SiteSettings.IS_PENDING_STAGE_ENABLED]: SiteSettingsValues.TRUE,
   [SiteSettings.IS_QUEUE_OPEN]: SiteSettingsValues.FALSE,
   [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: SiteSettingsValues.TRUE,
+  [SiteSettings.IMPORT_USERS_METHOD]: SiteSettingsValues.IMPORT_STAFF,
 };
 
 /** Returns the time difference in minutes between a first and second (first - second) */
@@ -71,6 +72,12 @@ export const addDurationToTickets = (tickets: TicketWithNames[]) => {
   });
 };
 
-/** Takes in a string and returns that string without any spaces 
+/** Takes in a string and returns that string without any spaces
  * Only allow letters, digits, underscores, and hyphens */
 export const sanitizeString = (str: string) => str.replace(/[^a-zA-Z0-9-_]/g, '');
+
+// I don't think there's a way to inclue this enum in the SiteSettingsValues enum
+export const ImportUsersMethodPossiblities = {
+    IMPORT_STAFF:"IMPORT_STAFF",
+    IMPORT_STAFF_AND_STUDENTS:"IMPORT_STAFF_AND_STUDENTS",
+}
