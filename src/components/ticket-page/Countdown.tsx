@@ -14,7 +14,7 @@ const Countdown = (props: CountdownProps) => {
   const { initialTimeInMs, onComplete } = props;
   const [timeRemaining, setTimeRemaining] = useState(initialTimeInMs);
   const minutes = Math.floor(timeRemaining / 60000);
-  const seconds = ((timeRemaining % 60000) / 1000).toFixed(0);
+  const seconds = Math.min(59, (timeRemaining % 60000) / 1000).toFixed(0);
 
   // Update the time remaining every second
   useEffect(() => {

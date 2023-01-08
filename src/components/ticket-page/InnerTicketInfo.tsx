@@ -133,10 +133,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     <>
       <Text fontSize='2xl'>
         {canSeeName ? (
-          <TooltipName
-            createdByName={ticket.createdByName ?? ''}
-            createdByEmail={ticket.createdByEmail ?? ''}
-          />
+          <TooltipName createdByName={ticket.createdByName ?? ''} createdByEmail={ticket.createdByEmail ?? ''} />
         ) : (
           <>{helpOrJoin} to see name</>
         )}
@@ -214,6 +211,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         </Text>
         {ticket.markedAbsentAt && (
           <Countdown
+            key={ticket.markedAbsentAt.getTime()}
             initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())}
             onComplete={handleCloseTicket}
           />

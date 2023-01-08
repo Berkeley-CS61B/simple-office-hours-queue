@@ -122,7 +122,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames(approvedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-approved', tickets);
 
         // Uses ticket inner page channel
@@ -161,7 +161,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames(assignedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-assigned', tickets);
 
         // Uses ticket inner page channel
@@ -192,7 +192,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames(resolvedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-resolved', tickets);
 
         // Uses ticket inner page channel
@@ -219,7 +219,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-marked-as-absent', tickets);
 
         // Uses ticket inner page channel
@@ -256,7 +256,7 @@ export const ticketRouter = router({
       await convertTicketToTicketWithNames([closedTicket], ctx).then(async ticketsWithNames => {
         const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('ticket-closed', ticketWithName);
 
         // Uses ticket inner page channel
@@ -285,7 +285,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames(requeuedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-requeued', tickets);
 
         // Uses ticket inner page channel
@@ -316,7 +316,7 @@ export const ticketRouter = router({
 
       await convertTicketToTicketWithNames(reopenedTickets, ctx).then(async tickets => {
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('tickets-reopened', tickets);
 
         // Uses ticket inner page channel
@@ -360,7 +360,7 @@ export const ticketRouter = router({
       await convertTicketToTicketWithNames([ticket], ctx).then(async ticketsWithNames => {
         const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('ticket-joined', ticketWithName);
 
         // Uses ticket inner page channel
@@ -402,7 +402,7 @@ export const ticketRouter = router({
       await convertTicketToTicketWithNames([ticket], ctx).then(async ticketsWithNames => {
         const ticketWithName: TicketWithNames = ticketsWithNames[0]!;
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-        const channel = ably.channels.get('tickets'); // Change to include queue id
+        const channel = ably.channels.get('tickets');
         await channel.publish('ticket-left', ticketWithName);
 
         // Uses ticket inner page channel
