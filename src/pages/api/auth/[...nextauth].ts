@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '../../../server/db/client';
 import { UserRole } from '@prisma/client';
+import { ImportUsersMethodPossiblities } from '../../../utils/utils';
 
 export type SessionUser = {
   id: string;
@@ -45,7 +46,14 @@ export const authOptions: NextAuthOptions = {
         },
       });
 
-      if (!!userIsConfirmed) {
+      const importUserMethod = await prisma.settings.findFirst({
+        where: {
+          setting: 'IMPORT_USERS_METHOD',
+        },
+      });
+
+      // Allow login if user is confirmed or if import method is IMPORT_STAFF
+      if (!!userIsConfirmed || importUserMethod?.value === ImportUsersMethodPossiblities.IMPORT_STAFF) {
         return true;
       }
 
