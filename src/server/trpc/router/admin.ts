@@ -169,27 +169,25 @@ export const adminRouter = router({
   setImportUsersMethod: protectedStaffProcedure
     .input(
       z.object({
-		method: z.string(),
+        method: z.nativeEnum(ImportUsersMethodPossiblities),
       }),
     )
     .mutation(async ({ input, ctx }) => {
 
-	  if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
-		throw new TRPCClientError('Invalid import users method');
-	  }
-
-	//   const newMethod: typeof ImportUsersMethodPossiblities = input.method!;
+      if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
+        throw new TRPCClientError('Invalid import users method');
+      }
 
       await ctx.prisma.settings.upsert({
         where: {
           setting: SiteSettings.IMPORT_USERS_METHOD,
         },
         update: {
-          value: input.method as SiteSettingsValues,
+          value: input.method,
         },
         create: {
           setting: SiteSettings.IMPORT_USERS_METHOD,
-          value: input.method as SiteSettingsValues,
+          value: input.method,
         },
       });
     }),
@@ -199,13 +197,20 @@ export const adminRouter = router({
       where: {
         setting: SiteSettings.IMPORT_USERS_METHOD,
       },
-      update: {}, // THis is blank because thi query is acting like a findOrCreate
+      update: {}, // This is blank because this query is acting like a findOrCreate
       create: {
         setting: SiteSettings.IMPORT_USERS_METHOD,
         value: settingsToDefault[SiteSettings.IMPORT_USERS_METHOD],
       },
     });
-	return setting.value;
+
+    if (setting.value === SiteSettingsValues.IMPORT_STAFF_AND_STUDENTS) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
+    } else if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF;
+    } else {
+      throw new TRPCClientError('Invalid import users method');
+    }
   }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
