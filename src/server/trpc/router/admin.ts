@@ -1,9 +1,10 @@
 import Ably from 'ably/promises';
 import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { SiteSettings, SiteSettingsValues } from '@prisma/client';
+import { SiteSettings, SiteSettingsValues, VariableSiteSettings } from '@prisma/client';
 import { settingsToDefault, ImportUsersMethodPossiblities } from '../../../utils/utils';
 import { TRPCClientError } from '@trpc/client';
+import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from '../../../utils/constants';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -173,7 +174,6 @@ export const adminRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-
       if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
         throw new TRPCClientError('Invalid import users method');
       }
@@ -191,6 +191,45 @@ export const adminRouter = router({
         },
       });
     }),
+
+  setEmailDomain: protectedStaffProcedure
+    .input(
+      z.object({
+        domain: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!EMAIL_DOMAIN_REGEX_OR_EMPTY.test(input.domain)) {
+        throw new TRPCClientError('Invalid email domain');
+      }
+
+      await ctx.prisma.variableSettings.upsert({
+        where: {
+          setting: VariableSiteSettings.EMAIL_DOMAIN,
+        },
+        update: {
+          value: input.domain,
+        },
+        create: {
+          setting: VariableSiteSettings.EMAIL_DOMAIN,
+          value: input.domain,
+        },
+      });
+    }),
+
+  getEmailDomain: protectedStaffProcedure.query(async ({ ctx }) => {
+    const setting = await ctx.prisma.variableSettings.upsert({
+      where: {
+        setting: VariableSiteSettings.EMAIL_DOMAIN,
+      },
+      update: {},
+      create: {
+        setting: VariableSiteSettings.EMAIL_DOMAIN,
+        value: '',
+      },
+    });
+    return setting.value;
+  }),
 
   getImportUsersMethod: protectedStaffProcedure.query(async ({ ctx }) => {
     const setting = await ctx.prisma.settings.upsert({

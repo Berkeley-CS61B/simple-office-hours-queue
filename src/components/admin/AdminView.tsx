@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Assignment, Location, SiteSettings, SiteSettingsValues } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
-import { Flex, Spinner, Switch, Text, Tooltip, Radio, RadioGroup } from '@chakra-ui/react';
+import { Flex, Spinner, Switch, Text, Tooltip, Radio, RadioGroup, Divider } from '@chakra-ui/react';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
 import AdminList from './AdminList';
 import ImportUsersMethod from './ImportUsersMethod';
@@ -78,8 +78,9 @@ const AdminView = () => {
         </Flex>
       </Flex>
 
-      <ImportUsersMethod />
+      <Divider />
 
+      <ImportUsersMethod />
     </Flex>
   );
 };

@@ -76,7 +76,11 @@ export const addDurationToTickets = (tickets: TicketWithNames[]) => {
  * Only allow letters, digits, underscores, and hyphens */
 export const sanitizeString = (str: string) => str.replace(/[^a-zA-Z0-9-_]/g, '');
 
-// I don't think there's a way to inclue this enum in the SiteSettingsValues enum
+/** Only allow email domains with letters, digits, periods, underscores, and '@',  */
+export const sanitizeEmailDomain = (str: string) => str.replace(/[^a-zA-Z0-9-_.@]/g, '')
+
+
+// I don't think there's a way to include this enum in the SiteSettingsValues enum
 export const ImportUsersMethodPossiblities = {
   IMPORT_STAFF: 'IMPORT_STAFF' as const,
   IMPORT_STAFF_AND_STUDENTS: 'IMPORT_STAFF_AND_STUDENTS' as const,
