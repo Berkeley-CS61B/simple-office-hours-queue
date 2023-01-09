@@ -1,8 +1,10 @@
 import Ably from 'ably/promises';
 import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { SiteSettings, SiteSettingsValues } from '@prisma/client';
-import { settingsToDefault } from '../../../utils/utils';
+import { SiteSettings, SiteSettingsValues, VariableSiteSettings } from '@prisma/client';
+import { settingsToDefault, ImportUsersMethodPossiblities } from '../../../utils/utils';
+import { TRPCClientError } from '@trpc/client';
+import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from '../../../utils/constants';
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -164,6 +166,91 @@ export const adminRouter = router({
         },
       });
     }),
+
+  setImportUsersMethod: protectedStaffProcedure
+    .input(
+      z.object({
+        method: z.nativeEnum(ImportUsersMethodPossiblities),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
+        throw new TRPCClientError('Invalid import users method');
+      }
+
+      await ctx.prisma.settings.upsert({
+        where: {
+          setting: SiteSettings.IMPORT_USERS_METHOD,
+        },
+        update: {
+          value: input.method,
+        },
+        create: {
+          setting: SiteSettings.IMPORT_USERS_METHOD,
+          value: input.method,
+        },
+      });
+    }),
+
+  setEmailDomain: protectedStaffProcedure
+    .input(
+      z.object({
+        domain: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!EMAIL_DOMAIN_REGEX_OR_EMPTY.test(input.domain)) {
+        throw new TRPCClientError('Invalid email domain');
+      }
+
+      await ctx.prisma.variableSettings.upsert({
+        where: {
+          setting: VariableSiteSettings.EMAIL_DOMAIN,
+        },
+        update: {
+          value: input.domain,
+        },
+        create: {
+          setting: VariableSiteSettings.EMAIL_DOMAIN,
+          value: input.domain,
+        },
+      });
+    }),
+
+  getEmailDomain: protectedStaffProcedure.query(async ({ ctx }) => {
+    const setting = await ctx.prisma.variableSettings.upsert({
+      where: {
+        setting: VariableSiteSettings.EMAIL_DOMAIN,
+      },
+      update: {},
+      create: {
+        setting: VariableSiteSettings.EMAIL_DOMAIN,
+        value: '',
+      },
+    });
+    return setting.value;
+  }),
+
+  getImportUsersMethod: protectedStaffProcedure.query(async ({ ctx }) => {
+    const setting = await ctx.prisma.settings.upsert({
+      where: {
+        setting: SiteSettings.IMPORT_USERS_METHOD,
+      },
+      update: {}, // This is blank because this query is acting like a findOrCreate
+      create: {
+        setting: SiteSettings.IMPORT_USERS_METHOD,
+        value: settingsToDefault[SiteSettings.IMPORT_USERS_METHOD],
+      },
+    });
+
+    if (setting.value === SiteSettingsValues.IMPORT_STAFF_AND_STUDENTS) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
+    } else if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF;
+    } else {
+      throw new TRPCClientError('Invalid import users method');
+    }
+  }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.assignment.findMany();

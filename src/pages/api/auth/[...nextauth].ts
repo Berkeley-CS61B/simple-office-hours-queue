@@ -3,7 +3,8 @@ import GoogleProvider from 'next-auth/providers/google';
 
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '../../../server/db/client';
-import { UserRole } from '@prisma/client';
+import { SiteSettings, UserRole, VariableSiteSettings } from '@prisma/client';
+import { ImportUsersMethodPossiblities } from '../../../utils/utils';
 
 export type SessionUser = {
   id: string;
@@ -23,7 +24,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    // Only allow users that either exist in the 'User' table or have been imported (confirmed)
+    /**
+	 * Allow sign in if:
+	 * 	The user is already in the database
+	 *  The user is in the confirmed table (aka they've been imported) 
+	 *  The import method is IMPORT_STAFF and the email domain matches
+	 */
     async signIn({ user, account }) {
       if (account?.provider !== 'google' || !user?.email) {
         return false;
@@ -45,7 +51,32 @@ export const authOptions: NextAuthOptions = {
         },
       });
 
+      // Allow login if user is confirmed
       if (!!userIsConfirmed) {
+        return true;
+      }
+
+      // Allow login if import method is IMPORT_STAFF and the email domain matches
+      const importUserMethod = await prisma.settings.findFirst({
+        where: { setting: SiteSettings.IMPORT_USERS_METHOD },
+      });
+      const isImportStaff = importUserMethod?.value === ImportUsersMethodPossiblities.IMPORT_STAFF;
+      const isImportStaffAndStudents =
+        importUserMethod?.value === ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
+
+      // If students had to be imported and they're not in the confirmed table, then they
+      // haven't been imported
+      if (isImportStaffAndStudents) {
+        return false;
+      }
+
+      const emailDomain = await prisma.variableSettings.findFirst({
+        where: { setting: VariableSiteSettings.EMAIL_DOMAIN },
+      });
+      // No/Empty domain means that anyone can sign in
+      const domainMatches = !emailDomain || emailDomain.value === '' || user.email.endsWith(emailDomain.value);
+
+      if (isImportStaff && domainMatches) {
         return true;
       }
 

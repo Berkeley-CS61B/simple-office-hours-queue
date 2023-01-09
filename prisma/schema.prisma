@@ -13,6 +13,13 @@ model Settings {
     value   SiteSettingsValues
 }
 
+// This should only be used for sitewide settings that can be any string.
+// For settings that are a boolean or have concrete types, use the SiteSettings enum.
+model VariableSettings {
+    setting VariableSiteSettings @id
+    value   String               @default("")
+}
+
 model ChatMessage {
     id        Int      @id @default(autoincrement())
     createdAt DateTime @default(now())
@@ -186,9 +193,16 @@ enum SiteSettings {
     IS_PENDING_STAGE_ENABLED
     ARE_PUBLIC_TICKETS_ENABLED
     IS_QUEUE_OPEN
+    IMPORT_USERS_METHOD // IMPORT_STAFF or IMPORT_STAFF_AND_STUDENTS
 }
 
 enum SiteSettingsValues {
     TRUE
     FALSE
+    IMPORT_STAFF
+    IMPORT_STAFF_AND_STUDENTS
+}
+
+enum VariableSiteSettings {
+    EMAIL_DOMAIN
 }
