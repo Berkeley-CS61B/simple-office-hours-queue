@@ -26,7 +26,7 @@ const StaffNotes = (props: StaffNotesProps) => {
 
     const newNotes =
       ticket.staffNotes === null
-        ? (session?.user?.preferredName ?? session?.user?.preferredName) + ': ' + notesText
+        ? (session?.user?.preferredName ?? session?.user?.name) + ': ' + notesText
         : ticket.staffNotes + ' | ' + (session?.user?.preferredName ?? session?.user?.name) + ': ' + notesText;
 
     await addStaffNotesMutation.mutateAsync({
