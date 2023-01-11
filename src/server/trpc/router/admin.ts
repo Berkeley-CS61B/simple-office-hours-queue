@@ -11,12 +11,14 @@ export const adminRouter = router({
     .input(
       z.object({
         name: z.string(),
+        isPriority: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       return ctx.prisma.assignment.create({
         data: {
           name: input.name,
+          isPriority: input.isPriority,
         },
       });
     }),
@@ -36,6 +38,7 @@ export const adminRouter = router({
         name: z.string(),
         isActive: z.boolean(),
         isHidden: z.boolean(),
+		isPriority: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -47,6 +50,7 @@ export const adminRouter = router({
           name: input.name,
           isActive: input.isActive,
           isHidden: input.isHidden,
+		  ...(input.isPriority !== undefined && { isPriority: input.isPriority }),
         },
       });
     }),

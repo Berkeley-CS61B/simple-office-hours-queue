@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
@@ -16,6 +16,8 @@ interface TicketQueueProps {
   isQueueOpen: boolean;
   personalQueue?: PersonalQueue;
 }
+
+type TabType = TicketStatus | 'Priority';
 
 /**
  * TicketQueue component that displays the tabs for the different ticket statuses
@@ -71,13 +73,13 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   });
 
-  const setTabs = () => {
+  const setTabs = (): TabType[] => {
     if (userRole == UserRole.STUDENT) {
       return [TicketStatus.OPEN, TicketStatus.ASSIGNED];
     } else if (!isPendingStageEnabled) {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
+      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, 'Priority', TicketStatus.ABSENT];
     } else {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
+      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, 'Priority', TicketStatus.ABSENT];
     }
   };
 
@@ -102,6 +104,12 @@ const TicketQueue = (props: TicketQueueProps) => {
     { status: TicketStatus.ABSENT, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
   );
+
+  const priorityTickets = useMemo(() => {
+    const priorityPending = pendingTickets?.filter(ticket => ticket.isPriority);
+    const priorityOpen = openTickets?.filter(ticket => ticket.isPriority);
+    return [...(priorityPending ?? []), ...(priorityOpen ?? [])];
+  }, [openTickets, pendingTickets]);
 
   // Refresh the assigned tickets every minute so the timer updates
   useEffect(() => {
@@ -139,17 +147,24 @@ const TicketQueue = (props: TicketQueueProps) => {
   const isGetTicketsLoading =
     isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading || isGetAbsentTicketsLoading;
 
+  /** Don't show priority tickets on the Pending or Open tabs since they are in the Pending tab */
+  const removePriorityTickets = (tickets: TicketWithNames[]) => {
+    return tickets.filter(ticket => !ticket.isPriority);
+  };
+
   /**
-   * Helper method to return the correct ticket list based on the tab index (status)
+   * Helper method to return the correct ticket list based on the tab index
    */
-  const getTickets = (status: TicketStatus): TicketWithNames[] => {
-    switch (status) {
+  const getTickets = (tab: TabType): TicketWithNames[] => {
+    switch (tab) {
+      case 'Priority':
+        return priorityTickets ?? [];
       case TicketStatus.OPEN:
-        return openTickets ?? [];
+        return removePriorityTickets(openTickets ?? []);
       case TicketStatus.ASSIGNED:
         return assignedTickets ?? [];
       case TicketStatus.PENDING:
-        return pendingTickets ?? [];
+        return removePriorityTickets(pendingTickets ?? []);
       case TicketStatus.ABSENT:
         return absentTickets ?? [];
       default:
@@ -177,14 +192,17 @@ const TicketQueue = (props: TicketQueueProps) => {
         Queue
       </Text>
       <Tabs isFitted variant='enclosed' isLazy>
-        <TabList overflowY="hidden" sx={{
+        <TabList
+          overflowY='hidden'
+          sx={{
             scrollbarWidth: 'none',
             '::-webkit-scrollbar': {
               display: 'none',
             },
-          }}>
+          }}
+        >
           {tabs.map(tab => (
-            <Tab key={tab} flexShrink={0}>
+            <Tab key={tab} flexShrink={0} color={tab === 'Priority' && priorityTickets.length > 0 ? 'red.300' : ''}>
               {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
             </Tab>
           ))}
@@ -209,7 +227,12 @@ const TicketQueue = (props: TicketQueueProps) => {
             return (
               <div key={tab}>
                 <TabPanel padding='20px 0' key={tab}>
-                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} userId={userId} />
+                  <TicketList
+                    tickets={tickets}
+                    ticketStatus={tab === 'Priority' ? priorityTickets.at(0)?.status ?? TicketStatus.PENDING : tab}
+                    userRole={userRole}
+                    userId={userId}
+                  />
                 </TabPanel>
               </div>
             );

@@ -50,12 +50,26 @@ export const ticketRouter = router({
         },
       });
 
+      const assignment = await ctx.prisma.assignment.findUnique({
+        where: {
+          id: input.assignmentId,
+        },
+      });
+
+      if (!assignment) {
+        return;
+      }
+
+      // If a ticket is made with a priority assigment, it's a priority ticket
+      const isPriority = assignment?.isPriority;
+
       const ticket = await ctx.prisma.ticket.create({
         data: {
           description: input.description,
           isPublic: input.isPublic ?? false,
           locationDescription: input.locationDescription,
           usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
+          isPriority: isPriority,
           assignment: {
             connect: {
               id: input.assignmentId,

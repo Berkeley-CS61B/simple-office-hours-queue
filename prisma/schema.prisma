@@ -51,6 +51,7 @@ model Ticket {
     staffNotes          String?
     ChatMessage         ChatMessage[]
     isPublic            Boolean        @default(false)
+    isPriority          Boolean        @default(false)
     usersInGroup        User[]         @relation("groupTickets")
     PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
 

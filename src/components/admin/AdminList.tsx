@@ -30,7 +30,7 @@ const AdminList = (props: AdminListProps) => {
   const numVisible = assignmentsOrLocations.filter(a => !a?.isHidden).length;
 
   const handleCreateAssignment = async () => {
-    const data = await createAssignmentMutation.mutateAsync({ name: createText });
+    const data = await createAssignmentMutation.mutateAsync({ name: createText, isPriority: isPriorityChecked });
     setAssignmentsOrLocations(prev => [...(prev ?? []), data]);
   };
 
@@ -59,7 +59,7 @@ const AdminList = (props: AdminListProps) => {
   };
 
   const handlePriorityChange = () => {
-	setIsPriorityChecked(prev => !prev);
+    setIsPriorityChecked(prev => !prev);
   };
 
   return (
@@ -86,7 +86,7 @@ const AdminList = (props: AdminListProps) => {
                 isChecked={isPriorityChecked}
               >
                 Priority
-                <Tooltip label='Priority assignments are put in a separate tab'>
+                <Tooltip label='Priority tickets are put in a separate tab'>
                   <InfoIcon ml={1} />
                 </Tooltip>
               </Checkbox>
@@ -109,6 +109,7 @@ const AdminList = (props: AdminListProps) => {
             assignmentOrLocation={al}
             editMutation={isAssignment ? editAssignmentMutation : editLocationMutation}
             isHiddenVisible={isHiddenVisible}
+			isAssignment={isAssignment}
           />
         </Box>
       ))}

@@ -12,6 +12,7 @@ import {
   Input,
   EditableInput,
   useToast,
+  Checkbox,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { Assignment, Location } from '@prisma/client';
@@ -24,6 +25,7 @@ interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
   isHiddenVisible: boolean;
+  isAssignment: boolean;
 }
 
 const EditableControls = () => {
@@ -45,10 +47,11 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation, isHiddenVisible } = props;
+  const { assignmentOrLocation, editMutation, isHiddenVisible, isAssignment } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
   const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
+  const [isPriority, setIsPriority] = useState(isAssignment ? (assignmentOrLocation as Assignment).isPriority : false);
   const context = trpc.useContext();
   const toast = useToast();
 
@@ -58,6 +61,17 @@ const AdminCard = (props: AdminCardProps) => {
       name: newName,
       isActive: assignmentOrLocation.isActive,
       isHidden: assignmentOrLocation.isHidden,
+    });
+  };
+
+  const handlePriorityChange = async (newPriority: boolean) => {
+    setIsPriority(newPriority);
+    await editMutation.mutateAsync({
+      id: assignmentOrLocation.id,
+      name: assignmentOrLocation.name,
+      isActive: assignmentOrLocation.isActive,
+      isHidden: assignmentOrLocation.isHidden,
+      isPriority: newPriority,
     });
   };
 
@@ -137,6 +151,16 @@ const AdminCard = (props: AdminCardProps) => {
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActive} />
       </Flex>
+      <Checkbox
+        hidden={!isActive || !isAssignment}
+        onChange={() => handlePriorityChange(!isPriority)}
+        colorScheme='telegram'
+        size='lg'
+        ml={2}
+        isChecked={isPriority}
+      >
+        Priority
+      </Checkbox>
       {!isActive && (
         <Flex>
           {isHidden ? (
