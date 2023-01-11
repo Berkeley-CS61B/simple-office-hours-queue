@@ -116,13 +116,14 @@ model Session {
 }
 
 model Assignment {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    isActive  Boolean  @default(true)
-    isHidden  Boolean  @default(false)
-    Ticket    Ticket[]
+    id         Int      @id @default(autoincrement())
+    name       String
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @default(now()) @updatedAt
+    isActive   Boolean  @default(true)
+    isHidden   Boolean  @default(false)
+    isPriority Boolean  @default(false)
+    Ticket     Ticket[]
 }
 
 model Location {

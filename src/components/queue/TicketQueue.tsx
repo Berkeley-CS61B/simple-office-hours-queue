@@ -177,9 +177,14 @@ const TicketQueue = (props: TicketQueueProps) => {
         Queue
       </Text>
       <Tabs isFitted variant='enclosed' isLazy>
-        <TabList>
+        <TabList overflowY="hidden" sx={{
+            scrollbarWidth: 'none',
+            '::-webkit-scrollbar': {
+              display: 'none',
+            },
+          }}>
           {tabs.map(tab => (
-            <Tab key={tab}>
+            <Tab key={tab} flexShrink={0}>
               {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
             </Tab>
           ))}
