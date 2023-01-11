@@ -70,7 +70,7 @@ const Layout = (props: LayoutProps) => {
     <>
       <Head>
         <title>Office Hours Queue</title>
-        <meta name='OH Queue' content='Office Hours Queue' />
+        <meta name='OH Queue' content='Office Hours Queue' lang="en" translate='no' dir='ltr'/>
       </Head>
 
       <Flex h='100%' direction='column'>
