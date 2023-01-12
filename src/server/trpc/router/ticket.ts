@@ -114,6 +114,11 @@ export const ticketRouter = router({
       const channel = ably.channels.get('tickets');
       await channel.publish('new-ticket', ticketWithNames[0]);
 
+      if (isPriority) {
+        const staffChannel = ably.channels.get('staff-broadcast');
+        await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
+      }
+
       return ticketWithNames[0];
     }),
 
@@ -262,6 +267,11 @@ export const ticketRouter = router({
         const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
         const channel = ably.channels.get('tickets');
         await channel.publish('tickets-marked-as-priority', tickets);
+
+        if (input.isPriority) {
+          const staffChannel = ably.channels.get('staff-broadcast');
+          await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
+        }
         return tickets;
       });
     }),

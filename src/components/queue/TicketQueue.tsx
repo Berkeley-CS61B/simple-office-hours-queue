@@ -84,9 +84,9 @@ const TicketQueue = (props: TicketQueueProps) => {
     if (userRole == UserRole.STUDENT) {
       return [TicketStatus.OPEN, TicketStatus.ASSIGNED];
     } else if (!isPendingStageEnabled) {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, 'Priority', TicketStatus.ABSENT];
+      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
     } else {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, 'Priority', TicketStatus.ABSENT];
+      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
     }
   };
 
@@ -209,7 +209,12 @@ const TicketQueue = (props: TicketQueueProps) => {
           }}
         >
           {tabs.map(tab => (
-            <Tab key={tab} flexShrink={0} color={tab === 'Priority' && priorityTickets.length > 0 ? 'red.300' : ''}>
+            <Tab
+              hidden={tab === 'Priority' && priorityTickets.length === 0}
+              key={tab}
+              flexShrink={0}
+              color={tab === 'Priority' && priorityTickets.length > 0 ? 'red.300' : ''}
+            >
               {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
             </Tab>
           ))}

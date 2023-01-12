@@ -3,7 +3,6 @@ import { Box, Button, Checkbox, Flex, Input, position, Text, Tooltip, useToast }
 import { Assignment, Location } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
 import AdminCard from './AdminCard';
-import { InfoIcon } from '@chakra-ui/icons';
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
@@ -85,10 +84,7 @@ const AdminList = (props: AdminListProps) => {
                 ml={2}
                 isChecked={isPriorityChecked}
               >
-                Priority
-                <Tooltip label='Priority tickets are put in a separate tab'>
-                  <InfoIcon ml={1} />
-                </Tooltip>
+                <Tooltip label='Priority tickets are put in a separate tab'>Priority</Tooltip>
               </Checkbox>
             </Flex>
             <Button colorScheme='green' onClick={handleCreate} ml={3}>
@@ -109,7 +105,7 @@ const AdminList = (props: AdminListProps) => {
             assignmentOrLocation={al}
             editMutation={isAssignment ? editAssignmentMutation : editLocationMutation}
             isHiddenVisible={isHiddenVisible}
-			isAssignment={isAssignment}
+            isAssignment={isAssignment}
           />
         </Box>
       ))}
