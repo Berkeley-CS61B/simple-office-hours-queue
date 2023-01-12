@@ -245,6 +245,27 @@ export const ticketRouter = router({
       });
     }),
 
+  markAsPriority: protectedStaffProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        isPriority: z.boolean(), // True for mark, false for unmark
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { isPriority: input.isPriority },
+      });
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets');
+        await channel.publish('tickets-marked-as-priority', tickets);
+        return tickets;
+      });
+    }),
+
   // We only allow the creator of the ticket to close it
   closeTicket: protectedProcedure
     .input(

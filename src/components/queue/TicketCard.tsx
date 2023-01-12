@@ -26,6 +26,7 @@ const TicketCard = (props: TicketCardProps) => {
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isAbsent = ticket.status === TicketStatus.ABSENT;
+  const isPriority = ticket.isPriority;
   const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
@@ -34,6 +35,7 @@ const TicketCard = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -78,6 +80,13 @@ const TicketCard = (props: TicketCardProps) => {
     await markAsAbsentMutation.mutateAsync({
       ticketId: ticket.id,
       markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+    });
+  };
+
+  const handleMarkAsPriority = async () => {
+    await markAsPriorityMutation.mutateAsync({
+      ticketId: ticket.id,
+      isPriority: !isPriority,
     });
   };
 
@@ -133,6 +142,14 @@ const TicketCard = (props: TicketCardProps) => {
             </Button>
             <Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent} colorScheme='red'>
               {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
+            </Button>
+            <Button
+              onClick={handleMarkAsPriority}
+              hidden={!isStaff || (!isPending && !isOpen)}
+              ml={2}
+              colorScheme='yellow'
+            >
+              {isPriority ? 'Unmark' : 'Mark'} as priority
             </Button>
             {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />

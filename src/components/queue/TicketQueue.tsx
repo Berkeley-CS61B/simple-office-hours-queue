@@ -17,7 +17,7 @@ interface TicketQueueProps {
   personalQueue?: PersonalQueue;
 }
 
-type TabType = TicketStatus | 'Priority';
+export type TabType = TicketStatus | 'Priority';
 
 /**
  * TicketQueue component that displays the tabs for the different ticket statuses
@@ -44,6 +44,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-absent',
       'all-tickets-closed',
+      'tickets-marked-as-priority',
     ];
     const shouldInvalidateAssigned = [
       'tickets-assigned',
@@ -52,7 +53,13 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'ticket-closed',
     ];
-    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
+    const shouldInvalidatePending = [
+      'new-ticket',
+      'tickets-approved',
+      'all-tickets-closed',
+      'ticket-closed',
+      'tickets-marked-as-priority',
+    ];
     const shouldInvalidateAbsent = ['tickets-marked-as-absent'];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
@@ -227,12 +234,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             return (
               <div key={tab}>
                 <TabPanel padding='20px 0' key={tab}>
-                  <TicketList
-                    tickets={tickets}
-                    ticketStatus={tab === 'Priority' ? priorityTickets.at(0)?.status ?? TicketStatus.PENDING : tab}
-                    userRole={userRole}
-                    userId={userId}
-                  />
+                  <TicketList tickets={tickets} ticketStatus={tab} userRole={userRole} userId={userId} />
                 </TabPanel>
               </div>
             );
