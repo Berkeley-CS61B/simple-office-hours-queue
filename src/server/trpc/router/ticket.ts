@@ -269,6 +269,11 @@ export const ticketRouter = router({
         const channel = ably.channels.get('tickets');
         await channel.publish('tickets-marked-as-priority', tickets);
 
+        for (const ticket of tickets) {
+          const ticketChannel = ably.channels.get(`ticket-${ticket.id}`);
+          await ticketChannel.publish('ticket-marked-as-priority', ticket);
+        }
+
         if (input.isPriority && ticket.personalQueueId === null) {
           const staffChannel = ably.channels.get('staff-broadcast');
           await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
