@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
@@ -16,6 +16,8 @@ interface TicketQueueProps {
   isQueueOpen: boolean;
   personalQueue?: PersonalQueue;
 }
+
+export type TabType = TicketStatus | 'Priority';
 
 /**
  * TicketQueue component that displays the tabs for the different ticket statuses
@@ -42,6 +44,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-absent',
       'all-tickets-closed',
+      'tickets-marked-as-priority',
     ];
     const shouldInvalidateAssigned = [
       'tickets-assigned',
@@ -49,8 +52,15 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'all-tickets-closed',
       'ticket-closed',
+	  'tickets-marked-as-priority',
     ];
-    const shouldInvalidatePending = ['new-ticket', 'tickets-approved', 'all-tickets-closed', 'ticket-closed'];
+    const shouldInvalidatePending = [
+      'new-ticket',
+      'tickets-approved',
+      'all-tickets-closed',
+      'ticket-closed',
+      'tickets-marked-as-priority',
+    ];
     const shouldInvalidateAbsent = ['tickets-marked-as-absent'];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
@@ -71,13 +81,13 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   });
 
-  const setTabs = () => {
+  const setTabs = (): TabType[] => {
     if (userRole == UserRole.STUDENT) {
       return [TicketStatus.OPEN, TicketStatus.ASSIGNED];
     } else if (!isPendingStageEnabled) {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
+      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
     } else {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
+      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
     }
   };
 
@@ -103,6 +113,13 @@ const TicketQueue = (props: TicketQueueProps) => {
     { refetchOnWindowFocus: false },
   );
 
+  const priorityTickets = useMemo(() => {
+    const priorityPending = pendingTickets?.filter(ticket => ticket.isPriority);
+    const priorityOpen = openTickets?.filter(ticket => ticket.isPriority);
+	const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
+    return [...(priorityPending ?? []), ...(priorityOpen ?? []), ...(priorityAssigned ?? [])];
+  }, [openTickets, pendingTickets, assignedTickets]);
+
   // Refresh the assigned tickets every minute so the timer updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -123,7 +140,7 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /* Tickets that the current user is assigned to or has created */
   const getMyTickets = () => {
-    if (userRole === UserRole.STAFF) {
+    if (userRole === UserRole.STAFF || userRole === UserRole.INTERN) {
       return assignedTickets?.filter(ticket => ticket.helpedByUserId === userId);
     }
 
@@ -139,17 +156,24 @@ const TicketQueue = (props: TicketQueueProps) => {
   const isGetTicketsLoading =
     isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading || isGetAbsentTicketsLoading;
 
+  /** Don't show priority tickets on the Pending or Open tabs since they are in the Pending tab */
+  const removePriorityTickets = (tickets: TicketWithNames[]) => {
+    return tickets.filter(ticket => !ticket.isPriority);
+  };
+
   /**
-   * Helper method to return the correct ticket list based on the tab index (status)
+   * Helper method to return the correct ticket list based on the tab index
    */
-  const getTickets = (status: TicketStatus): TicketWithNames[] => {
-    switch (status) {
+  const getTickets = (tab: TabType): TicketWithNames[] => {
+    switch (tab) {
+      case 'Priority':
+        return priorityTickets ?? [];
       case TicketStatus.OPEN:
-        return openTickets ?? [];
+        return removePriorityTickets(openTickets ?? []);
       case TicketStatus.ASSIGNED:
-        return assignedTickets ?? [];
+        return removePriorityTickets(assignedTickets ?? []);
       case TicketStatus.PENDING:
-        return pendingTickets ?? [];
+        return removePriorityTickets(pendingTickets ?? []);
       case TicketStatus.ABSENT:
         return absentTickets ?? [];
       default:
@@ -176,10 +200,23 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs isFitted variant='enclosed' isLazy>
-        <TabList>
+      <Tabs defaultIndex={0} isFitted variant='enclosed' isLazy>
+        <TabList
+          overflowY='hidden'
+          sx={{
+            scrollbarWidth: 'none',
+            '::-webkit-scrollbar': {
+              display: 'none',
+            },
+          }}
+        >
           {tabs.map(tab => (
-            <Tab key={tab}>
+            <Tab
+              hidden={tab === 'Priority' && priorityTickets.length === 0}
+              key={tab}
+              flexShrink={0}
+              color={tab === 'Priority' && priorityTickets.length > 0 ? 'red.300' : ''}
+            >
               {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
             </Tab>
           ))}

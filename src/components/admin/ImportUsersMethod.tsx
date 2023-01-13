@@ -117,8 +117,10 @@ const ImportUsersMethod = () => {
 
       <RadioGroup onChange={handleChangeUserImportMethod} value={signInMethod}>
         <Stack spacing={5} direction='row'>
-          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS}>Import staff and students</Radio>
-          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF}>Only import staff</Radio>
+          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS}>
+            Import staff/interns and students
+          </Radio>
+          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF}>Only import staff/interns</Radio>
         </Stack>
       </RadioGroup>
 
@@ -133,12 +135,12 @@ const ImportUsersMethod = () => {
       <Flex mt={2}>
         <Text>
           The CSV should have 2 columns. One for email and one for role ({isImportStaffAndStudents ? 'STUDENT OR ' : ''}
-          STAFF)
+          STAFF or INTERN)
         </Text>
       </Flex>
 
       <Text mb={2} fontSize='sm' hidden={isImportStaffAndStudents}>
-        Please still specify STAFF role when importing staff members.
+        Please still specify STAFF or INTERN role when importing.
       </Text>
       <ImportUsers />
     </Flex>

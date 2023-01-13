@@ -37,7 +37,7 @@ const StaffNotes = (props: StaffNotesProps) => {
   };
 
   return (
-    <Box hidden={userRole !== UserRole.STAFF} mt={4}>
+    <Box hidden={userRole !== UserRole.STAFF && userRole !== UserRole.INTERN} mt={4}>
       <Button variant='outline' onClick={toggleNotesBox}>
         Toggle Notes
       </Button>

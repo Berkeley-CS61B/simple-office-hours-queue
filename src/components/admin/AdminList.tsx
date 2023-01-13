@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Flex, Input, Text } from '@chakra-ui/react';
+import { Box, Button, Checkbox, Flex, Input, position, Text, Tooltip, useToast } from '@chakra-ui/react';
 import { Assignment, Location } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
 import AdminCard from './AdminCard';
@@ -19,6 +19,8 @@ const AdminList = (props: AdminListProps) => {
   );
   const [createText, setCreateText] = useState<string>('');
   const [isHiddenVisible, setIsHiddenVisible] = useState<boolean>(false);
+  const [isPriorityChecked, setIsPriorityChecked] = useState<boolean>(false);
+  const toast = useToast();
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
@@ -27,13 +29,36 @@ const AdminList = (props: AdminListProps) => {
   const numVisible = assignmentsOrLocations.filter(a => !a?.isHidden).length;
 
   const handleCreateAssignment = async () => {
-    const data = await createAssignmentMutation.mutateAsync({ name: createText });
+    const data = await createAssignmentMutation.mutateAsync({ name: createText, isPriority: isPriorityChecked });
     setAssignmentsOrLocations(prev => [...(prev ?? []), data]);
   };
 
   const handleCreateLocation = async () => {
     const data = await createLocationMutation.mutateAsync({ name: createText });
     setAssignmentsOrLocations(prev => [...(prev ?? []), data]);
+  };
+
+  const handleCreate = () => {
+    if (createText.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Name must be longer than 0 characters',
+        status: 'error',
+        duration: 5000,
+        position: 'top-right',
+        isClosable: true,
+      });
+      return;
+    }
+    if (isAssignment) {
+      handleCreateAssignment();
+    } else {
+      handleCreateLocation();
+    }
+  };
+
+  const handlePriorityChange = () => {
+    setIsPriorityChecked(prev => !prev);
   };
 
   return (
@@ -43,14 +68,26 @@ const AdminList = (props: AdminListProps) => {
           {isAssignment ? 'Assignments' : 'Locations'}
         </Text>
         <Flex justifyContent='space-between'>
-          <Flex w='100%'>
+          <Flex w='50%'>
             <Input
               width='50%'
               onChange={e => setCreateText(e.target.value)}
               value={createText}
               placeholder={isAssignment ? 'Gitlet' : 'Woz'}
             />
-            <Button onClick={isAssignment ? handleCreateAssignment : handleCreateLocation} ml={3}>
+            <Flex flexDirection='row'>
+              <Checkbox
+                hidden={!isAssignment}
+                onChange={handlePriorityChange}
+                colorScheme='telegram'
+                size='lg'
+                ml={2}
+                isChecked={isPriorityChecked}
+              >
+                <Tooltip label='Priority tickets are put in a separate tab'>Priority</Tooltip>
+              </Checkbox>
+            </Flex>
+            <Button colorScheme='green' onClick={handleCreate} ml={3}>
               Create
             </Button>
           </Flex>
@@ -63,13 +100,14 @@ const AdminList = (props: AdminListProps) => {
         <Text>No visible {isAssignment ? 'assigments' : 'locations'}! You can add or unhide them above.</Text>
       )}
       {assignmentsOrLocations.map(al => (
-        <div key={al.id}>
+        <Box as='div' key={al.id}>
           <AdminCard
             assignmentOrLocation={al}
             editMutation={isAssignment ? editAssignmentMutation : editLocationMutation}
-			isHiddenVisible={isHiddenVisible}
+            isHiddenVisible={isHiddenVisible}
+            isAssignment={isAssignment}
           />
-        </div>
+        </Box>
       ))}
     </>
   );

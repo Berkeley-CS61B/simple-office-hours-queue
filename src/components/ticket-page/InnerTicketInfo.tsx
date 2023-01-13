@@ -39,12 +39,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
-  const helpOrJoin = isStaff ? 'Help' : 'Join';
+  const isIntern = userRole === UserRole.INTERN;
+  const helpOrJoin = (isStaff || isIntern) ? 'Help' : 'Join';
 
   const canSeeName =
     userId === ticket.createdByUserId ||
     isCurrentUserInGroup ||
-    (isStaff && (isAssigned || isResolved || isClosed || isAbsent));
+    ((isStaff || isIntern) && (isAssigned || isResolved || isClosed || isAbsent));
 
   const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -83,9 +84,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-closed',
       'ticket-joined',
       'ticket-left',
+	  'ticket-marked-as-priority'
     ];
 
-    const shouldNotNotifyStudent: string[] = ['ticket-staffnote'];
+    const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'tickets-marked-as-priority'];
 
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });

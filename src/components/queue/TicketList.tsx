@@ -7,10 +7,11 @@ import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { Select, SingleValue } from 'chakra-react-select';
+import { TabType } from './TicketQueue';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
-  ticketStatus: TicketStatus;
+  ticketStatus: TabType;
   userRole: UserRole;
   userId: string;
 }

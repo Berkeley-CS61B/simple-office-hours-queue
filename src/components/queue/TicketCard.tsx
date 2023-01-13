@@ -22,11 +22,13 @@ const TicketCard = (props: TicketCardProps) => {
 
   const hoverColor = useColorModeValue('#dddddd', DARK_HOVER_COLOR);
   const isStaff = userRole === UserRole.STAFF;
+  const isIntern = userRole === UserRole.INTERN;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isAbsent = ticket.status === TicketStatus.ABSENT;
-  const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
+  const isPriority = ticket.isPriority;
+  const canUserClickOnTicket = ticket.isPublic || isStaff || isIntern || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
@@ -34,6 +36,7 @@ const TicketCard = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -81,6 +84,13 @@ const TicketCard = (props: TicketCardProps) => {
     });
   };
 
+  const handleMarkAsPriority = async () => {
+    await markAsPriorityMutation.mutateAsync({
+      ticketId: ticket.id,
+      isPriority: !isPriority,
+    });
+  };
+
   return (
     <Box
       mb={4}
@@ -125,21 +135,41 @@ const TicketCard = (props: TicketCardProps) => {
             <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
               Approve
             </Button>
-            <Button onClick={handleHelpTicket} hidden={!isStaff || !isOpen} colorScheme='whatsapp'>
+            <Button onClick={handleHelpTicket} hidden={(!isStaff && !isIntern) || !isOpen} colorScheme='whatsapp'>
               Help
             </Button>
-            <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned} colorScheme='whatsapp'>
+            <Button
+              onClick={handleResolveTicket}
+              hidden={(!isStaff && !isIntern) || !isAssigned}
+              colorScheme='whatsapp'
+            >
               Resolve
             </Button>
             <Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent} colorScheme='red'>
               {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
+            </Button>
+            <Button
+              onClick={handleMarkAsPriority}
+              hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
+              ml={2}
+              colorScheme='purple'
+            >
+              {isPriority ? 'Unmark' : 'Mark'} as priority
+            </Button>
+            <Button
+              onClick={handleMarkAsPriority}
+              hidden={!isIntern || !isAssigned || isPriority}
+              ml={2}
+              colorScheme='purple'
+            >
+              Escalate
             </Button>
             {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />
             ) : (
               <Button
                 onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
-                hidden={isStaff || !ticket.isPublic}
+                hidden={isStaff || isIntern || !ticket.isPublic}
                 colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
               >
                 {isCurrentUserInGroup ? 'Leave' : 'Join'}

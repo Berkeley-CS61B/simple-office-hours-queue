@@ -51,6 +51,7 @@ model Ticket {
     staffNotes          String?
     ChatMessage         ChatMessage[]
     isPublic            Boolean        @default(false)
+    isPriority          Boolean        @default(false)
     usersInGroup        User[]         @relation("groupTickets")
     PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
 
@@ -116,13 +117,14 @@ model Session {
 }
 
 model Assignment {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    isActive  Boolean  @default(true)
-    isHidden  Boolean  @default(false)
-    Ticket    Ticket[]
+    id         Int      @id @default(autoincrement())
+    name       String
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @default(now()) @updatedAt
+    isActive   Boolean  @default(true)
+    isHidden   Boolean  @default(false)
+    isPriority Boolean  @default(false)
+    Ticket     Ticket[]
 }
 
 model Location {
@@ -176,8 +178,7 @@ model groupTickets {
 enum UserRole {
     STUDENT
     STAFF
-    CONCIERGE
-    ADMIN
+    INTERN
 }
 
 enum TicketStatus {

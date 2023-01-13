@@ -10,7 +10,7 @@ import {
   User,
   UserRole,
 } from '@prisma/client';
-import { router, protectedProcedure, protectedStaffProcedure } from '../trpc';
+import { router, protectedProcedure, protectedStaffProcedure, protectedNotStudentProcedure } from '../trpc';
 import { z } from 'zod';
 
 export const ticketRouter = router({
@@ -36,6 +36,7 @@ export const ticketRouter = router({
             { status: TicketStatus.ASSIGNED },
             { status: TicketStatus.ABSENT },
           ],
+          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
           ...(input.personalQueueName && { personalQueueName: input.personalQueueName }),
         },
       });
@@ -50,12 +51,26 @@ export const ticketRouter = router({
         },
       });
 
+      const assignment = await ctx.prisma.assignment.findUnique({
+        where: {
+          id: input.assignmentId,
+        },
+      });
+
+      if (!assignment) {
+        return;
+      }
+
+      // If a ticket is made with a priority assigment, it's a priority ticket
+      const isPriority = assignment?.isPriority;
+
       const ticket = await ctx.prisma.ticket.create({
         data: {
           description: input.description,
           isPublic: input.isPublic ?? false,
           locationDescription: input.locationDescription,
           usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
+          isPriority: isPriority,
           assignment: {
             connect: {
               id: input.assignmentId,
@@ -100,6 +115,11 @@ export const ticketRouter = router({
       const channel = ably.channels.get('tickets');
       await channel.publish('new-ticket', ticketWithNames[0]);
 
+      if (isPriority && ticket.personalQueueId === null) {
+        const staffChannel = ably.channels.get('staff-broadcast');
+        await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
+      }
+
       return ticketWithNames[0];
     }),
 
@@ -134,7 +154,7 @@ export const ticketRouter = router({
       });
     }),
 
-  assignTickets: protectedStaffProcedure
+  assignTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -173,7 +193,7 @@ export const ticketRouter = router({
       });
     }),
 
-  resolveTickets: protectedStaffProcedure
+  resolveTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -204,7 +224,7 @@ export const ticketRouter = router({
       });
     }),
 
-  markAsAbsent: protectedProcedure
+  markAsAbsent: protectedNotStudentProcedure
     .input(
       z.object({
         ticketId: z.number(),
@@ -226,6 +246,37 @@ export const ticketRouter = router({
         for (const ticket of tickets) {
           const channel = ably.channels.get(`ticket-${ticket.id}`);
           await channel.publish('ticket-marked-as-absent', ticket);
+        }
+        return tickets;
+      });
+    }),
+
+  markAsPriority: protectedNotStudentProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        isPriority: z.boolean(), // True for mark, false for unmark
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const ticket: Ticket = await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { isPriority: input.isPriority },
+      });
+
+      await convertTicketToTicketWithNames([ticket], ctx).then(async tickets => {
+        const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+        const channel = ably.channels.get('tickets');
+        await channel.publish('tickets-marked-as-priority', tickets);
+
+        for (const ticket of tickets) {
+          const ticketChannel = ably.channels.get(`ticket-${ticket.id}`);
+          await ticketChannel.publish('ticket-marked-as-priority', ticket);
+        }
+
+        if (input.isPriority && ticket.personalQueueId === null) {
+          const staffChannel = ably.channels.get('staff-broadcast');
+          await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
         }
         return tickets;
       });
@@ -266,7 +317,7 @@ export const ticketRouter = router({
       });
     }),
 
-  requeueTickets: protectedStaffProcedure
+  requeueTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -297,7 +348,7 @@ export const ticketRouter = router({
       });
     }),
 
-  reopenTickets: protectedStaffProcedure
+  reopenTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -495,7 +546,7 @@ export const ticketRouter = router({
       });
     }),
 
-  setStaffNotes: protectedStaffProcedure
+  setStaffNotes: protectedNotStudentProcedure
     .input(
       z.object({
         ticketId: z.number(),
