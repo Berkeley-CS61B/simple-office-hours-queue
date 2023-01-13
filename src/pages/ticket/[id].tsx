@@ -47,7 +47,11 @@ const TicketPage: NextPage = () => {
 
   const userRole = session?.user?.role;
 
-  const authorized = userRole === UserRole.STAFF || ticket?.createdByUserId === userId || ticket?.isPublic;
+  const authorized =
+    userRole === UserRole.STAFF ||
+    userRole === UserRole.INTERN ||
+    ticket?.createdByUserId === userId ||
+    ticket?.isPublic;
 
   /**
    * If the ticket doesn't exist or user doesn't have correct access,

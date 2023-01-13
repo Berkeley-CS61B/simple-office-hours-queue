@@ -10,7 +10,7 @@ import {
   User,
   UserRole,
 } from '@prisma/client';
-import { router, protectedProcedure, protectedStaffProcedure } from '../trpc';
+import { router, protectedProcedure, protectedStaffProcedure, protectedNotStudentProcedure } from '../trpc';
 import { z } from 'zod';
 
 export const ticketRouter = router({
@@ -153,7 +153,7 @@ export const ticketRouter = router({
       });
     }),
 
-  assignTickets: protectedStaffProcedure
+  assignTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -192,7 +192,7 @@ export const ticketRouter = router({
       });
     }),
 
-  resolveTickets: protectedStaffProcedure
+  resolveTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -223,7 +223,7 @@ export const ticketRouter = router({
       });
     }),
 
-  markAsAbsent: protectedProcedure
+  markAsAbsent: protectedNotStudentProcedure
     .input(
       z.object({
         ticketId: z.number(),
@@ -250,7 +250,7 @@ export const ticketRouter = router({
       });
     }),
 
-  markAsPriority: protectedStaffProcedure
+  markAsPriority: protectedNotStudentProcedure
     .input(
       z.object({
         ticketId: z.number(),
@@ -311,7 +311,7 @@ export const ticketRouter = router({
       });
     }),
 
-  requeueTickets: protectedStaffProcedure
+  requeueTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -342,7 +342,7 @@ export const ticketRouter = router({
       });
     }),
 
-  reopenTickets: protectedStaffProcedure
+  reopenTickets: protectedNotStudentProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
@@ -540,7 +540,7 @@ export const ticketRouter = router({
       });
     }),
 
-  setStaffNotes: protectedStaffProcedure
+  setStaffNotes: protectedNotStudentProcedure
     .input(
       z.object({
         ticketId: z.number(),

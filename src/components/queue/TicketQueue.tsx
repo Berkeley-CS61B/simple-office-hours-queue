@@ -198,7 +198,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs isFitted variant='enclosed' isLazy>
+      <Tabs defaultIndex={1} isFitted variant='enclosed' isLazy>
         <TabList
           overflowY='hidden'
           sx={{

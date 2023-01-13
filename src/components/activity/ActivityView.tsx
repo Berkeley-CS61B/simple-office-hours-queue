@@ -30,13 +30,13 @@ const ActivityView = () => {
         ) : (
           <>
             <Flex>
-              <Button mr={4} onClick={toggleHelpedTable} hidden={user.role !== UserRole.STAFF}>
+              <Button mr={4} onClick={toggleHelpedTable} hidden={user.role === UserRole.STUDENT}>
                 {isHelpedTableOpen ? 'Hide ' : 'Show '} helped tickets
               </Button>
               <Button onClick={toggleCreatedTable}>{isCreatedTableOpen ? 'Hide ' : 'Show '} created tickets</Button>
             </Flex>
 
-            <Box hidden={user.role !== UserRole.STAFF}>
+            <Box hidden={user.role === UserRole.STUDENT}>
               <Collapse in={isHelpedTableOpen} animateOpacity>
                 <ActivityTable
                   tickets={userTickets?.helpedTickets ?? []}

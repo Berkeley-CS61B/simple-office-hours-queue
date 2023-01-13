@@ -178,8 +178,7 @@ model groupTickets {
 enum UserRole {
     STUDENT
     STAFF
-    CONCIERGE
-    ADMIN
+    INTERN
 }
 
 enum TicketStatus {

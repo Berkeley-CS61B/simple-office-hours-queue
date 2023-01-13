@@ -22,12 +22,13 @@ const TicketCard = (props: TicketCardProps) => {
 
   const hoverColor = useColorModeValue('#dddddd', DARK_HOVER_COLOR);
   const isStaff = userRole === UserRole.STAFF;
+  const isIntern = userRole === UserRole.INTERN;
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isAbsent = ticket.status === TicketStatus.ABSENT;
   const isPriority = ticket.isPriority;
-  const canUserClickOnTicket = ticket.isPublic || isStaff || ticket.createdByUserId === userId;
+  const canUserClickOnTicket = ticket.isPublic || isStaff || isIntern || ticket.createdByUserId === userId;
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
@@ -134,10 +135,14 @@ const TicketCard = (props: TicketCardProps) => {
             <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
               Approve
             </Button>
-            <Button onClick={handleHelpTicket} hidden={!isStaff || !isOpen} colorScheme='whatsapp'>
+            <Button onClick={handleHelpTicket} hidden={(!isStaff && !isIntern) || !isOpen} colorScheme='whatsapp'>
               Help
             </Button>
-            <Button onClick={handleResolveTicket} hidden={!isStaff || !isAssigned} colorScheme='whatsapp'>
+            <Button
+              onClick={handleResolveTicket}
+              hidden={(!isStaff && !isIntern) || !isAssigned}
+              colorScheme='whatsapp'
+            >
               Resolve
             </Button>
             <Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent} colorScheme='red'>
@@ -151,12 +156,15 @@ const TicketCard = (props: TicketCardProps) => {
             >
               {isPriority ? 'Unmark' : 'Mark'} as priority
             </Button>
+            <Button hidden={!isAssigned || !isIntern || isPriority} ml={2} colorScheme='yellow'>
+              Escalate
+            </Button>
             {usersInGroup === undefined && ticket.isPublic ? (
               <Spinner />
             ) : (
               <Button
                 onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
-                hidden={isStaff || !ticket.isPublic}
+                hidden={isStaff || isIntern || !ticket.isPublic}
                 colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
               >
                 {isCurrentUserInGroup ? 'Leave' : 'Join'}
