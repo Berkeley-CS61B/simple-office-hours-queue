@@ -28,7 +28,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
-  const markAsPriorityMutation  = trpc.ticket.markAsPriority.useMutation();
+  const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -80,11 +80,11 @@ const TicketButtons = (props: TicketCardProps) => {
   };
 
   const handleMarkAsPriority = async () => {
-	await markAsPriorityMutation.mutateAsync({
-	  ticketId: ticket.id,
-	  isPriority: !isPriority,
-	});
-  }
+    await markAsPriorityMutation.mutateAsync({
+      ticketId: ticket.id,
+      isPriority: !isPriority,
+    });
+  };
 
   return (
     <Flex justifyContent='center'>
@@ -121,7 +121,12 @@ const TicketButtons = (props: TicketCardProps) => {
       >
         Reopen
       </Button>
-      <Button m={4} onClick={handleCloseTicket} hidden={(isStaff || isIntern) || (!isPending && !isOpen)} colorScheme='red'>
+      <Button
+        m={4}
+        onClick={handleCloseTicket}
+        hidden={isStaff || isIntern || (!isPending && !isOpen)}
+        colorScheme='red'
+      >
         Close
       </Button>
       <Button
@@ -132,12 +137,7 @@ const TicketButtons = (props: TicketCardProps) => {
       >
         {isPriority ? 'Unmark' : 'Mark'} as priority
       </Button>
-      <Button
-        onClick={handleMarkAsPriority}
-        hidden={!isIntern || !isAssigned || isPriority}
-        m={4}
-        colorScheme='purple'
-      >
+      <Button onClick={handleMarkAsPriority} hidden={!isIntern || !isAssigned || isPriority} m={4} colorScheme='purple'>
         Escalate
       </Button>
       {isGetUsersLoading && ticket.isPublic ? (
