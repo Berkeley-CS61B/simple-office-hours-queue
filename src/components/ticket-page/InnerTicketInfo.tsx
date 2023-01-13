@@ -40,7 +40,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
   const isIntern = userRole === UserRole.INTERN;
-  const helpOrJoin = isStaff ? 'Help' : 'Join';
+  const helpOrJoin = (isStaff || isIntern) ? 'Help' : 'Join';
 
   const canSeeName =
     userId === ticket.createdByUserId ||
