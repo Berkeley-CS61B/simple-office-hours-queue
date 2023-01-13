@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { DARK_MODE_COLOR } from '../../utils/constants';
+import { uppercaseFirstLetter } from '../../utils/utils';
 import NamePopoverForm from './NamePopoverForm';
 
 const AvatarDropdown = () => {
@@ -50,7 +51,17 @@ const AvatarDropdown = () => {
                   <Text fontSize='xl'>{session?.user?.email}</Text>
                 )}
               </Center>
-              <br />
+              <Text
+                textAlign='center'
+                mt={1}
+                mb={2}
+                bgGradient='linear(to-l, #BD49FE, #16C6FF)'
+                bgClip='text'
+                fontSize='xl'
+                fontWeight='extrabold'
+              >
+                {uppercaseFirstLetter(session.user?.role ?? '')}
+              </Text>
               <MenuDivider />
               <MenuItem onClick={() => signOut()}>Sign out</MenuItem>
             </MenuList>
