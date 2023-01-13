@@ -36,6 +36,7 @@ export const ticketRouter = router({
             { status: TicketStatus.ASSIGNED },
             { status: TicketStatus.ABSENT },
           ],
+          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
           ...(input.personalQueueName && { personalQueueName: input.personalQueueName }),
         },
       });
@@ -114,7 +115,7 @@ export const ticketRouter = router({
       const channel = ably.channels.get('tickets');
       await channel.publish('new-ticket', ticketWithNames[0]);
 
-      if (isPriority) {
+      if (isPriority && ticket.personalQueueId === null) {
         const staffChannel = ably.channels.get('staff-broadcast');
         await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
       }
@@ -268,7 +269,7 @@ export const ticketRouter = router({
         const channel = ably.channels.get('tickets');
         await channel.publish('tickets-marked-as-priority', tickets);
 
-        if (input.isPriority) {
+        if (input.isPriority && ticket.personalQueueId === null) {
           const staffChannel = ably.channels.get('staff-broadcast');
           await staffChannel.publish('tickets-marked-as-priority', 'There is a new priority ticket');
         }

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
 import { UserRole } from '@prisma/client';
+import { uppercaseFirstLetter } from '../../utils/utils';
 
 interface ChatProps {
   ticketId: number;
@@ -129,8 +130,7 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName}
-          {sentByUserRole === 'STAFF' ? ' (Staff)' : ''}:
+          {sentByName + " (" + uppercaseFirstLetter(sentByUserRole) + ")"}
         </Text>
         {content}
       </Flex>

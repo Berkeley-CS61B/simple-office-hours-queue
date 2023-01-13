@@ -52,6 +52,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'all-tickets-closed',
       'ticket-closed',
+	  'tickets-marked-as-priority',
     ];
     const shouldInvalidatePending = [
       'new-ticket',
@@ -115,8 +116,9 @@ const TicketQueue = (props: TicketQueueProps) => {
   const priorityTickets = useMemo(() => {
     const priorityPending = pendingTickets?.filter(ticket => ticket.isPriority);
     const priorityOpen = openTickets?.filter(ticket => ticket.isPriority);
-    return [...(priorityPending ?? []), ...(priorityOpen ?? [])];
-  }, [openTickets, pendingTickets]);
+	const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
+    return [...(priorityPending ?? []), ...(priorityOpen ?? []), ...(priorityAssigned ?? [])];
+  }, [openTickets, pendingTickets, assignedTickets]);
 
   // Refresh the assigned tickets every minute so the timer updates
   useEffect(() => {
@@ -138,7 +140,7 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /* Tickets that the current user is assigned to or has created */
   const getMyTickets = () => {
-    if (userRole === UserRole.STAFF) {
+    if (userRole === UserRole.STAFF || userRole === UserRole.INTERN) {
       return assignedTickets?.filter(ticket => ticket.helpedByUserId === userId);
     }
 
@@ -169,7 +171,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       case TicketStatus.OPEN:
         return removePriorityTickets(openTickets ?? []);
       case TicketStatus.ASSIGNED:
-        return assignedTickets ?? [];
+        return removePriorityTickets(assignedTickets ?? []);
       case TicketStatus.PENDING:
         return removePriorityTickets(pendingTickets ?? []);
       case TicketStatus.ABSENT:
@@ -198,7 +200,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs defaultIndex={1} isFitted variant='enclosed' isLazy>
+      <Tabs defaultIndex={0} isFitted variant='enclosed' isLazy>
         <TabList
           overflowY='hidden'
           sx={{

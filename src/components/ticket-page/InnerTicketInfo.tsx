@@ -39,12 +39,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
+  const isIntern = userRole === UserRole.INTERN;
   const helpOrJoin = isStaff ? 'Help' : 'Join';
 
   const canSeeName =
     userId === ticket.createdByUserId ||
     isCurrentUserInGroup ||
-    (isStaff && (isAssigned || isResolved || isClosed || isAbsent));
+    ((isStaff || isIntern) && (isAssigned || isResolved || isClosed || isAbsent));
 
   const { isLoading: isGetUsersLoading } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },

@@ -150,13 +150,18 @@ const TicketCard = (props: TicketCardProps) => {
             </Button>
             <Button
               onClick={handleMarkAsPriority}
-              hidden={!isStaff || (!isPending && !isOpen)}
+              hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
               ml={2}
-              colorScheme='yellow'
+              colorScheme='purple'
             >
               {isPriority ? 'Unmark' : 'Mark'} as priority
             </Button>
-            <Button hidden={!isAssigned || !isIntern || isPriority} ml={2} colorScheme='yellow'>
+            <Button
+              onClick={handleMarkAsPriority}
+              hidden={!isIntern || !isAssigned || isPriority}
+              ml={2}
+              colorScheme='purple'
+            >
               Escalate
             </Button>
             {usersInGroup === undefined && ticket.isPublic ? (

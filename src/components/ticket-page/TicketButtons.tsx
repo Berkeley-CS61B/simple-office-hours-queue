@@ -28,12 +28,15 @@ const TicketButtons = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const markAsPriorityMutation  = trpc.ticket.markAsPriority.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
   const isStaff = userRole === UserRole.STAFF;
+  const isIntern = userRole === UserRole.INTERN;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isPriority = ticket.isPriority;
 
   const handleResolveTicket = async () => {
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
@@ -76,28 +79,66 @@ const TicketButtons = (props: TicketCardProps) => {
     });
   };
 
+  const handleMarkAsPriority = async () => {
+	await markAsPriorityMutation.mutateAsync({
+	  ticketId: ticket.id,
+	  isPriority: !isPriority,
+	});
+  }
+
   return (
     <Flex justifyContent='center'>
       <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
         Approve
       </Button>
-      <Button m={4} onClick={handleHelpTicket} hidden={!isStaff || !isOpen} colorScheme='whatsapp'>
+      <Button m={4} onClick={handleHelpTicket} hidden={(!isStaff && !isIntern) || !isOpen} colorScheme='whatsapp'>
         Help
       </Button>
-      <Button m={4} onClick={handleResolveTicket} hidden={!isStaff || !isAssigned} colorScheme='whatsapp'>
+      <Button
+        m={4}
+        onClick={handleResolveTicket}
+        hidden={(!isStaff && !isIntern) || !isAssigned}
+        colorScheme='whatsapp'
+      >
         Resolve
       </Button>
-      <Button m={4} onClick={handleRequeueTicket} hidden={!isStaff || !isAssigned} colorScheme='yellow'>
+      <Button m={4} onClick={handleRequeueTicket} hidden={(!isStaff && !isIntern) || !isAssigned} colorScheme='yellow'>
         Requeue
       </Button>
-      <Button m={4} onClick={handleMarkAsAbsent} hidden={!isStaff || isResolved || isClosed} colorScheme='red'>
+      <Button
+        m={4}
+        onClick={handleMarkAsAbsent}
+        hidden={(!isStaff && !isIntern) || isResolved || isClosed}
+        colorScheme='red'
+      >
         {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
       </Button>
-      <Button m={4} onClick={handleReopenTicket} hidden={!isStaff || (!isResolved && !isClosed)} colorScheme='whatsapp'>
+      <Button
+        m={4}
+        onClick={handleReopenTicket}
+        hidden={(!isStaff && !isIntern) || (!isResolved && !isClosed)}
+        colorScheme='whatsapp'
+      >
         Reopen
       </Button>
-      <Button m={4} onClick={handleCloseTicket} hidden={isStaff || (!isPending && !isOpen)} colorScheme='red'>
+      <Button m={4} onClick={handleCloseTicket} hidden={(isStaff || isIntern) || (!isPending && !isOpen)} colorScheme='red'>
         Close
+      </Button>
+      <Button
+        onClick={handleMarkAsPriority}
+        hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
+        m={4}
+        colorScheme='purple'
+      >
+        {isPriority ? 'Unmark' : 'Mark'} as priority
+      </Button>
+      <Button
+        onClick={handleMarkAsPriority}
+        hidden={!isIntern || !isAssigned || isPriority}
+        m={4}
+        colorScheme='purple'
+      >
+        Escalate
       </Button>
       {isGetUsersLoading && ticket.isPublic ? (
         <Spinner />
@@ -105,7 +146,7 @@ const TicketButtons = (props: TicketCardProps) => {
         <Button
           m={4}
           onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
-          hidden={isStaff || !ticket.isPublic || ticket.createdByUserId === userId}
+          hidden={isStaff || isIntern || !ticket.isPublic || ticket.createdByUserId === userId}
           colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
         >
           {isCurrentUserInGroup ? 'Leave' : 'Join'} group
