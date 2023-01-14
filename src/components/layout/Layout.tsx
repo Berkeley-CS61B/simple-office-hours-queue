@@ -28,7 +28,6 @@ const Layout = (props: LayoutProps) => {
   const toast = useToast();
   const { data: session, status } = useSession();
 
-
   useEffect(() => {
     if (!('Notification' in window)) {
       alert('This browser does not support desktop notification. We suggest using a different browser.');
