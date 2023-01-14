@@ -28,13 +28,29 @@ const Layout = (props: LayoutProps) => {
   const toast = useToast();
   const { data: session, status } = useSession();
 
+  const getNotificationPermission = () => {
+    const value = localStorage.getItem("notificationPermission");
+    if (value != null) {
+      return JSON.parse(value);
+    }
+    return false;
+  }
+
+  const disableNotifications = () => {
+    setDeniedPermissionNotification(true);
+    localStorage.setItem("notificationPermission", JSON.stringify(true));
+  }
+
+  const [deniedNotificationPermission, setDeniedPermissionNotification] = useState(getNotificationPermission());
+
   useEffect(() => {
     if (!('Notification' in window)) {
       alert('This browser does not support desktop notification. We suggest using a different browser.');
     } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
-        if (permission === 'denied' || permission === 'default') {
+        if (!deniedNotificationPermission && (permission === 'denied' || permission === 'default')) {
           alert('We highly recommend enabling desktop notifications to receive updates on your queue status.');
+          disableNotifications();
         }
       });
     }
