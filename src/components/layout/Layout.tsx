@@ -30,7 +30,7 @@ const Layout = (props: LayoutProps) => {
 
   useEffect(() => {
     if (!('Notification' in window)) {
-      alert('This browser does not support desktop notification. We suggest using a different browser.');
+      return;
     } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
         if (localStorage.getItem("notificationPermission") == null && (permission === 'denied' || permission === 'default')) {
