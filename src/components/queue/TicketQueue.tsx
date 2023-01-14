@@ -128,16 +128,6 @@ const TicketQueue = (props: TicketQueueProps) => {
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);
 
-  if (!isQueueOpen) {
-    return (
-      <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>
-        <Text fontSize='2xl' fontWeight='bold'>
-          Queue is currently closed
-        </Text>
-      </Flex>
-    );
-  }
-
   /* Tickets that the current user is assigned to or has created */
   const getMyTickets = () => {
     if (userRole === UserRole.STAFF || userRole === UserRole.INTERN) {
@@ -183,6 +173,12 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
+      {!isQueueOpen ?
+        <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>
+          <Text fontSize='2xl' fontWeight='bold'>
+            Queue is currently closed
+          </Text>
+        </Flex> : <></>}
       <Flex flexDir='column' mb={4}>
         <Text fontSize='2xl' mb={2}>
           Your Tickets
