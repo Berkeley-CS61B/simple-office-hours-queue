@@ -61,6 +61,8 @@ For local development we run a docker container serving a mySQL database.
 docker compose up
 ```
 
+Note that if you are using an M1 Mac, you may need to change the docker image in `docker-compose.yaml` to 'arm64v8/mysql'. This is because the official image for MySQl, as of writing, does not currently support the ARM architecture.
+
 
 #### Production
 
