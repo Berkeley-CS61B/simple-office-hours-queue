@@ -37,7 +37,7 @@ Google OAuth is used for authentication.
 
 1. Create a new project on <a target="_blank" href="https://console.developers.google.com">Google Cloud Platform</a>.
 
-2. Press the "Create Credentials" button and select "OAuth client ID". Go throuth the process of filling out the form. Select `External` if you're given the option. Press the "Create Credentials" button again. This time select "Web application" as the application type.
+2. Navigate to the Credentials tab. Press the "Create Credentials" button and select "OAuth client ID". Go throuth the process of filling out the form. Select `External` if you're given the option. Press the "Create Credentials" button again. This time select "Web application" as the application type.
 
 3. Create a new OAuth client ID. Make sure to set the Authorized JavaScript origins to `http://localhost` and redirect URI to `http://localhost:3000/api/auth/callback/google`. When deployed, add new entries, replacing `localhost`/`localhost:3000` to the new URL.
 ![Google Auth setup](/readme-assets/google-config.jpg)
