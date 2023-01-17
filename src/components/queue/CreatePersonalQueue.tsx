@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Box, Button, Flex, Heading, Input, Spinner, Text, useColorModeValue, useToast } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftAddon,
+  Spinner,
+  useColorModeValue,
+  useToast,
+} from '@chakra-ui/react';
 import { sanitizeString } from '../../utils/utils';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
@@ -61,7 +71,7 @@ const CreatePersonalQueue = () => {
           duration: 3000,
           isClosable: true,
         });
-      })
+      });
   };
 
   if (isGetCurrentUserQueueLoading) {
@@ -73,32 +83,18 @@ const CreatePersonalQueue = () => {
       <Heading as='h1' size='xl' mb={4}>
         Create your personal queue!
       </Heading>
-      <Flex
-        direction='column'
-        align='center'
-        justify='center'
-        m={8}
-        p={8}
-        border={`1px solid ${borderColor}`}
-        borderRadius={8}
-      >
-        <Box>
-          <Text fontSize='2xl'>{window.location.origin}/queue/</Text>
-        </Box>
-			  
-        <Box>
+      <Flex direction='column' align='center' justify='center' m={8} p={8} borderRadius={8}>
+        <InputGroup size={['xs', 'sm', 'md', 'lg']} border='2px' borderRadius={8}>
+          <InputLeftAddon children={window.location.origin + '/queue/'} />
           <Input
-		    textAlign='center'
-            fontSize='2xl'
             placeholder='queue-name'
             value={queueName}
             onChange={e => setQueueName(sanitizeString(e.target.value))}
             border='none'
             maxLength={25}
             _focusVisible={{ boxShadow: 'none', outline: 'none' }}
-            ml={-4}
           />
-        </Box>
+        </InputGroup>
       </Flex>
       <Button fontSize='xl' colorScheme='green' p={8} onClick={handleCreateQueue}>
         Check Availability and Create
