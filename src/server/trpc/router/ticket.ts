@@ -57,7 +57,7 @@ export const ticketRouter = router({
         },
       });
 
-      if (!assignment) {
+      if (!assignment || !assignment.isActive) {
         return;
       }
 
