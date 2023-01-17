@@ -85,7 +85,7 @@ const CreatePersonalQueue = () => {
       </Heading>
       <Flex direction='column' align='center' justify='center' m={8} p={8} borderRadius={8}>
         <InputGroup size={['xs', 'sm', 'md', 'lg']} border='2px' borderRadius={8}>
-          <InputLeftAddon children={window.location.origin + '/queue/'} />
+          <InputLeftAddon>{window.location.origin + '/queue/'}</InputLeftAddon>
           <Input
             placeholder='queue-name'
             value={queueName}
