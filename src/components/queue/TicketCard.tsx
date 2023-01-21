@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Router from 'next/router';
 import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } from '@chakra-ui/react';
 import { TicketStatus, UserRole } from '@prisma/client';
@@ -20,6 +21,7 @@ interface TicketCardProps {
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId } = props;
 
+  const [buttonsEnabled, setButtonsEnabled] = useState(true);
   const hoverColor = useColorModeValue('#dddddd', DARK_HOVER_COLOR);
   const isStaff = userRole === UserRole.STAFF;
   const isIntern = userRole === UserRole.INTERN;
@@ -48,16 +50,22 @@ const TicketCard = (props: TicketCardProps) => {
   const isCurrentUserInGroup = usersInGroup?.some(user => user.id === userId);
 
   const handleApproveTicket = async () => {
+    setButtonsEnabled(false);
     await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    setButtonsEnabled(true);
   };
 
   const handleHelpTicket = async () => {
+    setButtonsEnabled(false);
     Router.push(`/ticket/${ticket.id}`);
     await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    setButtonsEnabled(true);
   };
 
   const handleResolveTicket = async () => {
+    setButtonsEnabled(false);
     await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    setButtonsEnabled(true);
   };
 
   const handleTicketPress = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -65,30 +73,40 @@ const TicketCard = (props: TicketCardProps) => {
       return;
     }
 
+    setButtonsEnabled(false);
     Router.push(`/ticket/${ticket.id}`);
+    setButtonsEnabled(true);
   };
 
   const handleJoinGroup = async () => {
     Router.push(`/ticket/${ticket.id}`);
+    setButtonsEnabled(false);
     await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+    setButtonsEnabled(true);
   };
 
   const handleLeaveGroup = async () => {
+    setButtonsEnabled(false);
     await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+    setButtonsEnabled(true);
   };
 
   const handleMarkAsAbsent = async () => {
+    setButtonsEnabled(false);
     await markAsAbsentMutation.mutateAsync({
       ticketId: ticket.id,
       markOrUnmark: ticket.status !== TicketStatus.ABSENT,
     });
+    setButtonsEnabled(true);
   };
 
   const handleMarkAsPriority = async () => {
+    setButtonsEnabled(false);
     await markAsPriorityMutation.mutateAsync({
       ticketId: ticket.id,
       isPriority: !isPriority,
     });
+    setButtonsEnabled(true);
   };
 
   return (
@@ -132,23 +150,40 @@ const TicketCard = (props: TicketCardProps) => {
             </>
           </Text>
           <Box textAlign='right'>
-            <Button onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
+            <Button
+              isLoading={!buttonsEnabled}
+              onClick={handleApproveTicket}
+              hidden={!isStaff || !isPending}
+              colorScheme='whatsapp'
+            >
               Approve
             </Button>
-            <Button onClick={handleHelpTicket} hidden={(!isStaff && !isIntern) || !isOpen} colorScheme='whatsapp'>
+            <Button
+              isLoading={!buttonsEnabled}
+              onClick={handleHelpTicket}
+              hidden={(!isStaff && !isIntern) || !isOpen}
+              colorScheme='whatsapp'
+            >
               Help
             </Button>
             <Button
+              isLoading={!buttonsEnabled}
               onClick={handleResolveTicket}
               hidden={(!isStaff && !isIntern) || !isAssigned}
               colorScheme='whatsapp'
             >
               Resolve
             </Button>
-            <Button onClick={handleMarkAsAbsent} hidden={!isStaff || !isAbsent} colorScheme='red'>
+            <Button
+              isLoading={!buttonsEnabled}
+              onClick={handleMarkAsAbsent}
+              hidden={!isStaff || !isAbsent}
+              colorScheme='red'
+            >
               {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
             </Button>
             <Button
+              isLoading={!buttonsEnabled}
               onClick={handleMarkAsPriority}
               hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
               ml={2}
@@ -157,6 +192,7 @@ const TicketCard = (props: TicketCardProps) => {
               {isPriority ? 'Unmark' : 'Mark'} as priority
             </Button>
             <Button
+              isLoading={!buttonsEnabled}
               onClick={handleMarkAsPriority}
               hidden={!isIntern || !isAssigned || isPriority}
               ml={2}
@@ -168,6 +204,7 @@ const TicketCard = (props: TicketCardProps) => {
               <Spinner />
             ) : (
               <Button
+                isLoading={!buttonsEnabled}
                 onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
                 hidden={isStaff || isIntern || !ticket.isPublic}
                 colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
