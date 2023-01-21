@@ -8,6 +8,7 @@ import { timeDifferenceInMinutes } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
 import React from 'react';
+import { BUTTONS_DISABLED_WAIT_MSG, BUTTONS_DISABLED_WAIT_TIME } from '../ticket-page/TicketButtons';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -21,7 +22,9 @@ interface TicketCardProps {
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId } = props;
 
-  const [buttonsEnabled, setButtonsEnabled] = useState(true);
+  const [areButtonsLoading, setAreButtonsLoading] = useState(false);
+  const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
+
   const hoverColor = useColorModeValue('#dddddd', DARK_HOVER_COLOR);
   const isStaff = userRole === UserRole.STAFF;
   const isIntern = userRole === UserRole.INTERN;
@@ -49,64 +52,74 @@ const TicketCard = (props: TicketCardProps) => {
   );
   const isCurrentUserInGroup = usersInGroup?.some(user => user.id === userId);
 
+  /** To prevent spamming, use loading and disabled state for buttons */
+  const onClickWrapper = (fn: () => Promise<void>) => async () => {
+    setAreButtonsLoading(true);
+    setAreButtonsDisabled(true);
+    await fn();
+    setAreButtonsLoading(false);
+
+    // Keep buttons disabled for 3 seconds
+    setTimeout(() => {
+      setAreButtonsDisabled(false);
+    }, BUTTONS_DISABLED_WAIT_TIME);
+  };
+
   const handleApproveTicket = async () => {
-    setButtonsEnabled(false);
-    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleHelpTicket = async () => {
-    setButtonsEnabled(false);
-    Router.push(`/ticket/${ticket.id}`);
-    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      Router.push(`/ticket/${ticket.id}`);
+      await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleResolveTicket = async () => {
-    setButtonsEnabled(false);
-    await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleTicketPress = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!canUserClickOnTicket || (event.target as HTMLElement).tagName === 'BUTTON') {
       return;
     }
-
-    setButtonsEnabled(false);
     Router.push(`/ticket/${ticket.id}`);
-    setButtonsEnabled(true);
   };
 
   const handleJoinGroup = async () => {
-    Router.push(`/ticket/${ticket.id}`);
-    setButtonsEnabled(false);
-    await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      Router.push(`/ticket/${ticket.id}`);
+      await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+    })();
   };
 
   const handleLeaveGroup = async () => {
-    setButtonsEnabled(false);
-    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+    })();
   };
 
   const handleMarkAsAbsent = async () => {
-    setButtonsEnabled(false);
-    await markAsAbsentMutation.mutateAsync({
-      ticketId: ticket.id,
-      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
-    });
-    setButtonsEnabled(true);
+    onClickWrapper(async () => {
+      await markAsAbsentMutation.mutateAsync({
+        ticketId: ticket.id,
+        markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+      });
+    })();
   };
 
   const handleMarkAsPriority = async () => {
-    setButtonsEnabled(false);
-    await markAsPriorityMutation.mutateAsync({
-      ticketId: ticket.id,
-      isPriority: !isPriority,
-    });
-    setButtonsEnabled(true);
+    await onClickWrapper(() =>
+      markAsPriorityMutation.mutateAsync({
+        ticketId: ticket.id,
+        isPriority: !isPriority,
+      }),
+    )();
   };
 
   return (
@@ -151,7 +164,9 @@ const TicketCard = (props: TicketCardProps) => {
           </Text>
           <Box textAlign='right'>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleApproveTicket}
               hidden={!isStaff || !isPending}
               colorScheme='whatsapp'
@@ -159,7 +174,9 @@ const TicketCard = (props: TicketCardProps) => {
               Approve
             </Button>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleHelpTicket}
               hidden={(!isStaff && !isIntern) || !isOpen}
               colorScheme='whatsapp'
@@ -167,7 +184,9 @@ const TicketCard = (props: TicketCardProps) => {
               Help
             </Button>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleResolveTicket}
               hidden={(!isStaff && !isIntern) || !isAssigned}
               colorScheme='whatsapp'
@@ -175,7 +194,9 @@ const TicketCard = (props: TicketCardProps) => {
               Resolve
             </Button>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleMarkAsAbsent}
               hidden={!isStaff || !isAbsent}
               colorScheme='red'
@@ -183,7 +204,9 @@ const TicketCard = (props: TicketCardProps) => {
               {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
             </Button>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleMarkAsPriority}
               hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
               ml={2}
@@ -192,7 +215,9 @@ const TicketCard = (props: TicketCardProps) => {
               {isPriority ? 'Unmark' : 'Mark'} as priority
             </Button>
             <Button
-              isLoading={!buttonsEnabled}
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
               onClick={handleMarkAsPriority}
               hidden={!isIntern || !isAssigned || isPriority}
               ml={2}
@@ -204,7 +229,9 @@ const TicketCard = (props: TicketCardProps) => {
               <Spinner />
             ) : (
               <Button
-                isLoading={!buttonsEnabled}
+                title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+                disabled={areButtonsDisabled}
+                isLoading={areButtonsLoading}
                 onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
                 hidden={isStaff || isIntern || !ticket.isPublic}
                 colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}

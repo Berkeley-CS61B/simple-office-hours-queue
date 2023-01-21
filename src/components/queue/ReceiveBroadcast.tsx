@@ -14,7 +14,10 @@ const ReceiveBroadcast = () => {
   const { data: session } = useSession();
 
   useChannel('broadcast', 'broadcast', msg => {
+    const toastId = 'broadcast';
+    if (toast.isActive(toastId)) return;
     toast({
+      id: toastId,
       title: msg.data,
       position: 'top',
       status: 'info',
@@ -32,10 +35,14 @@ const ReceiveBroadcast = () => {
   });
 
   useChannel('staff-broadcast', msg => {
-    if (session?.user?.role !== UserRole.STAFF) {
+    if (session?.user?.role !== UserRole.STAFF && session?.user?.role !== UserRole.INTERN) {
       return;
     }
+
+    const toastId = 'staff-broadcast';
+    if (toast.isActive(toastId)) return;
     toast({
+      id: toastId,
       title: msg.data,
       position: 'top',
       status: 'warning',
