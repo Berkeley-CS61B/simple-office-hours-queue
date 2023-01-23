@@ -61,8 +61,8 @@ const GroupedView = (props: GroupedViewProps) => {
           </Tag>
           {getButton(groupedTickets[attribute] ?? [], true, groupedBy)}
           <Box ref={parent}>
-            {(groupedTickets[attribute] ?? []).map((ticket: TicketWithNames) => (
-              <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+            {(groupedTickets[attribute] ?? []).map((ticket, idx) => (
+              <TicketCard idx={idx} key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
             ))}
           </Box>
         </Box>
@@ -185,8 +185,8 @@ const TicketList = (props: TicketListProps) => {
         />
       ) : (
         <Box ref={parent}>
-          {tickets.map(ticket => (
-            <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+          {tickets.map((ticket, idx) => (
+            <TicketCard key={ticket.id} idx={idx} ticket={ticket} userRole={userRole} userId={userId} />
           ))}
         </Box>
       )}

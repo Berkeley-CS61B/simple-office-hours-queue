@@ -14,13 +14,14 @@ interface TicketCardProps {
   ticket: TicketWithNames;
   userRole: UserRole;
   userId: string;
+  idx: number;
 }
 
 /**
  * TicketCard component that displays the details of a ticket
  */
 const TicketCard = (props: TicketCardProps) => {
-  const { ticket, userRole, userId } = props;
+  const { ticket, userRole, userId, idx } = props;
 
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
@@ -135,15 +136,20 @@ const TicketCard = (props: TicketCardProps) => {
       className={canUserClickOnTicket ? 'hover-cursor' : ''}
       _hover={canUserClickOnTicket ? { backgroundColor: hoverColor, transition: '0.3s' } : {}}
     >
-      <Flex hidden={!ticket.isPublic}>
-        <StarIcon mt={-6} ml={-6} color='gold' />
-        {usersInGroup === undefined ? (
-          <Spinner />
-        ) : (
-          <Text mt={-7} ml={2}>
-            Public ({usersInGroup.length} student{usersInGroup.length === 1 ? '' : 's'} in group)
-          </Text>
-        )}
+      <Flex direction='row' mt={-7} ml={-6}>
+        <Text fontStyle='italic' color='gray.500'>
+          #{idx}
+        </Text>
+        <Flex hidden={!ticket.isPublic}>
+          <StarIcon color='gold' mt={1} ml={2} mr={2} />
+          {usersInGroup === undefined ? (
+            <Spinner />
+          ) : (
+            <Text>
+              Public ({usersInGroup.length} student{usersInGroup.length === 1 ? '' : 's'} in group)
+            </Text>
+          )}
+        </Flex>
       </Flex>
       <Text fontSize='2xl'>{ticket.description}</Text>
       <Divider my={4} />
