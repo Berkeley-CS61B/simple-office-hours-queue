@@ -1,4 +1,4 @@
-export const COURSE_ID = '61B';
+export const COURSE_ID = 'CS61B';
 
 export const EMAIL_REGEX =
   /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
