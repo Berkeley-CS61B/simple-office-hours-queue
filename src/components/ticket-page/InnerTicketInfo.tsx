@@ -32,6 +32,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const editTicketDescriptionMutation = trpc.ticket.editTicketDescription.useMutation();
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -84,7 +85,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-closed',
       'ticket-joined',
       'ticket-left',
-	  'ticket-marked-as-priority'
+	    'ticket-marked-as-priority',
+      'ticket-description-changed',
     ];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'tickets-marked-as-priority'];
@@ -131,6 +133,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     );
   };
 
+  const handleDescriptionChange = async () => {
+    //if ticket.status ==
+    await editTicketDescriptionMutation.mutateAsync( {ticketId: ticket.id, description: "else"} );
+    //context.ticket.getTicket.invalidate( {id: ticket.id} );
+  }
+
   return (
     <>
       <Text fontSize='2xl'>
@@ -152,6 +160,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text mt={4} mb={4}>
         <span className='semibold'>Description:</span> {ticket.description}
       </Text>
+
+      <Button onClick={handleDescriptionChange}>
+        Change description
+      </Button>
 
       <Box mb={4}>
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>

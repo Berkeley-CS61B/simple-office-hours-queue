@@ -45,6 +45,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-marked-as-absent',
       'all-tickets-closed',
       'tickets-marked-as-priority',
+      'ticket-description-changed',
     ];
     const shouldInvalidateAssigned = [
       'tickets-assigned',
@@ -52,7 +53,8 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'all-tickets-closed',
       'ticket-closed',
-	  'tickets-marked-as-priority',
+	    'tickets-marked-as-priority',
+      'ticket-description-changed',
     ];
     const shouldInvalidatePending = [
       'new-ticket',
@@ -60,6 +62,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'ticket-closed',
       'tickets-marked-as-priority',
+      'ticket-description-changed',
     ];
     const shouldInvalidateAbsent = ['tickets-marked-as-absent'];
 
