@@ -8,6 +8,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { Select, SingleValue } from 'chakra-react-select';
 import { TabType } from './TicketQueue';
+import HandleAllConfirmationModal from '../modals/HandleAllConfirmationModal';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
@@ -76,9 +77,11 @@ const GroupedView = (props: GroupedViewProps) => {
  */
 const TicketList = (props: TicketListProps) => {
   const { tickets, ticketStatus, userRole, userId } = props;
+
   const [isGrouped, setIsGrouped] = useState(false);
   const [groupedTickets, setGroupedTickets] = useState<GroupedTicket>({});
   const [groupedBy, setGroupedBy] = useState<keyof TicketWithNames>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -102,6 +105,42 @@ const TicketList = (props: TicketListProps) => {
     });
   };
 
+  const handleAllText = () => {
+    switch (ticketStatus) {
+      case TicketStatus.PENDING:
+        return 'approve all';
+      case TicketStatus.OPEN:
+        return 'help all';
+      case TicketStatus.ASSIGNED:
+        return 'resolve all';
+      default:
+        return 'Error: Invalid ticket status';
+    }
+  };
+
+  /** Which method is currently being used */
+  const getHandleAllMethod = () => {
+    switch (ticketStatus) {
+      case TicketStatus.PENDING:
+        return () => {
+          handleApproveTickets(tickets);
+          setIsModalOpen(false);
+        };
+      case TicketStatus.OPEN:
+        return () => {
+          handleAssignTickets(tickets);
+          setIsModalOpen(false);
+        };
+      case TicketStatus.ASSIGNED:
+        return () => {
+          handleResolveTickets(tickets);
+          setIsModalOpen(false);
+        };
+      default:
+        return () => {};
+    }
+  };
+
   /**
    * Helper method to return appropriate buttons (approve, help, resolve)
    * Note: We can't use isGrouped here because that applies to the entire list
@@ -114,19 +153,19 @@ const TicketList = (props: TicketListProps) => {
     switch (ticketStatus) {
       case TicketStatus.PENDING:
         return (
-          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleApproveTickets(tickets)}>
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => setIsModalOpen(true)}>
             Approve all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
       case TicketStatus.OPEN:
         return (
-          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleAssignTickets(tickets)}>
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => setIsModalOpen(true)}>
             Help all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
       case TicketStatus.ASSIGNED:
         return (
-          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => handleResolveTickets(tickets)}>
+          <Button mb={4} ml={4} alignSelf='flex-end' onClick={() => setIsModalOpen(true)}>
             Resolve all {inGroupedView && 'for ' + tickets[0]?.[groupedKey]}
           </Button>
         );
@@ -166,11 +205,7 @@ const TicketList = (props: TicketListProps) => {
     <Flex flexDir='column'>
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
-          <Select
-            options={groupByOptions}
-            placeholder='Group by...'
-            onChange={handleGroupTickets}
-          />
+          <Select options={groupByOptions} placeholder='Group by...' onChange={handleGroupTickets} />
         </Box>
         {getButton(tickets, false, groupedBy ?? 'assignmentName')}
       </Flex>
@@ -190,6 +225,13 @@ const TicketList = (props: TicketListProps) => {
           ))}
         </Box>
       )}
+
+      <HandleAllConfirmationModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        handleConfirm={getHandleAllMethod()}
+        handleAllText={handleAllText()}
+      />
     </Flex>
   );
 };
