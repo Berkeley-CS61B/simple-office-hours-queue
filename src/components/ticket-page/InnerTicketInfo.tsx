@@ -23,7 +23,7 @@ import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
-import { TicketWithNames } from '../../server/trpc/router/ticket';
+import { ticketRouter, TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';

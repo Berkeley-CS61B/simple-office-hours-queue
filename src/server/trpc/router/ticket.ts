@@ -143,7 +143,7 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await ticketChannel.publish('ticket-description-changed', undefined);
+      await ticketChannel.publish('ticket-description-changed', input.description);
 
       //const channel = ably.channels.get(`tickets`);
       //console.log(channel);
