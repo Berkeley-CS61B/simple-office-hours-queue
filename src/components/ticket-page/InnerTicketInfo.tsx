@@ -7,7 +7,7 @@ import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
-import { TicketWithNames } from '../../server/trpc/router/ticket';
+import { ticketRouter, TicketWithNames } from '../../server/trpc/router/ticket';
 import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
@@ -150,7 +150,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleDescriptionChange = async (newDescription: string) => {
-    console.log(newDescription);
     if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
       await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
     }
@@ -176,7 +175,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
 
       <Text mt={4}>
-        Description:
+        Description: {ticket.description}
       </Text>
 
       <Editable
@@ -184,13 +183,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         mb={4}
         onSubmit={handleDescriptionChange}
         fontWeight='semibold'
-        defaultValue={ticket.description ?? ""}
         display='flex'
         justifyContent='center'
         fontSize='md'
         isPreviewFocusable={false}
       >
-        <EditablePreview />
         <Textarea as={EditableTextarea} textAlign='left'/>
         <EditableControls />
       </Editable>
