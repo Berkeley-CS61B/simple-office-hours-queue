@@ -12,3 +12,5 @@ export const DARK_MODE_COLOR = '#121212';
 export const DARK_GRAY_COLOR = '#222222';
 
 export const DARK_HOVER_COLOR = '#2f2f2f';
+
+export const STARTER_TICKET_DESCRIPTION = "Null Pointer Exception";

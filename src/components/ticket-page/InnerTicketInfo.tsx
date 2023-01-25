@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip } from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip, Textarea, Editable, EditablePreview, EditableTextarea, useEditableControls, ButtonGroup, IconButton} from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -59,6 +60,21 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     },
   );
 
+  const EditableControls = () => {
+    const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
+
+    return isEditing ? (
+      <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
+        <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
+        <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <Flex ml={2} mt={1} justifyContent='center'>
+        <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+      </Flex>
+    );
+  };
+
   const context = trpc.useContext();
 
   // Refresh the ticket every minute so the timer updates
@@ -85,7 +101,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-closed',
       'ticket-joined',
       'ticket-left',
-	    'ticket-marked-as-priority',
+      'ticket-marked-as-priority',
       'ticket-description-changed',
     ];
 
@@ -134,9 +150,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleDescriptionChange = async () => {
-    //if ticket.status ==
-    await editTicketDescriptionMutation.mutateAsync( {ticketId: ticket.id, description: "else"} );
-    //context.ticket.getTicket.invalidate( {id: ticket.id} );
+    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
+      await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: "doggy" });
+    }
   }
 
   return (
@@ -157,13 +173,24 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         </>
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
+
       <Text mt={4} mb={4}>
-        <span className='semibold'>Description:</span> {ticket.description}
+        Description:
       </Text>
 
-      <Button onClick={handleDescriptionChange}>
-        Change description
-      </Button>
+      <Editable
+        onSubmit={handleDescriptionChange}
+        textAlign='center'
+        fontWeight='semibold'
+        display='flex'
+        defaultValue={ticket.description ?? ""}
+        fontSize='xl'
+        isPreviewFocusable={false}
+      >
+        <EditablePreview />
+        <Textarea as={EditableTextarea} />
+        <EditableControls />
+      </Editable>
 
       <Box mb={4}>
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
