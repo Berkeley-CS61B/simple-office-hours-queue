@@ -1,6 +1,22 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip, Textarea, Editable, EditablePreview, EditableTextarea, useEditableControls, ButtonGroup, IconButton} from '@chakra-ui/react';
+import {
+  Text,
+  Spinner,
+  Box,
+  List,
+  ListItem,
+  Tag,
+  Flex,
+  Button,
+  Tooltip,
+  Textarea,
+  Editable,
+  EditableTextarea,
+  useEditableControls,
+  ButtonGroup,
+  IconButton,
+} from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
@@ -19,8 +35,12 @@ interface InnerTicketInfoProps {
   userId: string;
 }
 
-const EditableControls = () => {
+const EditableControls = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
   const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
+
+  useEffect(() => {
+    setIsEditing(isEditing);
+  }, [isEditing]);
 
   return isEditing ? (
     <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
@@ -42,6 +62,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
   const { showNotification } = useNotification();
@@ -57,7 +79,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
   const isIntern = userRole === UserRole.INTERN;
-  const helpOrJoin = (isStaff || isIntern) ? 'Help' : 'Join';
+  const helpOrJoin = isStaff || isIntern ? 'Help' : 'Join';
 
   const canSeeName =
     userId === ticket.createdByUserId ||
@@ -120,6 +142,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         if (message === 'ticket-marked-as-absent') {
           update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
         }
+        if (message === 'ticket-description-changed') {
+          update = `updated`;
+        }
         if (!shouldNotNotifyStudent.includes(message)) {
           showNotification(`Ticket ${update}`, `Your ticket has been ${update}`);
         }
@@ -150,11 +175,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleDescriptionChange = async (newDescription: string) => {
-    console.log(newDescription);
-    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
-      await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
-    }
-  }
+    await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
+  };
 
   return (
     <>
@@ -175,27 +197,28 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
 
-      <Text mt={4}>
-        Description:
-      </Text>
+      <Text mt={4}>Description:</Text>
+      <Flex justifyContent='center'>
+        <Text hidden={isEditingDescription} fontWeight='semibold' mt={2}>
+          {ticket.description}
+        </Text>
+        <Editable
+          hidden={ticket.status !== TicketStatus.PENDING && ticket.status !== TicketStatus.OPEN}
+          onSubmit={handleDescriptionChange}
+          fontWeight='semibold'
+          submitOnBlur={false}
+          defaultValue={ticket.description ?? ''}
+          display='flex'
+          justifyContent='center'
+          fontSize='md'
+          isPreviewFocusable={false}
+        >
+          <Textarea as={EditableTextarea} textAlign='left' />
+          <EditableControls setIsEditing={setIsEditingDescription} />
+        </Editable>
+      </Flex>
 
-      <Editable
-        ml={4}
-        mb={4}
-        onSubmit={handleDescriptionChange}
-        fontWeight='semibold'
-        defaultValue={ticket.description ?? ""}
-        display='flex'
-        justifyContent='center'
-        fontSize='md'
-        isPreviewFocusable={false}
-      >
-        <EditablePreview />
-        <Textarea as={EditableTextarea} textAlign='left'/>
-        <EditableControls />
-      </Editable>
-
-      <Box mb={4}>
+      <Box mb={4} mt={4}>
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
           {ticket.assignmentName}
         </Tag>
