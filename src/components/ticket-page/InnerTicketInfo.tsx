@@ -19,6 +19,21 @@ interface InnerTicketInfoProps {
   userId: string;
 }
 
+const EditableControls = () => {
+  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
+
+  return isEditing ? (
+    <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
+      <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
+    </ButtonGroup>
+  ) : (
+    <Flex ml={2} mt={1} justifyContent='center'>
+      <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+    </Flex>
+  );
+};
+
 /**
  * InnerTicketInfo component that displays the ticket information (left column)
  */
@@ -59,21 +74,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       },
     },
   );
-
-  const EditableControls = () => {
-    const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
-
-    return isEditing ? (
-      <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
-        <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
-        <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
-      </ButtonGroup>
-    ) : (
-      <Flex ml={2} mt={1} justifyContent='center'>
-        <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
-      </Flex>
-    );
-  };
 
   const context = trpc.useContext();
 
@@ -149,9 +149,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     );
   };
 
-  const handleDescriptionChange = async () => {
+  const handleDescriptionChange = async (newDescription: string) => {
+    console.log(newDescription);
     if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
-      await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: "doggy" });
+      await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
     }
   }
 
@@ -174,21 +175,23 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
 
-      <Text mt={4} mb={4}>
+      <Text mt={4}>
         Description:
       </Text>
 
       <Editable
+        ml={4}
+        mb={4}
         onSubmit={handleDescriptionChange}
-        textAlign='center'
         fontWeight='semibold'
-        display='flex'
         defaultValue={ticket.description ?? ""}
-        fontSize='xl'
+        display='flex'
+        justifyContent='center'
+        fontSize='md'
         isPreviewFocusable={false}
       >
         <EditablePreview />
-        <Textarea as={EditableTextarea} />
+        <Textarea as={EditableTextarea} textAlign='left'/>
         <EditableControls />
       </Editable>
 
