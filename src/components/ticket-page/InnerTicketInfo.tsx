@@ -1,6 +1,22 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip, Textarea, Editable, EditablePreview, EditableTextarea, useEditableControls, ButtonGroup, IconButton} from '@chakra-ui/react';
+import {
+  Text,
+  Spinner,
+  Box,
+  List,
+  ListItem,
+  Tag,
+  Flex,
+  Button,
+  Tooltip,
+  Textarea,
+  Editable,
+  EditableTextarea,
+  useEditableControls,
+  ButtonGroup,
+  IconButton,
+} from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
@@ -57,7 +73,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
   const isIntern = userRole === UserRole.INTERN;
-  const helpOrJoin = (isStaff || isIntern) ? 'Help' : 'Join';
+  const helpOrJoin = isStaff || isIntern ? 'Help' : 'Join';
 
   const canSeeName =
     userId === ticket.createdByUserId ||
@@ -153,7 +169,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
       await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
     }
-  }
+  };
 
   return (
     <>
@@ -174,9 +190,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
 
-      <Text mt={4}>
-        Description: {ticket.description}
-      </Text>
+      <Text mt={4}>Description: {ticket.description}</Text>
 
       <Editable
         ml={4}
@@ -188,7 +202,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         fontSize='md'
         isPreviewFocusable={false}
       >
-        <Textarea as={EditableTextarea} textAlign='left'/>
+        <Textarea as={EditableTextarea} textAlign='left' />
         <EditableControls />
       </Editable>
 
