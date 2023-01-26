@@ -87,7 +87,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 	  'ticket-marked-as-priority'
     ];
 
-    const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'tickets-marked-as-priority'];
+    const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
 
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });
