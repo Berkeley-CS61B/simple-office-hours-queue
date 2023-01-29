@@ -11,9 +11,11 @@ import {
   useToast,
   Switch,
   Tooltip,
+  Textarea
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 import { PersonalQueue } from '@prisma/client';
+import { STARTER_TICKET_DESCRIPTION } from '../../utils/constants';
 
 interface Assignment {
   id: number;
@@ -34,7 +36,7 @@ interface CreateTicketFormProps {
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
   const { arePublicTicketsEnabled, personalQueue } = props;
-  const [description, setDescription] = useState<string>('');
+  const [description, setDescription] = useState<string>(STARTER_TICKET_DESCRIPTION);
   const [locationDescription, setLocationDescription] = useState<string>('');
   const [assignment, setAssignment] = useState<Assignment>();
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
@@ -116,14 +118,13 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     <Box p={8} pt={2} width='full' borderWidth={1} borderRadius={8} boxShadow='lg'>
       <Box my={4} textAlign='left'>
         <form onSubmit={onSubmit}>
-          <FormControl isRequired={isPublic}>
+          <FormControl isRequired>
             <FormLabel>Description</FormLabel>
-            <Input
+            <Textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              type='text'
-              placeholder='Null Pointer Exception'
               name='description'
+              size="md"
             />
           </FormControl>
           <FormControl mt={6} isRequired>
