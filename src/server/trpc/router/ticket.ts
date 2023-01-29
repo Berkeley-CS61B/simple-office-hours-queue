@@ -134,7 +134,7 @@ export const ticketRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
 
-      const update = ctx.prisma.ticket.update({
+      await ctx.prisma.ticket.update({
         where: {
           id: input.ticketId,
         },
@@ -145,12 +145,10 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await ticketChannel.publish('ticket-description-changed', input.description);
+      await ticketChannel.publish('ticket-description-changed', undefined);
 
       const channel = ably.channels.get(`tickets`);
       await channel.publish('ticket-description-changed', undefined)
-
-      return update;
     }),
 
   approveTickets: protectedStaffProcedure
