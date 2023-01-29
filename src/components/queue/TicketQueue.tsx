@@ -192,8 +192,8 @@ const TicketQueue = (props: TicketQueueProps) => {
             You have no tickets
           </Text>
         )}
-        {getMyTickets()?.map(ticket => (
-          <TicketCard key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+        {getMyTickets()?.map((ticket, idx) => (
+          <TicketCard idx={idx} key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
         ))}
       </Flex>
       <Text fontSize='2xl' mb={5}>

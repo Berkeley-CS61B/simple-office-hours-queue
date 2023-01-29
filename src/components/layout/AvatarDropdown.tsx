@@ -25,7 +25,7 @@ const AvatarDropdown = () => {
   const { onOpen: onPopoverOpen, onClose: onPopoverClose, isOpen: isPopoverOpen } = useDisclosure();
 
   return (
-    <>
+    <Box mt={2}>
       {status === 'loading' && <SkeletonCircle />}
       {status === 'authenticated' && (
         <Box className={!isPopoverOpen ? 'first-div-overflow-hidden' : ''}>
@@ -73,7 +73,7 @@ const AvatarDropdown = () => {
           Sign in
         </Text>
       )}
-    </>
+    </Box>
   );
 };
 

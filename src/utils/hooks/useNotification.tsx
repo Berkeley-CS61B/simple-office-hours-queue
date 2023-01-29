@@ -11,6 +11,7 @@ const useNotification = () => {
     const notification = new Notification(message ?? 'New Office Hours Notification', {
       body,
       icon: '/favicon.ico',
+	  tag: '1',
       ...options,
     });
 

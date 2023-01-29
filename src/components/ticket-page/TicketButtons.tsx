@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Flex, Spinner } from '@chakra-ui/react';
 import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -12,6 +13,9 @@ interface TicketCardProps {
   setShowConfetti: (showConfetti: boolean) => void;
 }
 
+export const BUTTONS_DISABLED_WAIT_TIME = 3000;
+export const BUTTONS_DISABLED_WAIT_MSG = 'Please wait 3 seconds before clicking again.';
+
 /**
  * Renders the buttons on the ticket info page. This is in a separate component
  * because InnerTicketInfo was getting too big.
@@ -19,6 +23,8 @@ interface TicketCardProps {
 const TicketButtons = (props: TicketCardProps) => {
   const { ticket, userId, userRole, isCurrentUserInGroup, isGetUsersLoading, setShowConfetti } = props;
 
+  const [areButtonsLoading, setAreButtonsLoading] = useState(false);
+  const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
@@ -38,63 +44,114 @@ const TicketButtons = (props: TicketCardProps) => {
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isPriority = ticket.isPriority;
 
+  /** To prevent spamming, use loading and disabled state for buttons */
+  const onClickWrapper = (fn: () => Promise<void>) => async () => {
+    setAreButtonsLoading(true);
+    setAreButtonsDisabled(true);
+    await fn();
+    setAreButtonsLoading(false);
+
+    // Keep buttons disabled for 3 seconds
+    setTimeout(() => {
+      setAreButtonsDisabled(false);
+    }, BUTTONS_DISABLED_WAIT_TIME);
+  };
+
   const handleResolveTicket = async () => {
-    await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }).then(() => {
+    onClickWrapper(async () => {
+      await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
       setShowConfetti(true);
-    });
+    })();
   };
 
   const handleRequeueTicket = async () => {
-    await requeueTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    onClickWrapper(async () => {
+      await requeueTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleHelpTicket = async () => {
-    await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    onClickWrapper(async () => {
+      await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleReopenTicket = async () => {
-    await reopenTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    onClickWrapper(async () => {
+      await reopenTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleApproveTicket = async () => {
-    await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    onClickWrapper(async () => {
+      await approveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
   };
 
   const handleCloseTicket = async () => {
-    await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    onClickWrapper(async () => {
+      await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    })();
   };
 
   const handleJoinGroup = async () => {
-    await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+    onClickWrapper(async () => {
+      await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+    })();
   };
 
   const handleLeaveGroup = async () => {
-    await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+    onClickWrapper(async () => {
+      await leaveTicketMutation.mutateAsync({ ticketId: ticket.id });
+    })();
   };
 
   const handleMarkAsAbsent = async () => {
-    await markAsAbsentMutation.mutateAsync({
-      ticketId: ticket.id,
-      markOrUnmark: ticket.status !== TicketStatus.ABSENT,
-    });
+    onClickWrapper(async () => {
+      await markAsAbsentMutation.mutateAsync({
+        ticketId: ticket.id,
+        markOrUnmark: ticket.status !== TicketStatus.ABSENT,
+      });
+    })();
   };
 
   const handleMarkAsPriority = async () => {
-    await markAsPriorityMutation.mutateAsync({
-      ticketId: ticket.id,
-      isPriority: !isPriority,
-    });
+    await onClickWrapper(() =>
+      markAsPriorityMutation.mutateAsync({
+        ticketId: ticket.id,
+        isPriority: !isPriority,
+      }),
+    )();
   };
 
   return (
     <Flex justifyContent='center'>
-      <Button m={4} onClick={handleApproveTicket} hidden={!isStaff || !isPending} colorScheme='whatsapp'>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        m={4}
+        onClick={handleApproveTicket}
+        hidden={!isStaff || !isPending}
+        colorScheme='whatsapp'
+      >
         Approve
       </Button>
-      <Button m={4} onClick={handleHelpTicket} hidden={(!isStaff && !isIntern) || !isOpen} colorScheme='whatsapp'>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        m={4}
+        onClick={handleHelpTicket}
+        hidden={(!isStaff && !isIntern) || !isOpen}
+        colorScheme='whatsapp'
+      >
         Help
       </Button>
       <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
         m={4}
         onClick={handleResolveTicket}
         hidden={(!isStaff && !isIntern) || !isAssigned}
@@ -102,10 +159,21 @@ const TicketButtons = (props: TicketCardProps) => {
       >
         Resolve
       </Button>
-      <Button m={4} onClick={handleRequeueTicket} hidden={(!isStaff && !isIntern) || !isAssigned} colorScheme='yellow'>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        m={4}
+        onClick={handleRequeueTicket}
+        hidden={(!isStaff && !isIntern) || !isAssigned}
+        colorScheme='yellow'
+      >
         Requeue
       </Button>
       <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
         m={4}
         onClick={handleMarkAsAbsent}
         hidden={(!isStaff && !isIntern) || isResolved || isClosed}
@@ -114,6 +182,9 @@ const TicketButtons = (props: TicketCardProps) => {
         {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
       </Button>
       <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
         m={4}
         onClick={handleReopenTicket}
         hidden={(!isStaff && !isIntern) || (!isResolved && !isClosed)}
@@ -122,6 +193,9 @@ const TicketButtons = (props: TicketCardProps) => {
         Reopen
       </Button>
       <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
         m={4}
         onClick={handleCloseTicket}
         hidden={isStaff || isIntern || (!isPending && !isOpen)}
@@ -130,6 +204,9 @@ const TicketButtons = (props: TicketCardProps) => {
         Close
       </Button>
       <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
         onClick={handleMarkAsPriority}
         hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
         m={4}
@@ -137,13 +214,24 @@ const TicketButtons = (props: TicketCardProps) => {
       >
         {isPriority ? 'Unmark' : 'Mark'} as priority
       </Button>
-      <Button onClick={handleMarkAsPriority} hidden={!isIntern || !isAssigned || isPriority} m={4} colorScheme='purple'>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        onClick={handleMarkAsPriority}
+        hidden={!isIntern || !isAssigned || isPriority}
+        m={4}
+        colorScheme='purple'
+      >
         Escalate
       </Button>
       {isGetUsersLoading && ticket.isPublic ? (
         <Spinner />
       ) : (
         <Button
+          title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+          disabled={areButtonsDisabled}
+          isLoading={areButtonsLoading}
           m={4}
           onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
           hidden={isStaff || isIntern || !ticket.isPublic || ticket.createdByUserId === userId}

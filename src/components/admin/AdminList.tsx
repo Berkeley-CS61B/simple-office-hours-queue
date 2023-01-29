@@ -40,7 +40,10 @@ const AdminList = (props: AdminListProps) => {
 
   const handleCreate = () => {
     if (createText.length === 0) {
+      const toastId = 'create-name-error';
+      if (toast.isActive(toastId)) return;
       toast({
+        id: toastId,
         title: 'Error',
         description: 'Name must be longer than 0 characters',
         status: 'error',
