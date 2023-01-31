@@ -125,7 +125,7 @@ export const ticketRouter = router({
       return ticketWithNames[0];
     }),
 
-  editTicketDescription: protectedProcedure 
+  editTicketDescription: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
@@ -133,7 +133,6 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-
       await ctx.prisma.ticket.update({
         where: {
           id: input.ticketId,
@@ -148,7 +147,7 @@ export const ticketRouter = router({
       await ticketChannel.publish('ticket-description-changed', undefined);
 
       const channel = ably.channels.get(`tickets`);
-      await channel.publish('ticket-description-changed', undefined)
+      await channel.publish('ticket-description-changed', undefined);
     }),
 
   approveTickets: protectedStaffProcedure
@@ -392,11 +391,11 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-joined', undefined);
+      await channel.publish('ticket-joined', { id: input.ticketId });
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-joined', undefined);
+      await innerChannel.publish('ticket-joined', { id: input.ticketId });
     }),
 
   leaveTicketGroup: protectedProcedure
@@ -430,11 +429,11 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-left', undefined);
+      await channel.publish('ticket-left', { id: input.ticketId });
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-left', undefined);
+      await innerChannel.publish('ticket-left', { id: input.ticketId });
     }),
 
   sendChatMessage: protectedProcedure

@@ -53,7 +53,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-requeued',
       'all-tickets-closed',
       'ticket-closed',
-	    'tickets-marked-as-priority',
+      'tickets-marked-as-priority',
       'ticket-description-changed',
     ];
     const shouldInvalidatePending = [
@@ -119,7 +119,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const priorityTickets = useMemo(() => {
     const priorityPending = pendingTickets?.filter(ticket => ticket.isPriority);
     const priorityOpen = openTickets?.filter(ticket => ticket.isPriority);
-	const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
+    const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
     return [...(priorityPending ?? []), ...(priorityOpen ?? []), ...(priorityAssigned ?? [])];
   }, [openTickets, pendingTickets, assignedTickets]);
 
@@ -176,12 +176,15 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
-      {!isQueueOpen ?
+      {!isQueueOpen ? (
         <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>
           <Text fontSize='2xl' fontWeight='bold'>
             Queue is currently closed
           </Text>
-        </Flex> : <></>}
+        </Flex>
+      ) : (
+        <></>
+      )}
       <Flex flexDir='column' mb={4}>
         <Text fontSize='2xl' mb={2}>
           Your Tickets
