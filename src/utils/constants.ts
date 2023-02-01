@@ -13,4 +13,4 @@ export const DARK_GRAY_COLOR = '#222222';
 
 export const DARK_HOVER_COLOR = '#2f2f2f';
 
-export const STARTER_TICKET_DESCRIPTION = "Null Pointer Exception";
+export const STARTER_TICKET_DESCRIPTION = "I am encountering a bug when running [this test]. I tried to use the debugger at [these parts] but could not figure out the problem. I think that it may be related to [this potential issue] but I don't 100% know how to fix it.";
