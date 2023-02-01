@@ -2,17 +2,7 @@ import { useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
-import {
-  Box,
-  FormControl,
-  Input,
-  FormLabel,
-  Button,
-  useToast,
-  Switch,
-  Tooltip,
-  Textarea
-} from '@chakra-ui/react';
+import { Box, FormControl, Input, FormLabel, Button, useToast, Switch, Tooltip, Textarea } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 import { PersonalQueue } from '@prisma/client';
 import { STARTER_TICKET_DESCRIPTION } from '../../utils/constants';
@@ -124,7 +114,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               value={description}
               onChange={e => setDescription(e.target.value)}
               name='description'
-              size="md"
+              size='md'
+              maxLength={190}
             />
           </FormControl>
           <FormControl mt={6} isRequired>

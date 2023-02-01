@@ -21,7 +21,7 @@ const ReceiveBroadcast = () => {
       title: msg.data,
       position: 'top',
       status: 'info',
-      duration: 3000,
+      duration: 8000,
       isClosable: true,
       containerStyle: {
         zIndex: 9999,
