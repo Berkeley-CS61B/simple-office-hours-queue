@@ -125,7 +125,7 @@ const TicketButtons = (props: TicketCardProps) => {
   };
 
   return (
-    <Flex justifyContent='center'>
+    <Flex justifyContent='center' flexDirection={['column', 'column', 'column', 'row']}>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
         disabled={areButtonsDisabled}
@@ -142,6 +142,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleHelpTicket}
         hidden={(!isStaff && !isIntern) || !isOpen}
         colorScheme='whatsapp'
@@ -153,6 +154,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleResolveTicket}
         hidden={(!isStaff && !isIntern) || !isAssigned}
         colorScheme='whatsapp'
@@ -164,6 +166,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleRequeueTicket}
         hidden={(!isStaff && !isIntern) || !isAssigned}
         colorScheme='yellow'
@@ -175,6 +178,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleMarkAsAbsent}
         hidden={(!isStaff && !isIntern) || isResolved || isClosed}
         colorScheme='red'
@@ -186,6 +190,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleReopenTicket}
         hidden={(!isStaff && !isIntern) || (!isResolved && !isClosed)}
         colorScheme='whatsapp'
@@ -197,6 +202,7 @@ const TicketButtons = (props: TicketCardProps) => {
         disabled={areButtonsDisabled}
         isLoading={areButtonsLoading}
         m={4}
+        mt={[1, 1, 1, 4]}
         onClick={handleCloseTicket}
         hidden={isStaff || isIntern || (!isPending && !isOpen)}
         colorScheme='red'
@@ -210,6 +216,7 @@ const TicketButtons = (props: TicketCardProps) => {
         onClick={handleMarkAsPriority}
         hidden={!isStaff || (!isPending && !isOpen && !isAssigned)}
         m={4}
+        mt={[1, 1, 1, 4]}
         colorScheme='purple'
       >
         {isPriority ? 'Unmark' : 'Mark'} as priority
@@ -221,6 +228,7 @@ const TicketButtons = (props: TicketCardProps) => {
         onClick={handleMarkAsPriority}
         hidden={!isIntern || !isAssigned || isPriority}
         m={4}
+        mt={[1, 1, 1, 4]}
         colorScheme='purple'
       >
         Escalate
@@ -233,6 +241,7 @@ const TicketButtons = (props: TicketCardProps) => {
           disabled={areButtonsDisabled}
           isLoading={areButtonsLoading}
           m={4}
+          mt={[1, 1, 1, 4]}
           onClick={isCurrentUserInGroup ? handleLeaveGroup : handleJoinGroup}
           hidden={isStaff || isIntern || !ticket.isPublic || ticket.createdByUserId === userId}
           colorScheme={isCurrentUserInGroup ? 'red' : 'whatsapp'}
