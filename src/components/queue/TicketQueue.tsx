@@ -112,7 +112,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   }, [openTickets, pendingTickets, assignedTickets]);
 
   const setTabs = (): TabType[] => {
-    let tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
+    const tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
 
     if (userRole !== UserRole.STUDENT) {
       if (isPendingStageEnabled) {
