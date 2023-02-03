@@ -2,7 +2,7 @@ import { TicketStatus, UserRole } from '@prisma/client';
 import TicketCard from './TicketCard';
 import { Text, Button, Flex, Box } from '@chakra-ui/react';
 import { uppercaseFirstLetter } from '../../utils/utils';
-import { RefObject, useState } from 'react';
+import { RefObject, useEffect, useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
@@ -23,13 +23,25 @@ interface TicketListProps {
 const TicketList = (props: TicketListProps) => {
   const { tickets: initialTickets, ticketStatus, userRole, userId } = props;
 
-  const context = trpc.useContext();
   const [displayedTickets, setDisplayedTickets] = useState<TicketWithNames[]>(initialTickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filterBy, setFilterBy] = useState('-');
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const [parent]: [RefObject<HTMLDivElement>, (enabled: boolean) => void] = useAutoAnimate();
+
+  useEffect(() => {
+    // Change displayed tickets according to current filter
+    if (filterBy === '-') {
+      setDisplayedTickets(initialTickets);
+    } else {
+      const newDisplayedTickets = initialTickets.filter(
+        ticket => ticket.assignmentName === filterBy || ticket.locationName === filterBy,
+      );
+      setDisplayedTickets(newDisplayedTickets);
+    }
+  }, [initialTickets]);
 
   const assignmentList = Array.from(new Set(initialTickets.map(ticket => ticket.assignmentName)));
   const locationList = Array.from(new Set(initialTickets.map(ticket => ticket.locationName)));
@@ -40,26 +52,22 @@ const TicketList = (props: TicketListProps) => {
     id: option,
   }));
 
-
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
-	// context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.PENDING });
   };
 
   const handleAssignTickets = async (tickets: TicketWithNames[]) => {
     await assignTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
-	// context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
   };
 
   const handleResolveTickets = async (tickets: TicketWithNames[]) => {
     await resolveTicketsMutation.mutateAsync({
       ticketIds: tickets.map(ticket => ticket.id),
     });
-	// context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
   };
 
   const handleAllText = () => {
@@ -100,14 +108,17 @@ const TicketList = (props: TicketListProps) => {
 
   const handleFilterTickets = (filterBy: SingleValue<typeof filterByOptions[0]>) => {
     if (filterBy?.value === '-') {
+      setFilterBy('-');
       setDisplayedTickets(initialTickets);
       return;
     }
 
     if (filterBy?.value === undefined) {
+      setFilterBy('-');
       return;
     }
 
+    setFilterBy(filterBy.value);
     // Allows filtering by assignmentName or locationName
     const newDisplayedTickets = initialTickets.filter(
       ticket => ticket.assignmentName === filterBy?.value || ticket.locationName === filterBy?.value,
