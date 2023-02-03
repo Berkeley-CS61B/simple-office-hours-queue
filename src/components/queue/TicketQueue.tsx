@@ -115,10 +115,10 @@ const TicketQueue = (props: TicketQueueProps) => {
     let tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
 
     if (userRole !== UserRole.STUDENT) {
-      tabs = [...tabs, TicketStatus.ABSENT];
       if (isPendingStageEnabled) {
-        tabs.splice(2, 0, TicketStatus.PENDING);
+        tabs.push(TicketStatus.PENDING);
       }
+      tabs.push(TicketStatus.ABSENT);
       if (priorityTickets.length > 0) {
         tabs.unshift('Priority');
       }
