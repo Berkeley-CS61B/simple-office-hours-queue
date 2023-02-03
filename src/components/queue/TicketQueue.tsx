@@ -84,18 +84,6 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   });
 
-  const setTabs = (): TabType[] => {
-    if (userRole == UserRole.STUDENT) {
-      return [TicketStatus.OPEN, TicketStatus.ASSIGNED];
-    } else if (!isPendingStageEnabled) {
-      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.ABSENT];
-    } else {
-      return ['Priority', TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketStatus.PENDING, TicketStatus.ABSENT];
-    }
-  };
-
-  const tabs = setTabs();
-
   const { data: openTickets, isLoading: isGetOpenTicketsLoading } = trpc.ticket.getTicketsWithStatus.useQuery(
     { status: TicketStatus.OPEN, personalQueueName: personalQueue?.name },
     { refetchOnWindowFocus: false },
@@ -122,6 +110,23 @@ const TicketQueue = (props: TicketQueueProps) => {
     const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
     return [...(priorityPending ?? []), ...(priorityOpen ?? []), ...(priorityAssigned ?? [])];
   }, [openTickets, pendingTickets, assignedTickets]);
+
+  const setTabs = (): TabType[] => {
+    const tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
+
+    if (userRole !== UserRole.STUDENT) {
+      if (isPendingStageEnabled) {
+        tabs.push(TicketStatus.PENDING);
+      }
+      tabs.push(TicketStatus.ABSENT);
+      if (priorityTickets.length > 0) {
+        tabs.unshift('Priority');
+      }
+    }
+    return tabs;
+  };
+
+  const tabs = setTabs();
 
   // Refresh the assigned tickets every minute so the timer updates
   useEffect(() => {
@@ -213,12 +218,7 @@ const TicketQueue = (props: TicketQueueProps) => {
           }}
         >
           {tabs.map(tab => (
-            <Tab
-              hidden={tab === 'Priority' && priorityTickets.length === 0}
-              key={tab}
-              flexShrink={0}
-              color={tab === 'Priority' && priorityTickets.length > 0 ? 'red.300' : ''}
-            >
+            <Tab key={tab} flexShrink={0} color={tab === 'Priority' ? 'red.300' : undefined}>
               {uppercaseFirstLetter(tab) + (isGetTicketsLoading ? '(?)' : ' (' + getTickets(tab).length + ')')}
             </Tab>
           ))}
