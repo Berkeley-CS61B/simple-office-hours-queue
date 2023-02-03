@@ -132,6 +132,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   useEffect(() => {
     const interval = setInterval(() => {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
+      context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
     }, 60000);
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);

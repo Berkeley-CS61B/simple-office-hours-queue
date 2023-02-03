@@ -163,10 +163,16 @@ const TicketCard = (props: TicketCardProps) => {
           </Tag>
         </Box>
         <Flex flexDirection='column'>
+          <Text
+            hidden={ticket.status !== TicketStatus.OPEN && ticket.status !== TicketStatus.PENDING}
+            fontSize='lg'
+            mb={2}
+			alignSelf='flex-end'
+          >
+            Created {timeDifferenceInMinutes(new Date(), ticket.createdAt)} minute(s) ago
+          </Text>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
-            <>
-              Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
-            </>
+            Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
           </Text>
           <Box textAlign='right'>
             <Button
