@@ -43,7 +43,7 @@ export const ticketRouter = router({
       });
 
       if (doesStudentHaveActiveTicket) {
-        return;
+        // return;
       }
 
       const pendingStageEnabled = await ctx.prisma.settings.findUnique({
