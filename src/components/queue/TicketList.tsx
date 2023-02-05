@@ -149,7 +149,7 @@ const TicketList = (props: TicketListProps) => {
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
           <Select
-            value={filterByOptions.find(option => option.value === filterBy)}
+            value={{ label: filterBy, value: filterBy, id: filterBy }}
             options={filterByOptions}
             placeholder='Filter by...'
             onChange={handleFilterTickets}
