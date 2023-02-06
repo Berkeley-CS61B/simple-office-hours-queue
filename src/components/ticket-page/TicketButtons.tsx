@@ -204,10 +204,10 @@ const TicketButtons = (props: TicketCardProps) => {
         m={4}
         mt={[1, 1, 1, 4]}
         onClick={handleCloseTicket}
-        hidden={isStaff || isIntern || (!isPending && !isOpen)}
+        hidden={isResolved || isClosed || ((isStaff || isIntern) && isAssigned)}
         colorScheme='red'
       >
-        Close
+        Delete
       </Button>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
