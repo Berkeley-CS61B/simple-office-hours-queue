@@ -156,7 +156,7 @@ const TicketList = (props: TicketListProps) => {
           />
         </Box>
         <Button
-          hidden={userRole !== UserRole.STAFF || ticketStatus === 'Priority'}
+          hidden={userRole !== UserRole.STAFF || ticketStatus === 'Priority' || ticketStatus === TicketStatus.ABSENT}
           mb={4}
           ml={4}
           alignSelf='flex-end'

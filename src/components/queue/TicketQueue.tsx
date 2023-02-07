@@ -73,7 +73,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-marked-as-priority',
       'ticket-description-changed',
     ];
-    const shouldInvalidateAbsent = ['tickets-marked-as-absent'];
+    const shouldInvalidateAbsent = ['tickets-marked-as-absent', 'ticket-closed'];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
       context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
@@ -142,6 +142,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     const interval = setInterval(() => {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
+	  context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ABSENT });
     }, 60000);
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);

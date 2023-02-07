@@ -6,9 +6,10 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { timeDifferenceInMinutes } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
-import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from '../../utils/constants';
+import { DARK_GRAY_COLOR, DARK_HOVER_COLOR, FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import React from 'react';
 import { BUTTONS_DISABLED_WAIT_MSG, BUTTONS_DISABLED_WAIT_TIME } from '../ticket-page/TicketButtons';
+import Countdown from '../ticket-page/Countdown';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -23,6 +24,7 @@ interface TicketCardProps {
 const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId, idx } = props;
 
+  const context = trpc.useContext();
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
 
@@ -42,6 +44,7 @@ const TicketCard = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
+  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
@@ -123,6 +126,15 @@ const TicketCard = (props: TicketCardProps) => {
     )();
   };
 
+  const handleCloseTicket = async () => {
+    await onClickWrapper(() => closeTicketMutation.mutateAsync({ ticketId: ticket.id }))();
+  };
+
+  const deleteTicketThenRefresh = async () => {
+    await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    context.ticket.getTicketsWithStatus.invalidate({ status: ticket.status });
+  };
+
   return (
     <Box
       mb={4}
@@ -167,13 +179,22 @@ const TicketCard = (props: TicketCardProps) => {
             hidden={ticket.status !== TicketStatus.OPEN && ticket.status !== TicketStatus.PENDING}
             fontSize='lg'
             mb={2}
-			alignSelf='flex-end'
+            alignSelf='flex-end'
           >
             Created {timeDifferenceInMinutes(new Date(), ticket.createdAt)} minute(s) ago
           </Text>
           <Text hidden={ticket.status !== TicketStatus.ASSIGNED} fontSize='lg' mb={2}>
             Being helped by {ticket.helpedByName} for {timeDifferenceInMinutes(new Date(), ticket.helpedAt)} minute(s)
           </Text>
+          {ticket.markedAbsentAt && ticket.status === TicketStatus.ABSENT && (
+            <Box alignSelf='flex-end'>
+              <Countdown
+                onComplete={deleteTicketThenRefresh}
+                key={ticket.markedAbsentAt.getTime()}
+                initialTimeInMs={FIVE_MINUTES_IN_MS - (new Date().getTime() - ticket.markedAbsentAt.getTime())}
+              />
+            </Box>
+          )}
           <Box textAlign='right'>
             <Button
               title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
@@ -204,6 +225,17 @@ const TicketCard = (props: TicketCardProps) => {
               colorScheme='whatsapp'
             >
               Resolve
+            </Button>
+            <Button
+              title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+              disabled={areButtonsDisabled}
+              isLoading={areButtonsLoading}
+              onClick={handleCloseTicket}
+              mr={2}
+              hidden={!isStaff || !isAbsent}
+              colorScheme='red'
+            >
+              Delete
             </Button>
             <Button
               title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
