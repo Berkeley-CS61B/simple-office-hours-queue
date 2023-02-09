@@ -146,7 +146,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         if (message === 'ticket-marked-as-absent') {
           update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
         }
-        if (message === 'ticket-description-changed') {
+        if (message === 'ticket-description-changed' || message == 'ticket-location-description-changed') {
           update = `updated`;
         }
         if (!shouldNotNotifyStudent.includes(message)) {
@@ -185,7 +185,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleLocationDescriptionChange = async (newLocationDescription: string) => {
-    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.open) {
+    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
       await editTicketLocationDescriptionMutation.mutateAsync({ticketId: ticket.id, locationDescription: newLocationDescription});
     }
   }
