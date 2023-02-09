@@ -12,6 +12,7 @@ import {
   Tooltip,
   Textarea,
   Editable,
+  EditableInput,
   EditableTextarea,
   useEditableControls,
   ButtonGroup,
@@ -35,7 +36,26 @@ interface InnerTicketInfoProps {
   userId: string;
 }
 
-const EditableControls = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
+const EditableControlsDescription = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
+  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
+
+  useEffect(() => {
+    setIsEditing(isEditing);
+  }, [isEditing]);
+
+  return isEditing ? (
+    <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
+      <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
+    </ButtonGroup>
+  ) : (
+    <Flex ml={2} mt={1} justifyContent='center'>
+      <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+    </Flex>
+  );
+};
+
+const EditableControlsLocationDescription = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
   const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
 
   useEffect(() => {
@@ -71,6 +91,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const editTicketDescriptionMutation = trpc.ticket.editTicketDescription.useMutation();
+  const editTicketLocationDescriptionMutation = trpc.ticket.editTicketLocationDescription.useMutation();
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -125,6 +146,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-left',
       'ticket-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-description-changed',
     ];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
@@ -180,6 +202,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   };
 
+  const handleLocationDescriptionChange = async (newLocationDescription: string) => {
+    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.open) {
+      await editTicketLocationDescriptionMutation.mutateAsync({ticketId: ticket.id, locationDescription: newLocationDescription});
+    }
+  }
+
   return (
     <>
       <Text fontSize='2xl'>
@@ -215,7 +243,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           isPreviewFocusable={false}
         >
           <Textarea as={EditableTextarea} textAlign='left' maxLength={190} />
-          <EditableControls setIsEditing={setIsEditingDescription} />
+          <EditableControlsDescription setIsEditing={setIsEditingDescription} />
         </Editable>
       </Flex>
 
@@ -229,8 +257,28 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Box>
 
       <Text mb={3} hidden={!ticket.locationDescription}>
-        <span className='semibold'>Location Description:</span> {ticket.locationDescription}
+        <span className='semibold'>Location Description:</span>
       </Text>
+
+      <Flex justifyContent='center'>
+        <Text hidden={isEditingDescription} fontWeight='semibold' mt={2}>
+          {ticket.locationDescription}
+        </Text>
+        <Editable
+          hidden={ticket.status !== TicketStatus.PENDING && ticket.status !== TicketStatus.OPEN}
+          onSubmit={handleLocationDescriptionChange}
+          fontWeight='semibold'
+          submitOnBlur={false}
+          defaultValue={ticket.locationDescription ?? ''}
+          display='flex'
+          justifyContent='center'
+          fontSize='md'
+          isPreviewFocusable={false}
+        >
+          <Text as={EditableInput} textAlign='left' maxLength={190} />
+          <EditableControlsLocationDescription setIsEditing={setIsEditingDescription} />
+        </Editable>
+      </Flex>
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
