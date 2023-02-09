@@ -36,26 +36,7 @@ interface InnerTicketInfoProps {
   userId: string;
 }
 
-const EditableControlsDescription = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
-  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
-
-  useEffect(() => {
-    setIsEditing(isEditing);
-  }, [isEditing]);
-
-  return isEditing ? (
-    <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
-      <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
-    </ButtonGroup>
-  ) : (
-    <Flex ml={2} mt={1} justifyContent='center'>
-      <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
-    </Flex>
-  );
-};
-
-const EditableControlsLocationDescription = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
+const EditableControls = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
   const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
 
   useEffect(() => {
@@ -83,6 +64,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isEditingLocationDescription, setIsEditingLocationDescription] = useState(false);
 
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
@@ -243,7 +225,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           isPreviewFocusable={false}
         >
           <Textarea as={EditableTextarea} textAlign='left' maxLength={190} />
-          <EditableControlsDescription setIsEditing={setIsEditingDescription} />
+          <EditableControls setIsEditing={setIsEditingDescription} />
         </Editable>
       </Flex>
 
@@ -256,12 +238,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         </Tag>
       </Box>
 
-      <Text mb={3} hidden={!ticket.locationDescription}>
+      <Text hidden={!ticket.locationDescription}>
         <span className='semibold'>Location Description:</span>
       </Text>
 
       <Flex justifyContent='center'>
-        <Text hidden={isEditingDescription} fontWeight='semibold' mt={2}>
+        <Text hidden={isEditingLocationDescription} fontWeight='semibold' mt={2}>
           {ticket.locationDescription}
         </Text>
         <Editable
@@ -276,7 +258,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           isPreviewFocusable={false}
         >
           <Text as={EditableInput} textAlign='left' maxLength={190} />
-          <EditableControlsLocationDescription setIsEditing={setIsEditingDescription} />
+          <EditableControls setIsEditing={setIsEditingLocationDescription} />
         </Editable>
       </Flex>
 
