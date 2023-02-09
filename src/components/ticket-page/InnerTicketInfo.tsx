@@ -12,6 +12,7 @@ import {
   Tooltip,
   Textarea,
   Editable,
+  EditableInput,
   EditableTextarea,
   useEditableControls,
   ButtonGroup,
@@ -63,6 +64,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isEditingLocationDescription, setIsEditingLocationDescription] = useState(false);
 
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
@@ -71,6 +73,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const editTicketDescriptionMutation = trpc.ticket.editTicketDescription.useMutation();
+  const editTicketLocationDescriptionMutation = trpc.ticket.editTicketLocationDescription.useMutation();
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -125,6 +128,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-left',
       'ticket-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-description-changed',
     ];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
@@ -142,7 +146,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         if (message === 'ticket-marked-as-absent') {
           update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
         }
-        if (message === 'ticket-description-changed') {
+        if (message === 'ticket-description-changed' || message == 'ticket-location-description-changed') {
           update = `updated`;
         }
         if (!shouldNotNotifyStudent.includes(message)) {
@@ -179,6 +183,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
     }
   };
+
+  const handleLocationDescriptionChange = async (newLocationDescription: string) => {
+    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
+      await editTicketLocationDescriptionMutation.mutateAsync({ticketId: ticket.id, locationDescription: newLocationDescription});
+    }
+  }
 
   return (
     <>
@@ -228,9 +238,29 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         </Tag>
       </Box>
 
-      <Text mb={3} hidden={!ticket.locationDescription}>
-        <span className='semibold'>Location Description:</span> {ticket.locationDescription}
+      <Text hidden={!ticket.locationDescription}>
+        <span className='semibold'>Location Description:</span>
       </Text>
+
+      <Flex justifyContent='center'>
+        <Text hidden={isEditingLocationDescription} fontWeight='semibold' mt={2}>
+          {ticket.locationDescription}
+        </Text>
+        <Editable
+          hidden={ticket.status !== TicketStatus.PENDING && ticket.status !== TicketStatus.OPEN}
+          onSubmit={handleLocationDescriptionChange}
+          fontWeight='semibold'
+          submitOnBlur={false}
+          defaultValue={ticket.locationDescription ?? ''}
+          display='flex'
+          justifyContent='center'
+          fontSize='md'
+          isPreviewFocusable={false}
+        >
+          <Text as={EditableInput} textAlign='left' maxLength={190} />
+          <EditableControls setIsEditing={setIsEditingLocationDescription} />
+        </Editable>
+      </Flex>
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
