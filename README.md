@@ -4,6 +4,8 @@
 
 SOHQ is an open-source office hours queue that allows students to sign up for office hours and instructors to manage the queue.
 
+For a brief usage guide, click [here](https://docs.google.com/presentation/d/1nPpjBQkf2LSRuIlFPolcVz9_iE3x1sNHgx0nXM867e4/edit?usp=sharing).
+
 ## Installation
 
 ### Prerequisites
