@@ -85,9 +85,9 @@ const Chat = (props: ChatProps) => {
       sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
-
+	   
     if (userId !== session?.user?.id) {
-      showNotification(`New message from ${userName}`, message);
+      showNotification(`New message from ${canSeeName ? userName : 'Anonymous'}`, message);
     }
   });
 
@@ -133,7 +133,6 @@ const Chat = (props: ChatProps) => {
   const allMessages = messages.map((message, index: number) => {
     const { content, sentByName, sentByUserId, sentByUserRole } = message;
     const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
-    // If the ticket is pending or
 
     return (
       <Flex
@@ -147,9 +146,8 @@ const Chat = (props: ChatProps) => {
         borderBottomLeftRadius={amISender ? 5 : 0}
         color='white'
       >
-        {/* TODO: The chat notification still shows name */}
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {canSeeName ? sentByName : 'figure this out' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
+          {canSeeName ? sentByName : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
         </Text>
         {content}
       </Flex>
