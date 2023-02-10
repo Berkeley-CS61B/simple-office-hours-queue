@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
 import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
@@ -25,8 +25,17 @@ export type TabType = TicketStatus | 'Priority';
  */
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole, isPendingStageEnabled, isQueueOpen, userId, personalQueue } = props;
+  const [tabIndex, setTabIndex] = useState(0);
 
   const context = trpc.useContext();
+
+  /** Sets tabIndex if it exists in sessionStorage */
+  useEffect(() => {
+	const tabIndex = sessionStorage.getItem('tabIndex');
+	if (tabIndex) {
+	  setTabIndex(Number(tabIndex));
+	}
+  }, []);
 
   /**
    * Ably channel to receive updates on ticket status.
@@ -64,7 +73,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-marked-as-priority',
       'ticket-description-changed',
     ];
-    const shouldInvalidateAbsent = ['tickets-marked-as-absent'];
+    const shouldInvalidateAbsent = ['tickets-marked-as-absent', 'ticket-closed'];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
       context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
@@ -133,6 +142,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     const interval = setInterval(() => {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
+	  context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ABSENT });
     }, 60000);
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);
@@ -180,6 +190,16 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   };
 
+  /** Puts the tab in session storage */
+  const handleTabChange = (tabIndex: number) => {
+    // router.push({
+    //   pathname: router.pathname,
+    //   query: { tabIndex },
+    // }, undefined, { shallow: true });
+	setTabIndex(tabIndex);
+	sessionStorage.setItem('tabIndex', tabIndex.toString());
+  };
+
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       {!isQueueOpen ? (
@@ -208,7 +228,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       <Text fontSize='2xl' mb={5}>
         Queue
       </Text>
-      <Tabs defaultIndex={0} isFitted variant='enclosed' isLazy>
+      <Tabs index={tabIndex} isFitted variant='enclosed' isLazy onChange={handleTabChange}>
         <TabList
           overflowY='hidden'
           sx={{

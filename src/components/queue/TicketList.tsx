@@ -43,6 +43,16 @@ const TicketList = (props: TicketListProps) => {
     }
   }, [initialTickets]);
 
+  /** Set filterBy if it exists in sessionStorage */
+  useEffect(() => {
+    const filterByFromSessionStorage = sessionStorage.getItem('filterBy');
+    handleFilterTickets({
+      value: filterByFromSessionStorage ?? '-',
+      label: filterByFromSessionStorage ?? '-',
+      id: filterByFromSessionStorage ?? '-',
+    });
+  }, []);
+
   const assignmentList = Array.from(new Set(initialTickets.map(ticket => ticket.assignmentName)));
   const locationList = Array.from(new Set(initialTickets.map(ticket => ticket.locationName)));
 
@@ -110,18 +120,21 @@ const TicketList = (props: TicketListProps) => {
     if (filterBy?.value === '-') {
       setFilterBy('-');
       setDisplayedTickets(initialTickets);
+      sessionStorage.setItem('filterBy', '-');
       return;
     }
 
     if (filterBy?.value === undefined) {
       setFilterBy('-');
+      sessionStorage.setItem('filterBy', '-');
       return;
     }
 
+    sessionStorage.setItem('filterBy', filterBy.value);
     setFilterBy(filterBy.value);
     // Allows filtering by assignmentName or locationName
     const newDisplayedTickets = initialTickets.filter(
-      ticket => ticket.assignmentName === filterBy?.value || ticket.locationName === filterBy?.value,
+      ticket => ticket.assignmentName === filterBy.value || ticket.locationName === filterBy.value,
     );
 
     setDisplayedTickets(newDisplayedTickets);
@@ -135,10 +148,15 @@ const TicketList = (props: TicketListProps) => {
     <Flex flexDir='column'>
       <Flex justifyContent='end' mb={4}>
         <Box width='sm'>
-          <Select options={filterByOptions} placeholder='Filter by...' onChange={handleFilterTickets} />
+          <Select
+            value={{ label: filterBy, value: filterBy, id: filterBy }}
+            options={filterByOptions}
+            placeholder='Filter by...'
+            onChange={handleFilterTickets}
+          />
         </Box>
         <Button
-          hidden={userRole !== UserRole.STAFF || ticketStatus === 'Priority'}
+          hidden={userRole !== UserRole.STAFF || ticketStatus === 'Priority' || ticketStatus === TicketStatus.ABSENT}
           mb={4}
           ml={4}
           alignSelf='flex-end'

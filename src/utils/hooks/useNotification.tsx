@@ -11,9 +11,12 @@ const useNotification = () => {
     const notification = new Notification(message ?? 'New Office Hours Notification', {
       body,
       icon: '/favicon.ico',
-	  tag: '1',
+      tag: '1',
       ...options,
     });
+    // Play a sound when the notification is shown
+    const audio = new Audio('http://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3');
+    audio.play();
 
     notification.onclick = () => {
       window.focus();
