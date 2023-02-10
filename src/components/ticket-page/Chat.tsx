@@ -3,13 +3,13 @@ import { useChannel } from '@ably-labs/react-hooks';
 import { Button, Input, Box, Flex, Text, Spinner, useToast } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
-import { ChatMessageWithUserName } from '../../server/trpc/router/ticket';
+import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
-import { UserRole } from '@prisma/client';
+import { TicketStatus, UserRole } from '@prisma/client';
 import { uppercaseFirstLetter } from '../../utils/utils';
 
 interface ChatProps {
-  ticketId: number;
+  ticket: TicketWithNames;
 }
 
 interface Message {
@@ -20,14 +20,30 @@ interface Message {
 }
 
 const Chat = (props: ChatProps) => {
-  const { ticketId } = props;
+  const { ticket } = props;
+  const ticketId = ticket.id;
+  const ticketStatus = ticket.status;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState<string>('');
   const [isChatLoaded, setIsChatLoaded] = useState<boolean>(false);
-  const toast = useToast();
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
+  const toast = useToast();
+
+  const isStaff = session?.user?.role === 'STAFF';
+  const isIntern = session?.user?.role === 'INTERN';
+  const isAssigned = ticketStatus === 'ASSIGNED';
+  const isResolved = ticketStatus === 'RESOLVED';
+  const isClosed = ticketStatus === 'CLOSED';
+  const isAbsent = ticketStatus === 'ABSENT';
+  const isCurrentUserInGroup = false;
+  const userId = session?.user?.id;
+  const canSeeName =
+    userId === ticket.createdByUserId ||
+    isCurrentUserInGroup ||
+    ((isStaff || isIntern) && (isAssigned || isResolved || isClosed || isAbsent));
 
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
 
@@ -69,9 +85,9 @@ const Chat = (props: ChatProps) => {
       sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
-
+	   
     if (userId !== session?.user?.id) {
-      showNotification(`New message from ${userName}`, message);
+      showNotification(`New message from ${canSeeName ? userName : 'Anonymous'}`, message);
     }
   });
 
@@ -117,6 +133,7 @@ const Chat = (props: ChatProps) => {
   const allMessages = messages.map((message, index: number) => {
     const { content, sentByName, sentByUserId, sentByUserRole } = message;
     const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
+
     return (
       <Flex
         key={index}
@@ -130,7 +147,7 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {sentByName + " (" + uppercaseFirstLetter(sentByUserRole) + ")"}
+          {canSeeName ? sentByName : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
         </Text>
         {content}
       </Flex>

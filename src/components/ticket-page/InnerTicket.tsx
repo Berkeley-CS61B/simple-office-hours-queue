@@ -19,7 +19,7 @@ const InnerTicket = (props: InnerTicketProps) => {
         <InnerTicketInfo ticket={ticket} userRole={userRole} userId={userId} />
       </Box>
       <Box mt={6}>
-		<Chat ticketId={ticket.id} />
+		<Chat ticket={ticket} />
       </Box>
     </SimpleGrid>
   );
