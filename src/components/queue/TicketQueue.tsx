@@ -31,10 +31,10 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /** Sets tabIndex if it exists in sessionStorage */
   useEffect(() => {
-	const tabIndex = sessionStorage.getItem('tabIndex');
-	if (tabIndex) {
-	  setTabIndex(Number(tabIndex));
-	}
+    const tabIndex = sessionStorage.getItem('tabIndex');
+    if (tabIndex) {
+      setTabIndex(Number(tabIndex));
+    }
   }, []);
 
   /**
@@ -114,11 +114,8 @@ const TicketQueue = (props: TicketQueueProps) => {
   );
 
   const priorityTickets = useMemo(() => {
-    const priorityPending = pendingTickets?.filter(ticket => ticket.isPriority);
-    const priorityOpen = openTickets?.filter(ticket => ticket.isPriority);
-    const priorityAssigned = assignedTickets?.filter(ticket => ticket.isPriority);
-    return [...(priorityPending ?? []), ...(priorityOpen ?? []), ...(priorityAssigned ?? [])];
-  }, [openTickets, pendingTickets, assignedTickets]);
+    return openTickets?.filter(ticket => ticket.isPriority) ?? [];
+  }, [openTickets]);
 
   const setTabs = (): TabType[] => {
     const tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
@@ -142,7 +139,7 @@ const TicketQueue = (props: TicketQueueProps) => {
     const interval = setInterval(() => {
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ASSIGNED });
       context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.OPEN });
-	  context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ABSENT });
+      context.ticket.getTicketsWithStatus.invalidate({ status: TicketStatus.ABSENT });
     }, 60000);
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);
@@ -165,7 +162,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const isGetTicketsLoading =
     isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading || isGetAbsentTicketsLoading;
 
-  /** Don't show priority tickets on the Pending or Open tabs since they are in the Pending tab */
+  /** Don't show priority tickets on the Open tab since they are in the  */
   const removePriorityTickets = (tickets: TicketWithNames[]) => {
     return tickets.filter(ticket => !ticket.isPriority);
   };
@@ -180,9 +177,9 @@ const TicketQueue = (props: TicketQueueProps) => {
       case TicketStatus.OPEN:
         return removePriorityTickets(openTickets ?? []);
       case TicketStatus.ASSIGNED:
-        return removePriorityTickets(assignedTickets ?? []);
+        return assignedTickets ?? [];
       case TicketStatus.PENDING:
-        return removePriorityTickets(pendingTickets ?? []);
+        return pendingTickets ?? [];
       case TicketStatus.ABSENT:
         return absentTickets ?? [];
       default:
@@ -192,12 +189,8 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /** Puts the tab in session storage */
   const handleTabChange = (tabIndex: number) => {
-    // router.push({
-    //   pathname: router.pathname,
-    //   query: { tabIndex },
-    // }, undefined, { shallow: true });
-	setTabIndex(tabIndex);
-	sessionStorage.setItem('tabIndex', tabIndex.toString());
+    setTabIndex(tabIndex);
+    sessionStorage.setItem('tabIndex', tabIndex.toString());
   };
 
   return (
