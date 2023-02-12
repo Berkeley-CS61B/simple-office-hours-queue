@@ -129,6 +129,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-marked-as-priority',
       'ticket-description-changed',
       'ticket-location-description-changed',
+      'ticket-toggle-public',
+    ];
+
+    const messageShouldBeUpdate: string[] = [
+      'ticket-description-changed',
+      'ticket-location-description-changed',
+      'ticket-toggle-public',
     ];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
@@ -146,7 +153,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         if (message === 'ticket-marked-as-absent') {
           update = `${ticketData.data.isAbsent ? 'unmarked' : 'marked'} as absent`;
         }
-        if (message === 'ticket-description-changed' || message == 'ticket-location-description-changed') {
+        if (messageShouldBeUpdate.includes(message)) {
           update = `updated`;
         }
         if (!shouldNotNotifyStudent.includes(message)) {

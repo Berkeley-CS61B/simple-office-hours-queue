@@ -35,6 +35,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
+  const toggleIsPublicMutation = trpc.ticket.toggleIsPublic.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -42,6 +43,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const isIntern = userRole === UserRole.INTERN;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
+  const isAbsent = ticket.status === TicketStatus.ABSENT;
   const isPriority = ticket.isPriority;
 
   /** To prevent spamming, use loading and disabled state for buttons */
@@ -124,6 +126,15 @@ const TicketButtons = (props: TicketCardProps) => {
     )();
   };
 
+  const handleToggleIsPublic = async () => {
+    await onClickWrapper(() =>
+      toggleIsPublicMutation.mutateAsync({
+        ticketId: ticket.id,
+        isPublic: !ticket.isPublic,
+      }),
+    )();
+  };
+
   return (
     <Flex justifyContent='center' flexDirection={['column', 'column', 'column', 'row']}>
       <Button
@@ -183,7 +194,7 @@ const TicketButtons = (props: TicketCardProps) => {
         hidden={(!isStaff && !isIntern) || isResolved || isClosed}
         colorScheme='red'
       >
-        {ticket.status === TicketStatus.ABSENT ? 'Unmark' : 'Mark'} as absent
+        {isAbsent ? 'Unmark' : 'Mark'} as absent
       </Button>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
@@ -196,6 +207,18 @@ const TicketButtons = (props: TicketCardProps) => {
         colorScheme='whatsapp'
       >
         Reopen
+      </Button>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        m={4}
+        mt={[1, 1, 1, 4]}
+        onClick={handleToggleIsPublic}
+        colorScheme='teal'
+        hidden={isAbsent || isResolved || isClosed || (!isStaff && !isIntern && ticket.isPublic)}
+      >
+        {ticket.isPublic ? 'Make private' : 'Make public'}
       </Button>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}

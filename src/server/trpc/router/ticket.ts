@@ -566,6 +566,28 @@ export const ticketRouter = router({
       await channel.publish('ticket-staffnote', undefined);
     }),
 
+  toggleIsPublic: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        isPublic: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: { isPublic: input.isPublic },
+      });
+
+	  const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets');
+      await channel.publish('ticket-toggle-public', undefined);
+
+      // Uses ticket inner page channel
+      const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
+      await innerChannel.publish('ticket-toggle-public', undefined);
+    }),
+
   getTicket: protectedProcedure
     .input(
       z.object({
