@@ -2,10 +2,26 @@ import { useState } from 'react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
-import { Box, FormControl, Input, FormLabel, Button, useToast, Switch, Tooltip, Textarea } from '@chakra-ui/react';
+import {
+  Box,
+  FormControl,
+  Input,
+  FormLabel,
+  Button,
+  useToast,
+  Switch,
+  Tooltip,
+  Textarea,
+  RadioGroup,
+  Radio,
+  Flex,
+  Text,
+} from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
-import { PersonalQueue } from '@prisma/client';
-import { STARTER_TICKET_DESCRIPTION } from '../../utils/constants';
+import { PersonalQueue, TicketType } from '@prisma/client';
+import { STARTER_CONCEPTUAL_TICKET_DESCRIPTION, STARTER_DEBUGGING_TICKET_DESCRIPTION } from '../../utils/constants';
+import { uppercaseFirstLetter } from '../../utils/utils';
+import ConfirmPublicToggleModal from '../modals/ConfirmPublicToggleModal';
 
 interface Assignment {
   id: number;
@@ -26,11 +42,13 @@ interface CreateTicketFormProps {
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
   const { arePublicTicketsEnabled, personalQueue } = props;
-  const [description, setDescription] = useState<string>(STARTER_TICKET_DESCRIPTION);
+  const [ticketType, setTicketType] = useState<TicketType>();
+  const [description, setDescription] = useState<string>('');
   const [locationDescription, setLocationDescription] = useState<string>('');
   const [assignment, setAssignment] = useState<Assignment>();
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
+  const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
   const [location, setLocation] = useState<Location>();
   const [isPublic, setIsPublic] = useState<boolean>(false);
   const toast = useToast();
@@ -54,9 +72,28 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     },
   });
 
+  const handleTicketTypeChange = (newVal: TicketType) => {
+    setTicketType(newVal);
+    if (newVal === TicketType.DEBUGGING) {
+      setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
+      setIsPublic(false);
+    } else {
+      setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
+      setIsPublic(true);
+    }
+  };
+
+  const handleTogglePublic = () => {
+    if (ticketType === TicketType.CONCEPTUAL && isPublic) {
+      setIsPublicModalOpen(true);
+      return;
+    }
+    setIsPublic(!isPublic);
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!assignment || !location) {
+    if (!assignment || !location || !ticketType) {
       toast({
         title: 'Error',
         description: 'Please select an assignment and location',
@@ -109,6 +146,18 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       <Box my={4} textAlign='left'>
         <form onSubmit={onSubmit}>
           <FormControl isRequired>
+            <Flex>
+              <FormLabel>Ticket Type</FormLabel>
+              <RadioGroup onChange={handleTicketTypeChange} value={ticketType}>
+                {Object.keys(TicketType).map(type => (
+                  <Radio mr={2} key={type} value={type}>
+                    {uppercaseFirstLetter(type)}
+                  </Radio>
+                ))}
+              </RadioGroup>
+            </Flex>
+          </FormControl>
+          <FormControl isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Description</FormLabel>
             <Textarea
               value={description}
@@ -137,29 +186,40 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={140}
             />
           </FormControl>
-          <FormControl mt={6} display='flex' hidden={!arePublicTicketsEnabled}>
+          <FormControl
+            mt={6}
+            display='flex'
+            hidden={!arePublicTicketsEnabled}
+            isDisabled={ticketType === TicketType.DEBUGGING || ticketType === undefined}
+          >
             <FormLabel>
-              <>
-                <>Public</>
-                <Tooltip
-                  hasArrow
-                  label='Public tickets can be joined by other students. This is great for group work 
+              Public
+              <Tooltip
+                hasArrow
+                label='Public tickets can be joined by other students. This is great for group work 
 						   or conceptual questions! If your ticket is public, we are more likely to 
 						   help you for a longer time.'
-                  bg='gray.300'
-                  color='black'
-                >
-                  <InfoIcon ml={2} mb={1} />
-                </Tooltip>
-              </>
+                bg='gray.300'
+                color='black'
+              >
+                <InfoIcon ml={2} mb={1} />
+              </Tooltip>
             </FormLabel>
-            <Switch isChecked={isPublic} mt={1} onChange={() => setIsPublic(!isPublic)} />
+            <Switch isChecked={isPublic} mt={1} onChange={handleTogglePublic} />
           </FormControl>
           <Button type='submit' width='full' mt={4} colorScheme='whatsapp'>
             Request Help
           </Button>
         </form>
       </Box>
+      <ConfirmPublicToggleModal
+        isModalOpen={isPublicModalOpen}
+        setIsModalOpen={setIsPublicModalOpen}
+        handleConfirm={() => {
+          setIsPublicModalOpen(false);
+          setIsPublic(false);
+        }}
+      />
     </Box>
   );
 };
