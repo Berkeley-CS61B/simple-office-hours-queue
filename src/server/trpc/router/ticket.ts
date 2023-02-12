@@ -7,6 +7,7 @@ import {
   SiteSettingsValues,
   Ticket,
   TicketStatus,
+  TicketType,
   User,
   UserRole,
 } from '@prisma/client';
@@ -24,6 +25,7 @@ export const ticketRouter = router({
         locationId: z.number(),
         locationDescription: z.string().optional(),
         personalQueueName: z.string().optional(),
+        ticketType: z.nativeEnum(TicketType),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -72,6 +74,7 @@ export const ticketRouter = router({
           locationDescription: input.locationDescription,
           usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
           isPriority: isPriority,
+          ticketType: input.ticketType,
           assignment: {
             connect: {
               id: input.assignmentId,
@@ -150,7 +153,7 @@ export const ticketRouter = router({
       await channel.publish('ticket-description-changed', undefined);
     }),
 
-    editTicketLocationDescription: protectedProcedure
+  editTicketLocationDescription: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),

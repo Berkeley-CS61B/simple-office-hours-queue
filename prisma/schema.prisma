@@ -54,7 +54,7 @@ model Ticket {
     isPriority          Boolean        @default(false)
     usersInGroup        User[]         @relation("groupTickets")
     PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
-    TicketType          TicketType     @default(DEBUGGING)
+    ticketType          TicketType     @default(DEBUGGING)
 
     helpedByUserId    String?
     createdByUserId   String

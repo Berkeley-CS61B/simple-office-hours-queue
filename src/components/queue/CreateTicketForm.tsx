@@ -111,6 +111,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         locationId: location.id,
         locationDescription: locationDescription.trim(),
         personalQueueName: personalQueue?.name,
+        ticketType,
         isPublic,
       })
       .then(ticket => {
