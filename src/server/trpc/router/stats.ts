@@ -12,6 +12,7 @@ export const statsRouter = router({
         description: true,
         isPublic: true,
         locationId: true,
+		assignmentId: true,
       },
     });
   }),
