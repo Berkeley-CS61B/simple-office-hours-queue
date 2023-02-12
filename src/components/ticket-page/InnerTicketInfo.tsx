@@ -186,9 +186,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const handleLocationDescriptionChange = async (newLocationDescription: string) => {
     if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
-      await editTicketLocationDescriptionMutation.mutateAsync({ticketId: ticket.id, locationDescription: newLocationDescription});
+      await editTicketLocationDescriptionMutation.mutateAsync({
+        ticketId: ticket.id,
+        locationDescription: newLocationDescription,
+      });
     }
-  }
+  };
 
   return (
     <>
@@ -230,6 +233,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Flex>
 
       <Box mb={4} mt={4}>
+        <Tag p={2.5} mr={2} size='lg' colorScheme='green' borderRadius={5}>
+          {uppercaseFirstLetter(ticket.ticketType)}
+        </Tag>
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
           {ticket.assignmentName}
         </Tag>

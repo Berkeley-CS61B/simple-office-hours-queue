@@ -54,6 +54,7 @@ model Ticket {
     isPriority          Boolean        @default(false)
     usersInGroup        User[]         @relation("groupTickets")
     PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
+    ticketType          TicketType     @default(DEBUGGING)
 
     helpedByUserId    String?
     createdByUserId   String
@@ -188,6 +189,11 @@ enum TicketStatus {
     RESOLVED
     CLOSED
     ABSENT
+}
+
+enum TicketType {
+    CONCEPTUAL
+    DEBUGGING
 }
 
 enum SiteSettings {

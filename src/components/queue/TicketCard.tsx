@@ -4,7 +4,7 @@ import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } fro
 import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
-import { timeDifferenceInMinutes } from '../../utils/utils';
+import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR, FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import React from 'react';
@@ -167,6 +167,9 @@ const TicketCard = (props: TicketCardProps) => {
       <Divider my={4} />
       <Flex justifyContent='space-between'>
         <Box>
+          <Tag p={2.5} mr={2} size='lg' colorScheme='green' borderRadius={5}>
+            {uppercaseFirstLetter(ticket.ticketType)}
+          </Tag>
           <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
             {ticket.assignmentName}
           </Tag>
