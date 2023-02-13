@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Flex, Spinner } from '@chakra-ui/react';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { TicketStatus, TicketType, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 
@@ -216,7 +216,13 @@ const TicketButtons = (props: TicketCardProps) => {
         mt={[1, 1, 1, 4]}
         onClick={handleToggleIsPublic}
         colorScheme='teal'
-        hidden={isAbsent || isResolved || isClosed || (!isStaff && !isIntern && ticket.isPublic)}
+        hidden={
+          isAbsent ||
+          isResolved ||
+          isClosed ||
+          (ticket.ticketType === TicketType.DEBUGGING && !isStaff && !isIntern) ||
+          (!isStaff && !isIntern && ticket.isPublic)
+        }
       >
         {ticket.isPublic ? 'Make private' : 'Make public'}
       </Button>
