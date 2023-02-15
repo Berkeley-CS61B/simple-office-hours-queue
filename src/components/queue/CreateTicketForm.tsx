@@ -104,6 +104,20 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       });
       return;
     }
+
+    // If description has "[this test]" or "[this concept]" in it, toast and return
+    if (description.includes('[this test]') || description.includes('[this concept]')) {
+      toast({
+        title: 'Error',
+        description: 'Please replace [this test] or [this concept] with the name of the test or concept',
+        status: 'error',
+        position: 'top-right',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     await createTicketMutation
       .mutateAsync({
         description: description.trim(),
