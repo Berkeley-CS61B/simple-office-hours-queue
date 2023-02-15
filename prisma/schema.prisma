@@ -69,6 +69,7 @@ model Ticket {
     @@index([createdByUserId])
     @@index([personalQueueId])
     @@index([personalQueueName])
+    @@index([status])
 }
 
 model Account {
