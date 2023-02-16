@@ -149,17 +149,12 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /* Tickets that the current user is assigned to or has created */
   const getMyTickets = () => {
-    if (userRole === UserRole.STAFF || userRole === UserRole.INTERN) {
-      return assignedTickets?.filter(ticket => ticket.helpedByUserId === userId);
-    }
-
-    // Return tickets (pending, open, absent, or assigned) that the current user has created
     return [
       ...(openTickets ?? []),
       ...(assignedTickets ?? []),
       ...(pendingTickets ?? []),
       ...(absentTickets ?? []),
-    ].filter(ticket => ticket.createdByUserId === userId);
+    ].filter(ticket => ticket.createdByUserId === userId || ticket.helpedByUserId === userId);
   };
 
   const isGetTicketsLoading =
