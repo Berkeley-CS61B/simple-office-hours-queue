@@ -55,7 +55,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
-	  'ticket-toggle-public',
+      'ticket-toggle-public',
     ];
     const shouldInvalidateAssigned = [
       'tickets-assigned',
@@ -65,7 +65,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
-	  'ticket-toggle-public',
+      'ticket-toggle-public',
     ];
     const shouldInvalidatePending = [
       'new-ticket',
@@ -74,7 +74,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
-	  'ticket-toggle-public',
+      'ticket-toggle-public',
     ];
     const shouldInvalidateAbsent = ['tickets-marked-as-absent', 'ticket-closed'];
 
@@ -196,6 +196,14 @@ const TicketQueue = (props: TicketQueueProps) => {
     sessionStorage.setItem('tabIndex', tabIndex.toString());
   };
 
+  const getLocationOnOpenQueue = (ticket: TicketWithNames) => {
+    if (ticket.status !== TicketStatus.OPEN) {
+      return -1;
+    }
+    const tickets = getTickets(TicketStatus.OPEN);
+    return tickets.findIndex(t => t.id === ticket.id);
+  };
+
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       {!isQueueOpen ? (
@@ -218,7 +226,13 @@ const TicketQueue = (props: TicketQueueProps) => {
           </Text>
         )}
         {getMyTickets()?.map((ticket, idx) => (
-          <TicketCard idx={idx} key={ticket.id} ticket={ticket} userRole={userRole} userId={userId} />
+          <TicketCard
+            idx={getLocationOnOpenQueue(ticket)}
+            key={ticket.id}
+            ticket={ticket}
+            userRole={userRole}
+            userId={userId}
+          />
         ))}
       </Flex>
       <Text fontSize='2xl' mb={5}>
