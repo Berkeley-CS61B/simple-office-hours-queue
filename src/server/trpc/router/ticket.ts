@@ -205,7 +205,19 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const ticketsToAssign: number[] = [];
       for (const ticketId of input.ticketIds) {
+        const ticket = await ctx.prisma.ticket.findFirst({
+          where: { id: ticketId },
+        });
+        // If the ticket is already assigned, skip it
+        if (!ticket || ticket?.status === TicketStatus.ASSIGNED) {
+          break;
+        }
+        ticketsToAssign.push(ticket.id);
+      }
+
+      for (const ticketId of ticketsToAssign) {
         // updateMany is not working here, so we have to use update
         await ctx.prisma.ticket.update({
           where: { id: ticketId },
@@ -579,7 +591,7 @@ export const ticketRouter = router({
         data: { isPublic: input.isPublic },
       });
 
-	  const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get('tickets');
       await channel.publish('ticket-toggle-public', undefined);
 

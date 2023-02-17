@@ -77,8 +77,8 @@ const TicketCard = (props: TicketCardProps) => {
 
   const handleHelpTicket = async () => {
     onClickWrapper(async () => {
-      Router.push(`/ticket/${ticket.id}`);
       await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+      Router.push(`/ticket/${ticket.id}`);
     })();
   };
 
