@@ -149,8 +149,8 @@ const TicketCard = (props: TicketCardProps) => {
       _hover={canUserClickOnTicket ? { backgroundColor: hoverColor, transition: '0.3s' } : {}}
     >
       <Flex direction='row' mt={-7} ml={-6}>
-        <Text fontStyle='italic' color='gray.500' hidden={ticket.status !== TicketStatus.OPEN}>
-          #{idx}
+        <Text fontStyle='italic' color='gray.500'>
+          {ticket.status !== TicketStatus.OPEN ? 'N/A' : `#${idx}`}
         </Text>
         <Flex hidden={!ticket.isPublic}>
           <StarIcon color='gold' mt={1} ml={2} mr={2} />
@@ -163,7 +163,9 @@ const TicketCard = (props: TicketCardProps) => {
           )}
         </Flex>
       </Flex>
-      <Text fontSize='2xl'>{ticket.description}</Text>
+      <Text fontSize='lg' whiteSpace='pre-line'>
+        {ticket.description}
+      </Text>
       <Divider my={4} />
       <Flex justifyContent='space-between'>
         <Box>

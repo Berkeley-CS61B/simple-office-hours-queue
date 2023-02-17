@@ -85,7 +85,7 @@ const Chat = (props: ChatProps) => {
       sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
-	   
+
     if (userId !== session?.user?.id) {
       showNotification(`New message from ${canSeeName ? userName : 'Anonymous'}`, message);
     }
@@ -156,7 +156,8 @@ const Chat = (props: ChatProps) => {
 
   useEffect(() => {
     if (messageEnd) {
-      messageEnd.scrollIntoView({ behaviour: 'smooth' });
+      // Bug: This causes scroll to bottom of page
+      //   messageEnd.scrollIntoView({ behaviour: 'smooth' });
     }
   }, [messages, messageEnd]);
 
@@ -178,6 +179,7 @@ const Chat = (props: ChatProps) => {
                 placeholder='Type a message...'
                 onChange={e => setMessageText(e.target.value)}
                 mr={4}
+                maxLength={1000}
               />
               <Button colorScheme='green' type='submit' disabled={messageTextIsEmpty}>
                 Send

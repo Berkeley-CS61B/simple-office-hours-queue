@@ -220,7 +220,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4}>Description:</Text>
       <Flex justifyContent='center'>
-        <Text hidden={isEditingDescription} fontWeight='semibold' mt={2}>
+        <Text hidden={isEditingDescription} whiteSpace='pre-line' mt={2} textAlign='left' ml={4}>
           {ticket.description}
         </Text>
         <Editable

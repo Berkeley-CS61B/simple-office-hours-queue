@@ -109,7 +109,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     if (description.includes('[this test]') || description.includes('[this concept]')) {
       toast({
         title: 'Error',
-        description: 'Please replace [this test] or [this concept] with the name of the test or concept',
+        description: 'Please replace [this concept] with the name the concept',
         status: 'error',
         position: 'top-right',
         duration: 3000,
@@ -174,13 +174,16 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <FormControl isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Description</FormLabel>
+            <Text hidden={ticketType !== TicketType.CONCEPTUAL} mb={2}>
+              Please make sure staff does not have to look at your code to answer your question.
+            </Text>
             <Textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               name='description'
-              size='sm'
+              size='md'
               maxLength={1000}
-              height='200px'
+              height={ticketType === TicketType.DEBUGGING ? '200px' : '50px'}
             />
           </FormControl>
           <FormControl mt={6} isRequired>
