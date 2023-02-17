@@ -5,7 +5,7 @@ import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { uppercaseFirstLetter } from '../../utils/utils';
 
 interface ChatProps {
@@ -147,7 +147,9 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {canSeeName ? sentByName : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
+          {canSeeName || sentByUserRole !== UserRole.STUDENT
+            ? sentByName
+            : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
         </Text>
         {content}
       </Flex>
