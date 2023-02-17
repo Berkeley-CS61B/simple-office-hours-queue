@@ -101,7 +101,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
                     Create ticket
                     <AccordionIcon />
                   </AccordionButton>
-                  <AccordionPanel pb={4}>
+                  <AccordionPanel>
                     <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
                   </AccordionPanel>
                 </AccordionItem>
