@@ -178,8 +178,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               value={description}
               onChange={e => setDescription(e.target.value)}
               name='description'
-              size='md'
-              maxLength={190}
+              size='sm'
+              maxLength={1000}
+              height='200px'
             />
           </FormControl>
           <FormControl mt={6} isRequired>

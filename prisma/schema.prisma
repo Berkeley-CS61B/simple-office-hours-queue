@@ -23,7 +23,7 @@ model VariableSettings {
 model ChatMessage {
     id        Int      @id @default(autoincrement())
     createdAt DateTime @default(now())
-    message   String
+    message   String   @db.VarChar(1000)
     author    User     @relation(fields: [userId], references: [id])
     ticket    Ticket   @relation(fields: [ticketId], references: [id])
     userId    String
@@ -43,7 +43,7 @@ model Ticket {
     createdAt           DateTime       @default(now())
     updatedAt           DateTime       @default(now()) @updatedAt
     status              TicketStatus   @default(PENDING)
-    description         String?
+    description         String?        @db.VarChar(1000)
     assignment          Assignment     @relation(fields: [assignmentId], references: [id])
     location            Location       @relation(fields: [locationId], references: [id])
     locationDescription String?
