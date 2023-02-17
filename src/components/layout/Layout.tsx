@@ -9,6 +9,7 @@ import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router from 'next/router';
+import Image from 'next/image';
 
 interface LayoutProps {
   children: ReactNode;
@@ -33,9 +34,12 @@ const Layout = (props: LayoutProps) => {
       return;
     } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
-        if (localStorage.getItem("notificationPermission") == null && (permission === 'denied' || permission === 'default')) {
+        if (
+          localStorage.getItem('notificationPermission') == null &&
+          (permission === 'denied' || permission === 'default')
+        ) {
           alert('We highly recommend enabling desktop notifications to receive updates on your queue status.');
-          localStorage.setItem("notificationPermission", JSON.stringify(true));
+          localStorage.setItem('notificationPermission', JSON.stringify(true));
         }
       });
     }
@@ -71,7 +75,7 @@ const Layout = (props: LayoutProps) => {
     <>
       <Head>
         <title>Office Hours Queue</title>
-        <meta name='OH Queue' content='Office Hours Queue' lang="en" translate='no' dir='ltr'/>
+        <meta name='OH Queue' content='Office Hours Queue' lang='en' translate='no' dir='ltr' />
       </Head>
 
       <Flex h='100%' direction='column'>
@@ -82,6 +86,10 @@ const Layout = (props: LayoutProps) => {
           {isAblyConnected && <ReceiveBroadcast />}
         </>
       </Flex>
+
+      <footer>
+        <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+      </footer>
     </>
   );
 };
