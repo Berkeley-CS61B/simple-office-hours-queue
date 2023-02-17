@@ -88,7 +88,14 @@ const Layout = (props: LayoutProps) => {
       </Flex>
 
       <footer>
-        <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+        <a
+          href='https://vercel.com?utm_source=office-hours-queue&utm_campaign=oss'
+          target='_blank'
+          rel='noopener noreferrer'
+          aria-label='Powered by Vercel'
+        >
+          <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+        </a>
       </footer>
     </>
   );
