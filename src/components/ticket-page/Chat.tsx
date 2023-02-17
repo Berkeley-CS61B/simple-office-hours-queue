@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Input, Box, Flex, Text, Spinner, useToast } from '@chakra-ui/react';
+import { Button, Box, Flex, Text, Spinner, useToast, Textarea } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
@@ -173,7 +173,7 @@ const Chat = (props: ChatProps) => {
 
           <form onSubmit={handleFormSubmission}>
             <Flex>
-              <Input
+              <Textarea
                 ref={element => (inputBox = element)}
                 value={messageText}
                 placeholder='Type a message...'
