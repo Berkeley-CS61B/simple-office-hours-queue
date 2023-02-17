@@ -89,7 +89,7 @@ const Layout = (props: LayoutProps) => {
 
       <footer>
         <a
-          href='https://vercel.com?utm_source=office-hours-queue&utm_campaign=oss'
+          href='https://vercel.com?utm_source=cs61b&utm_campaign=oss'
           target='_blank'
           rel='noopener noreferrer'
           aria-label='Powered by Vercel'
