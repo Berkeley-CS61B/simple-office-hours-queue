@@ -72,32 +72,32 @@ const Layout = (props: LayoutProps) => {
   }, [session]);
 
   return (
-    <>
+    <Flex direction='column' minH='100vh' justifyContent='space-between'>
       <Head>
         <title>Office Hours Queue</title>
         <meta name='OH Queue' content='Office Hours Queue' lang='en' translate='no' dir='ltr' />
       </Head>
 
-      <Flex h='100%' direction='column'>
-        <>
-          <Navbar />
-          {!session && status !== 'loading' && <Landing />}
-          {status === 'authenticated' && isAuthorized && <>{children}</>}
-          {isAblyConnected && <ReceiveBroadcast />}
-        </>
+      <Flex direction='column'>
+        <Navbar />
+        {!session && status !== 'loading' && <Landing />}
+        {status === 'authenticated' && isAuthorized && <>{children}</>}
+        {isAblyConnected && <ReceiveBroadcast />}
       </Flex>
 
-      <footer>
-        <a
-          href='https://vercel.com?utm_source=cs61b&utm_campaign=oss'
-          target='_blank'
-          rel='noopener noreferrer'
-          aria-label='Powered by Vercel'
-        >
-          <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
-        </a>
-      </footer>
-    </>
+      <Flex alignSelf='flex-end'>
+        <footer>
+          <a
+            href='https://vercel.com?utm_source=cs61b&utm_campaign=oss'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='Powered by Vercel'
+          >
+            <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+          </a>
+        </footer>
+      </Flex>
+    </Flex>
   );
 };
 
