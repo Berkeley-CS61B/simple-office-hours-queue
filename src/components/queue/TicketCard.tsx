@@ -4,10 +4,9 @@ import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } fro
 import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
-import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
+import { getTicketUrl, timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
 import { StarIcon } from '@chakra-ui/icons';
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR, FIVE_MINUTES_IN_MS } from '../../utils/constants';
-import React from 'react';
 import { BUTTONS_DISABLED_WAIT_MSG, BUTTONS_DISABLED_WAIT_TIME } from '../ticket-page/TicketButtons';
 import Countdown from '../ticket-page/Countdown';
 
@@ -78,7 +77,7 @@ const TicketCard = (props: TicketCardProps) => {
   const handleHelpTicket = async () => {
     onClickWrapper(async () => {
       await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-      Router.push(`/ticket/${ticket.id}`);
+      Router.push(getTicketUrl(ticket.id));
     })();
   };
 
@@ -92,13 +91,13 @@ const TicketCard = (props: TicketCardProps) => {
     if (!canUserClickOnTicket || (event.target as HTMLElement).tagName === 'BUTTON') {
       return;
     }
-    Router.push(`/ticket/${ticket.id}`);
+    Router.push(getTicketUrl(ticket.id));
   };
 
   const handleJoinGroup = async () => {
     onClickWrapper(async () => {
-      Router.push(`/ticket/${ticket.id}`);
       await joinTicketMutation.mutateAsync({ ticketId: ticket.id });
+      Router.push(getTicketUrl(ticket.id));
     })();
   };
 
