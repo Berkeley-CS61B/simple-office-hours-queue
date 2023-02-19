@@ -1,4 +1,5 @@
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
+import Router from 'next/router';
 import { TicketWithNames } from '../server/trpc/router/ticket';
 
 export const uppercaseFirstLetter = (str: string) => {
@@ -72,13 +73,25 @@ export const addDurationToTickets = (tickets: TicketWithNames[]) => {
   });
 };
 
+/** Checks if the user is clicking on the url from a personal queue
+ *  If so, append the queueId to the url as a query param
+ */
+export const getTicketUrl = (ticketId: number) => {
+  const url = window.location.href;
+  const isOnPersonalQueue = url.includes('/queue/');
+  if (isOnPersonalQueue) {
+    const queueName = url.split('/queue/')[1];
+    return `/ticket/${ticketId}?queueName=${queueName}`;
+  }
+  return `/ticket/${ticketId}`;
+};
+
 /** Takes in a string and returns that string without any spaces
  * Only allow letters, digits, underscores, and hyphens */
 export const sanitizeString = (str: string) => str.replace(/[^a-zA-Z0-9-_]/g, '');
 
 /** Only allow email domains with letters, digits, periods, underscores, and '@',  */
-export const sanitizeEmailDomain = (str: string) => str.replace(/[^a-zA-Z0-9-_.@]/g, '')
-
+export const sanitizeEmailDomain = (str: string) => str.replace(/[^a-zA-Z0-9-_.@]/g, '');
 
 // I don't think there's a way to include this enum in the SiteSettingsValues enum
 export const ImportUsersMethodPossiblities = {

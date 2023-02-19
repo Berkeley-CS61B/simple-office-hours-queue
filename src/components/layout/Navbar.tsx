@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Box, Flex, Stack, useColorModeValue, Text, useDisclosure, Divider, IconButton, Slide } from '@chakra-ui/react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { useSession } from 'next-auth/react';
@@ -9,28 +8,43 @@ import { trpc } from '../../utils/trpc';
 import HamburgerMenu from './HamburgerMenu';
 import { HamburgerIcon } from '@chakra-ui/icons';
 import AvatarDropdown from './AvatarDropdown';
+import Router from 'next/router';
 
 export const Navbar = () => {
   const { data: session } = useSession();
   const { isOpen, onToggle } = useDisclosure();
-  // Start the link at /create-queue and update it if the user has a personal queue
-  const [personalQueueLink, setPersonalQueueLink] = useState('/create-queue');
 
-  trpc.queue.getCurrentUserQueue.useQuery(undefined, {
+  const { data: userQueue } = trpc.queue.getCurrentUserQueue.useQuery(undefined, {
     enabled: session?.user?.role === UserRole.STAFF,
     refetchOnWindowFocus: false,
-    onSuccess: queue => {
-      if (queue) {
-        setPersonalQueueLink(`/queue/${queue.name}`);
-      }
-    },
   });
+
+  const personalQueueLink = userQueue ? `/queue/${userQueue.name}` : '/create-queue';
+
+  /**
+   * If the user came from a personal queue page, return the queue page url
+   */
+  const getHomeUrl = () => {
+    // Router is not immediately available
+    if (typeof window === 'undefined') {
+      return '/';
+    }
+
+    if (Router.query.queueName) {
+      return `/queue/${Router.query.queueName}`;
+    }
+    if (window.location.href.includes('/queue/')) {
+      return window.location.href;
+    }
+    return '/';
+  };
+  const homeUrl = getHomeUrl();
 
   return (
     <Box bg={useColorModeValue('gray.100', DARK_MODE_COLOR)} boxShadow='0 0 2px #4a4a4a' fontSize='md'>
       <Flex pl={4} pr={4} h={16} alignItems='center' justifyContent='space-between'>
         <Flex>
-          <Link href='/'>
+          <Link href={homeUrl}>
             <Text className='hover-cursor' mt={2} fontWeight='semibold' fontSize='xl'>
               {COURSE_ID} OH
             </Text>
