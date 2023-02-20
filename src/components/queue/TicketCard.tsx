@@ -77,8 +77,8 @@ const TicketCard = (props: TicketCardProps) => {
 
   const handleHelpTicket = async () => {
     onClickWrapper(async () => {
-      Router.push(`/ticket/${ticket.id}`);
       await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+      Router.push(`/ticket/${ticket.id}`);
     })();
   };
 
@@ -150,7 +150,7 @@ const TicketCard = (props: TicketCardProps) => {
     >
       <Flex direction='row' mt={-7} ml={-6}>
         <Text fontStyle='italic' color='gray.500'>
-          {ticket.status !== TicketStatus.OPEN ? 'N/A' : `#${idx}`}
+          {idx > -1 ? `#${idx} (${uppercaseFirstLetter(ticket.status)})` : `${uppercaseFirstLetter(ticket.status)}`}
         </Text>
         <Flex hidden={!ticket.isPublic}>
           <StarIcon color='gold' mt={1} ml={2} mr={2} />
@@ -163,7 +163,9 @@ const TicketCard = (props: TicketCardProps) => {
           )}
         </Flex>
       </Flex>
-      <Text fontSize='2xl'>{ticket.description}</Text>
+      <Text fontSize='lg' whiteSpace='pre-line'>
+        {ticket.description}
+      </Text>
       <Divider my={4} />
       <Flex justifyContent='space-between'>
         <Box>

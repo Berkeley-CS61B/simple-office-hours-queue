@@ -191,12 +191,14 @@ const TicketQueue = (props: TicketQueueProps) => {
     sessionStorage.setItem('tabIndex', tabIndex.toString());
   };
 
-  const getLocationOnOpenQueue = (ticket: TicketWithNames) => {
-    if (ticket.status !== TicketStatus.OPEN) {
-      return -1;
+  /** Gets ticket location if the ticket is pending or open */
+  const getLocationOnQueue = (ticket: TicketWithNames) => {
+    if (ticket.status === TicketStatus.OPEN) {
+      return getTickets(TicketStatus.OPEN).findIndex(t => t.id === ticket.id);
+    } else if (ticket.status === TicketStatus.PENDING) {
+      return getTickets(TicketStatus.PENDING).findIndex(t => t.id === ticket.id);
     }
-    const tickets = getTickets(TicketStatus.OPEN);
-    return tickets.findIndex(t => t.id === ticket.id);
+    return -1;
   };
 
   return (
@@ -222,7 +224,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         )}
         {getMyTickets()?.map((ticket, idx) => (
           <TicketCard
-            idx={getLocationOnOpenQueue(ticket)}
+            idx={getLocationOnQueue(ticket)}
             key={ticket.id}
             ticket={ticket}
             userRole={userRole}

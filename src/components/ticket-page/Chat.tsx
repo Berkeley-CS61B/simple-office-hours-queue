@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Input, Box, Flex, Text, Spinner, useToast } from '@chakra-ui/react';
+import { Button, Box, Flex, Text, Spinner, useToast, Textarea } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { uppercaseFirstLetter } from '../../utils/utils';
 
 interface ChatProps {
@@ -85,7 +85,7 @@ const Chat = (props: ChatProps) => {
       sentByUserRole: userRole,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
-	   
+
     if (userId !== session?.user?.id) {
       showNotification(`New message from ${canSeeName ? userName : 'Anonymous'}`, message);
     }
@@ -147,7 +147,9 @@ const Chat = (props: ChatProps) => {
         color='white'
       >
         <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {canSeeName ? sentByName : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
+          {canSeeName || sentByUserRole !== UserRole.STUDENT
+            ? sentByName
+            : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
         </Text>
         {content}
       </Flex>
@@ -156,7 +158,8 @@ const Chat = (props: ChatProps) => {
 
   useEffect(() => {
     if (messageEnd) {
-      messageEnd.scrollIntoView({ behaviour: 'smooth' });
+      // Bug: This causes scroll to bottom of page
+      //   messageEnd.scrollIntoView({ behaviour: 'smooth' });
     }
   }, [messages, messageEnd]);
 
@@ -172,12 +175,13 @@ const Chat = (props: ChatProps) => {
 
           <form onSubmit={handleFormSubmission}>
             <Flex>
-              <Input
+              <Textarea
                 ref={element => (inputBox = element)}
                 value={messageText}
                 placeholder='Type a message...'
                 onChange={e => setMessageText(e.target.value)}
                 mr={4}
+                maxLength={1000}
               />
               <Button colorScheme='green' type='submit' disabled={messageTextIsEmpty}>
                 Send

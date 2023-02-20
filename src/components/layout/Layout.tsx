@@ -9,6 +9,7 @@ import { configureAbly } from '@ably-labs/react-hooks';
 import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router from 'next/router';
+import Image from 'next/image';
 
 interface LayoutProps {
   children: ReactNode;
@@ -33,9 +34,12 @@ const Layout = (props: LayoutProps) => {
       return;
     } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
-        if (localStorage.getItem("notificationPermission") == null && (permission === 'denied' || permission === 'default')) {
+        if (
+          localStorage.getItem('notificationPermission') == null &&
+          (permission === 'denied' || permission === 'default')
+        ) {
           alert('We highly recommend enabling desktop notifications to receive updates on your queue status.');
-          localStorage.setItem("notificationPermission", JSON.stringify(true));
+          localStorage.setItem('notificationPermission', JSON.stringify(true));
         }
       });
     }
@@ -68,21 +72,32 @@ const Layout = (props: LayoutProps) => {
   }, [session]);
 
   return (
-    <>
+    <Flex direction='column' minH='100vh' justifyContent='space-between'>
       <Head>
         <title>Office Hours Queue</title>
-        <meta name='OH Queue' content='Office Hours Queue' lang="en" translate='no' dir='ltr'/>
+        <meta name='OH Queue' content='Office Hours Queue' lang='en' translate='no' dir='ltr' />
       </Head>
 
-      <Flex h='100%' direction='column'>
-        <>
-          <Navbar />
-          {!session && status !== 'loading' && <Landing />}
-          {status === 'authenticated' && isAuthorized && <>{children}</>}
-          {isAblyConnected && <ReceiveBroadcast />}
-        </>
+      <Flex direction='column'>
+        <Navbar />
+        {!session && status !== 'loading' && <Landing />}
+        {status === 'authenticated' && isAuthorized && <>{children}</>}
+        {isAblyConnected && <ReceiveBroadcast />}
       </Flex>
-    </>
+
+      <Flex alignSelf='flex-end'>
+        <footer>
+          <a
+            href='https://vercel.com?utm_source=cs61b&utm_campaign=oss'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='Powered by Vercel'
+          >
+            <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+          </a>
+        </footer>
+      </Flex>
+    </Flex>
   );
 };
 
