@@ -84,35 +84,29 @@ const QueueLayout = (props: QueueLayoutProps) => {
   return (
     <>
       {userRole === UserRole.STAFF && (
-        <>
+        <Flex flexDirection='column'>
           {!personalQueue && <Broadcast />}
           {(!personalQueue || personalQueue.ownerId === userId || personalQueue.allowStaffToOpen) && (
             <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
           )}
-        </>
+          <Accordion allowToggle m={4}>
+            <AccordionItem>
+              <AccordionButton>
+                Create ticket
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel>
+                <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        </Flex>
       )}
-      {isQueueOpen && (
-        <>
-          {(userRole === UserRole.STAFF || userRole === UserRole.INTERN) && (
-            <Flex flexDirection='column'>
-              <Accordion allowToggle m={4}>
-                <AccordionItem>
-                  <AccordionButton>
-                    Create ticket
-                    <AccordionIcon />
-                  </AccordionButton>
-                  <AccordionPanel>
-                    <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
-                  </AccordionPanel>
-                </AccordionItem>
-              </Accordion>
-            </Flex>
-          )}
-          {userRole === UserRole.STUDENT && (
-            <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
-          )}
-        </>
+
+      {userRole === UserRole.STUDENT && isQueueOpen && (
+        <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
       )}
+
       <TicketQueue
         userId={userId}
         userRole={userRole}
