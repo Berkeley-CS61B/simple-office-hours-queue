@@ -234,7 +234,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           fontSize='md'
           isPreviewFocusable={false}
         >
-          <Textarea as={EditableTextarea} textAlign='left' maxLength={190} />
+          <Textarea as={EditableTextarea} textAlign='left' maxLength={1000} resize='both' />
           <EditableControls setIsEditing={setIsEditingDescription} />
         </Editable>
       </Flex>
