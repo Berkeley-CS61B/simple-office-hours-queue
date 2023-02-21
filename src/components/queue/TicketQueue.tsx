@@ -17,7 +17,7 @@ interface TicketQueueProps {
   personalQueue?: PersonalQueue;
 }
 
-export type TabType = TicketStatus | 'Priority';
+export type TabType = TicketStatus | 'Priority' | 'Public';
 
 /**
  * TicketQueue component that displays the tabs for the different ticket statuses
@@ -120,10 +120,15 @@ const TicketQueue = (props: TicketQueueProps) => {
     return openTickets?.filter(ticket => ticket.isPriority) ?? [];
   }, [openTickets]);
 
+  const publicTickets = useMemo(() => {
+    return openTickets?.filter(ticket => ticket.isPublic) ?? [];
+  }, [openTickets]);
+
   const setTabs = (): TabType[] => {
     const tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
-
-    if (userRole !== UserRole.STUDENT) {
+    if (userRole === UserRole.STUDENT) {
+      tabs.unshift('Public');
+    } else {
       if (isPendingStageEnabled) {
         tabs.push(TicketStatus.PENDING);
       }
@@ -170,6 +175,11 @@ const TicketQueue = (props: TicketQueueProps) => {
     return tickets.filter(ticket => !ticket.isPriority);
   };
 
+  /** Don't show public tickets on Open Tab in student view */
+  const removePublicTickets = (tickets: TicketWithNames[]) => {
+    return tickets.filter(ticket => !ticket.isPublic);
+  };
+
   /**
    * Helper method to return the correct ticket list based on the tab index
    */
@@ -177,7 +187,12 @@ const TicketQueue = (props: TicketQueueProps) => {
     switch (tab) {
       case 'Priority':
         return priorityTickets ?? [];
+      case 'Public':
+        return publicTickets ?? [];
       case TicketStatus.OPEN:
+        if (userRole === UserRole.STUDENT) {
+          return removePriorityTickets(removePublicTickets(openTickets ?? []));
+        }
         return removePriorityTickets(openTickets ?? []);
       case TicketStatus.ASSIGNED:
         return assignedTickets ?? [];
