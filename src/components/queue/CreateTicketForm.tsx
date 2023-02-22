@@ -51,6 +51,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
   const [location, setLocation] = useState<Location>();
   const [isPublic, setIsPublic] = useState<boolean>(false);
+  const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
@@ -118,6 +119,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       return;
     }
 
+	// Prevents spamming the button
+	setIsButtonLoading(true);
+
     await createTicketMutation
       .mutateAsync({
         description: description.trim(),
@@ -154,6 +158,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         });
         Router.push(getTicketUrl(ticket.id));
       });
+	  setIsButtonLoading(false);
   };
 
   return (
@@ -226,7 +231,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             </FormLabel>
             <Switch isChecked={isPublic} mt={1} onChange={handleTogglePublic} />
           </FormControl>
-          <Button type='submit' width='full' mt={4} colorScheme='whatsapp'>
+          <Button type='submit' width='full' mt={4} colorScheme='whatsapp' isLoading={isButtonLoading}>
             Request Help
           </Button>
         </form>
