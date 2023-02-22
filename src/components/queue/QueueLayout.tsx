@@ -4,7 +4,15 @@ import TicketQueue from './TicketQueue';
 import CreateTicket from './CreateTicket';
 import Broadcast from './Broadcast';
 import OpenOrCloseQueue from './OpenOrCloseQueue';
-import { Spinner } from '@chakra-ui/react';
+import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Flex,
+  Spinner,
+} from '@chakra-ui/react';
 import { useChannel } from '@ably-labs/react-hooks';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
 import { trpc } from '../../utils/trpc';
@@ -72,20 +80,33 @@ const QueueLayout = (props: QueueLayoutProps) => {
   if (isQueueOpen === undefined || isPendingStageEnabled === undefined) {
     return <Spinner />;
   }
-  
+
   return (
     <>
       {userRole === UserRole.STAFF && (
-        <>
+        <Flex flexDirection='column'>
           {!personalQueue && <Broadcast />}
           {(!personalQueue || personalQueue.ownerId === userId || personalQueue.allowStaffToOpen) && (
             <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
           )}
-        </>
+          <Accordion allowToggle m={4}>
+            <AccordionItem>
+              <AccordionButton>
+                Create ticket
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel>
+                <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        </Flex>
       )}
+
       {userRole === UserRole.STUDENT && isQueueOpen && (
         <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
       )}
+
       <TicketQueue
         userId={userId}
         userRole={userRole}

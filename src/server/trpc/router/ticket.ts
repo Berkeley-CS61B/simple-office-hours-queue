@@ -44,7 +44,7 @@ export const ticketRouter = router({
         },
       });
 
-      if (doesStudentHaveActiveTicket) {
+      if (doesStudentHaveActiveTicket && ctx.session.user.role === UserRole.STUDENT) {
         return;
       }
 
