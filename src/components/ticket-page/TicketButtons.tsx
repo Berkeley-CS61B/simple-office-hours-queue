@@ -248,7 +248,7 @@ const TicketButtons = (props: TicketCardProps) => {
         mt={[1, 1, 1, 4]}
         colorScheme='purple'
       >
-        {isPriority ? 'Unmark' : 'Mark'} as priority
+        {isPriority ? 'Unprioritize' : 'Prioritize'}
       </Button>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
