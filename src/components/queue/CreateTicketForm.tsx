@@ -20,7 +20,7 @@ import {
 import { InfoIcon } from '@chakra-ui/icons';
 import { PersonalQueue, TicketType } from '@prisma/client';
 import { STARTER_CONCEPTUAL_TICKET_DESCRIPTION, STARTER_DEBUGGING_TICKET_DESCRIPTION } from '../../utils/constants';
-import { uppercaseFirstLetter } from '../../utils/utils';
+import { getTicketUrl, uppercaseFirstLetter } from '../../utils/utils';
 import ConfirmPublicToggleModal from '../modals/ConfirmPublicToggleModal';
 
 interface Assignment {
@@ -152,7 +152,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           isClosable: true,
           position: 'top-right',
         });
-        Router.push(`/ticket/${ticket?.id}`);
+        Router.push(getTicketUrl(ticket.id));
       });
   };
 
