@@ -45,6 +45,7 @@ const TicketCard = (props: TicketCardProps) => {
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
+  const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
 
   const { data: usersInGroup } = trpc.ticket.getUsersInTicketGroup.useQuery(
     { ticketId: ticket.id },
@@ -122,6 +123,21 @@ const TicketCard = (props: TicketCardProps) => {
         ticketId: ticket.id,
         isPriority: !isPriority,
       }),
+    )();
+  };
+
+  const handleEscalate = async () => {
+    const prioritizeAndRequeue = async () => {
+      await markAsPriorityMutation.mutateAsync({
+        ticketId: ticket.id,
+        isPriority: !isPriority,
+      });
+      await requeueTicketsMutation.mutateAsync({ 
+        ticketIds: [ticket.id] 
+      });
+    }
+    await onClickWrapper(() =>
+      prioritizeAndRequeue(),
     )();
   };
 
@@ -266,7 +282,7 @@ const TicketCard = (props: TicketCardProps) => {
               title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
               disabled={areButtonsDisabled}
               isLoading={areButtonsLoading}
-              onClick={handleMarkAsPriority}
+              onClick={handleEscalate}
               hidden={!isIntern || !isAssigned || isPriority}
               ml={2}
               colorScheme='purple'
