@@ -110,7 +110,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     if (description.includes('[this test]') || description.includes('[this concept]')) {
       toast({
         title: 'Error',
-        description: 'Please replace [this concept] with the name the concept',
+        description: 'Please replace [this concept] or [this test] with the the specific concept or test',
         status: 'error',
         position: 'top-right',
         duration: 3000,
@@ -119,8 +119,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       return;
     }
 
-	// Prevents spamming the button
-	setIsButtonLoading(true);
+    // Prevents spamming the button
+    setIsButtonLoading(true);
 
     await createTicketMutation
       .mutateAsync({
@@ -158,7 +158,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         });
         Router.push(getTicketUrl(ticket.id));
       });
-	  setIsButtonLoading(false);
+    setIsButtonLoading(false);
   };
 
   return (
@@ -188,7 +188,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               name='description'
               size='md'
               maxLength={1000}
-              height={ticketType === TicketType.DEBUGGING ? '200px' : '50px'}
             />
           </FormControl>
           <FormControl mt={6} isRequired>
