@@ -9,6 +9,8 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { Select, SingleValue } from 'chakra-react-select';
 import { TabType } from './TicketQueue';
 import HandleAllConfirmationModal from '../modals/HandleAllConfirmationModal';
+import Head from 'next/head';
+import { SITE_BASE_TITLE } from '../../utils/constants';
 
 interface TicketListProps {
   tickets: TicketWithNames[];
@@ -145,38 +147,50 @@ const TicketList = (props: TicketListProps) => {
   }
 
   return (
-    <Flex flexDir='column'>
-      <Flex justifyContent='end' mb={4}>
-        <Box width='sm'>
-          <Select
-            value={{ label: filterBy, value: filterBy, id: filterBy }}
-            options={filterByOptions}
-            placeholder='Filter by...'
-            onChange={handleFilterTickets}
-          />
+    <>
+      <Head>
+        <title>
+          {SITE_BASE_TITLE} {displayedTickets.length > 0 ? `(${displayedTickets.length})` : ''}
+        </title>
+      </Head>
+      <Flex flexDir='column'>
+        <Flex justifyContent='end' mb={4}>
+          <Box width='sm'>
+            <Select
+              value={{ label: filterBy, value: filterBy, id: filterBy }}
+              options={filterByOptions}
+              placeholder='Filter by...'
+              onChange={handleFilterTickets}
+            />
+          </Box>
+          <Button
+            hidden={
+              userRole !== UserRole.STAFF ||
+              ticketStatus === 'Priority' ||
+              ticketStatus === 'Public' ||
+              ticketStatus === TicketStatus.ABSENT
+            }
+            mb={4}
+            ml={4}
+            alignSelf='flex-end'
+            onClick={() => setIsModalOpen(true)}
+          >
+            {uppercaseFirstLetter(handleAllText()) + ' ' + displayedTickets.length + ' displayed'}
+          </Button>
+        </Flex>
+        <Box ref={parent}>
+          {displayedTickets.map((ticket, idx) => (
+            <TicketCard key={ticket.id} idx={idx} ticket={ticket} userRole={userRole} userId={userId} />
+          ))}
         </Box>
-        <Button
-          hidden={userRole !== UserRole.STAFF || ticketStatus === 'Priority' || ticketStatus === 'Public' || ticketStatus === TicketStatus.ABSENT}
-          mb={4}
-          ml={4}
-          alignSelf='flex-end'
-          onClick={() => setIsModalOpen(true)}
-        >
-          {uppercaseFirstLetter(handleAllText()) + ' ' + displayedTickets.length + ' displayed'}
-        </Button>
+        <HandleAllConfirmationModal
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          handleConfirm={getHandleAllMethod()}
+          handleAllText={handleAllText()}
+        />
       </Flex>
-      <Box ref={parent}>
-        {displayedTickets.map((ticket, idx) => (
-          <TicketCard key={ticket.id} idx={idx} ticket={ticket} userRole={userRole} userId={userId} />
-        ))}
-      </Box>
-      <HandleAllConfirmationModal
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        handleConfirm={getHandleAllMethod()}
-        handleAllText={handleAllText()}
-      />
-    </Flex>
+    </>
   );
 };
 

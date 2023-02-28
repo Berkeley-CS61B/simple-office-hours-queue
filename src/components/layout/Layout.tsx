@@ -10,6 +10,7 @@ import { clientEnv } from '../../env/schema.mjs';
 import { UserRole } from '@prisma/client';
 import Router from 'next/router';
 import Image from 'next/image';
+import { SITE_BASE_TITLE } from '../../utils/constants';
 
 interface LayoutProps {
   children: ReactNode;
@@ -74,7 +75,7 @@ const Layout = (props: LayoutProps) => {
   return (
     <Flex direction='column' minH='100vh' justifyContent='space-between'>
       <Head>
-        <title>Office Hours Queue</title>
+        <title>{SITE_BASE_TITLE}</title>
         <meta name='OH Queue' content='Office Hours Queue' lang='en' translate='no' dir='ltr' />
       </Head>
 

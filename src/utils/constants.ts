@@ -16,3 +16,5 @@ export const DARK_HOVER_COLOR = '#2f2f2f';
 export const STARTER_DEBUGGING_TICKET_DESCRIPTION = 'Encountering a bug when running [this test]';
 
 export const STARTER_CONCEPTUAL_TICKET_DESCRIPTION = 'Conceptual question about [this concept]';
+
+export const SITE_BASE_TITLE = 'Office Hours Queue';
