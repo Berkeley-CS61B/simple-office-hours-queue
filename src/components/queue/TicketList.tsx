@@ -150,7 +150,7 @@ const TicketList = (props: TicketListProps) => {
     <>
       <Head>
         <title>
-          {SITE_BASE_TITLE} {displayedTickets.length > 0 ? `(${displayedTickets.length})` : ''}
+          {displayedTickets.length > 0 ? `(${displayedTickets.length})` : ''} {SITE_BASE_TITLE}
         </title>
       </Head>
       <Flex flexDir='column'>
