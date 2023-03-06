@@ -52,7 +52,12 @@ export const ticketRouter = router({
         // TODO: Check if personal queue is open and reassign isQueueOpen
       }
 
-      if (isQueueOpen?.value === SiteSettingsValues.FALSE && ctx.session.user.role === UserRole.STUDENT) {
+      // When you're not on a personal queue, make sure the queue is open
+      if (
+        input.personalQueueName === undefined &&
+        isQueueOpen?.value === SiteSettingsValues.FALSE &&
+        ctx.session.user.role === UserRole.STUDENT
+      ) {
         return;
       }
 
