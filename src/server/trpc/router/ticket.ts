@@ -44,6 +44,18 @@ export const ticketRouter = router({
         },
       });
 
+      const isQueueOpen = await ctx.prisma.settings.findFirst({
+        where: { setting: SiteSettings.IS_QUEUE_OPEN },
+      });
+
+      if (input.personalQueueName) {
+        // TODO: Check if personal queue is open and reassign isQueueOpen
+      }
+
+      if (isQueueOpen?.value === SiteSettingsValues.FALSE && ctx.session.user.role === UserRole.STUDENT) {
+        return;
+      }
+
       if (doesStudentHaveActiveTicket && ctx.session.user.role === UserRole.STUDENT) {
         return;
       }
