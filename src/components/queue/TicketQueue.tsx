@@ -159,7 +159,12 @@ const TicketQueue = (props: TicketQueueProps) => {
       ...(assignedTickets ?? []),
       ...(pendingTickets ?? []),
       ...(absentTickets ?? []),
-    ].filter(ticket => ticket.createdByUserId === userId || ticket.helpedByUserId === userId);
+    ].filter(
+      ticket =>
+        ticket.createdByUserId === userId ||
+        // We make sure that the ticket is not open so that requeued tickets don't show up in the My Tickets section
+        (ticket.helpedByUserId === userId && ticket.status !== TicketStatus.OPEN),
+    );
   };
 
   const isGetTicketsLoading =
