@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { Flex, Modal, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
@@ -8,6 +8,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import TicketList from './TicketList';
 import TicketCard from './TicketCard';
 import { DARK_GRAY_COLOR, DARK_MODE_COLOR } from '../../utils/constants';
+import PublicTicketsExistModal from '../modals/PublicTicketsExistModal';
 
 interface TicketQueueProps {
   userRole: UserRole;
@@ -298,6 +299,8 @@ const TicketQueue = (props: TicketQueueProps) => {
           })}
         </TabPanels>
       </Tabs>
+
+      <PublicTicketsExistModal publicTickets={publicTickets} userId={userId} userRole={userRole} />
     </Flex>
   );
 };
