@@ -133,7 +133,7 @@ const StatsView = () => {
     };
 
     return (
-        <Grid m={10} h='100%' w='auto' templateRows='30px 1fr 30px 1fr' templateColumns='repeat(6, 1fr)' gap={4}>
+        <Grid m={4} h='100%' w='auto' templateRows='30px 1fr 30px 1fr' templateColumns='repeat(6, 1fr)' gap={4}>
             <GridItem rowSpan={1} colSpan={6}>
                 <Flex justifyContent="space-between">
                     <Heading>Global Statistics</Heading>

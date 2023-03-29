@@ -38,7 +38,7 @@ const StatsPanel = (props: StatsGraphProps) => {
     };
 
     const computeMean = (data: number[]) => {
-        return Math.round(data.reduce((a, b) => a + b) / data.length * 1000) / 1000;
+        return data.length > 0 ? Math.round(data.reduce((a, b) => a + b) / data.length * 1000) / 1000 : 0;
     };
 
     const computeMedian = (data: number[]) => {

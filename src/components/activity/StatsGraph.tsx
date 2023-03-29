@@ -5,6 +5,7 @@ import { TicketStats } from '../../server/trpc/router/stats';
 import { LineChart, Line, CartesianGrid, Legend, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTheme } from '@chakra-ui/react'
 import { TimeRange } from './StatsView';
+import { TicketStatus } from '@prisma/client';
 
 export interface StatsGraphProps {
     timeRange: TimeRange | undefined;
@@ -116,7 +117,8 @@ const StatsGraph = (props: StatsGraphProps) => {
     const getNumberOfTicketStats = (bins: {[key: string]: TicketStats[]}) => {
         return Object.keys(bins).map(b => ({
             name: b,
-            numberOfTickets: bins[b]?.length
+            numberOfTickets: bins[b]?.length,
+            numberOfUnresolvedTickets: bins[b]?.filter(s => s.status === TicketStatus.CLOSED).length
         }));
     };
 
@@ -138,6 +140,7 @@ const StatsGraph = (props: StatsGraphProps) => {
             case StatType.NUMBER_OF_TICKETS:
                 return <>
                     <Line type="monotone" dataKey="numberOfTickets" name="Number of Tickets" stroke="#3486eb" />
+                    <Line type="monotone" dataKey="numberOfUnresolvedTickets" name="Number of Unresolved Tickets" stroke="#8884d8" />
                 </>;
             default:
                 return <></>

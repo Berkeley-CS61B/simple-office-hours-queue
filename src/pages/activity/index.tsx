@@ -7,9 +7,11 @@ import Layout from '../../components/layout/Layout';
  */
 const ActivityPage: NextPage = () => {
   const ActivityView = dynamic(() => import('../../components/activity/ActivityView'));
+  const StatsView = dynamic(() => import('../../components/activity/StatsView'))
   return (
     <Layout>
       <ActivityView />
+      <StatsView />
     </Layout>
   );
 };
