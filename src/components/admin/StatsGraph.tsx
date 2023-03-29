@@ -3,88 +3,15 @@ import { Flex, FormControl } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
 import { TicketStats } from '../../server/trpc/router/stats';
 import { LineChart, Line, CartesianGrid, Legend, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTheme } from '@chakra-ui/react'
+import { TimeRange } from './StatsView';
 
 export interface StatsGraphProps {
+    timeRange: TimeRange | undefined;
     stats: TicketStats[];
 }
 
-interface TimeRangeType {
-    type: string,
-    increment: (time: Date) => Date,
-    formatString: (time: Date) => string
-}
-
-interface TimeRange {
-    type: TimeRangeType,
-    startTime: Date,
-    endTime: Date,
-}
-
-const timeRangeTypes: {[key: string]: TimeRangeType} = {
-    "day": { 
-        type: "day", 
-        increment: (time: Date) => {
-            const timeCopy = new Date(time);
-            timeCopy.setHours(time.getHours() + 1);
-            return timeCopy;
-        },
-        formatString: (time: Date) => {
-            return time.toLocaleTimeString("en-US", { hour12: true, hour: "2-digit", minute: "2-digit" });
-        }
-    },
-    "week": { 
-        type: "week", 
-        increment: (time: Date) => {
-            const timeCopy = new Date(time);
-            timeCopy.setDate(time.getDate() + 1);
-            return timeCopy;
-        },
-        formatString: (time: Date) => {
-            return time.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-        }
-    },
-    "month": { 
-        type: "month", 
-        increment: (time: Date) => {
-            const timeCopy = new Date(time);
-            timeCopy.setDate(time.getDate() + 1);
-            return timeCopy;
-        },
-        formatString: (time: Date) => {
-            return time.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-        }
-    },
-    "all": { 
-        type: "all", 
-        increment: (time: Date) => {
-            const timeCopy = new Date(time);
-            timeCopy.setDate(time.getDate() + 1);
-            return timeCopy;
-        },
-        formatString: (time: Date) => {
-            return time.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-        }
-    },
-}
-
-const timeRangeOptions = [{
-    label: "Day",
-    value: timeRangeTypes["day"]
-},
-{
-    label: "Week", 
-    value: timeRangeTypes["week"]
-},
-{
-    label: "Month",
-    value: timeRangeTypes["month"]
-},
-{
-    label: "All",
-    value: timeRangeTypes["all"]
-}];
-
-enum StatType {
+export enum StatType {
     HELP_TIME = "helpTime",
     RESOLVE_TIME = "resolveTime",
     NUMBER_OF_TICKETS = "numberOfTickets"
@@ -106,42 +33,11 @@ const statTypeOptions = [
 ]
 
 const StatsGraph = (props: StatsGraphProps) => {
-    const { stats } = props;
-    const [timeRangeOption, setTimeRangeOption] = useState(timeRangeOptions[0]);
+    const { timeRange, stats } = props;
     const [statType, setStatType] = useState(statTypeOptions[0]);
     const [data, setData] = useState<any[]>([]);
 
-    const getTimeRange = (end: Date) => {
-        let start = new Date(end);
-        if (!timeRangeOption || !timeRangeOption.value) {
-            return undefined;
-        }
-        switch (timeRangeOption.value.type) {
-            case "day":
-                start.setDate(end.getDate() - 1);
-                return { type: timeRangeOption.value, startTime: start, endTime: end };
-            case "week":
-                start.setDate(end.getDate() - 7);
-                start.setHours(0, 0, 0, 0); // Round down start date
-                end.setHours(23, 59, 59, 999); // Round up end date
-                return { type: timeRangeOption.value, startTime: start, endTime: end };
-            case "month":
-                start.setMonth(end.getMonth() - 1);
-                start.setHours(0, 0, 0, 0); // Round down start date
-                end.setHours(23, 59, 59, 999); // Round up end date
-                return { type: timeRangeOption.value, startTime: start, endTime: end };
-            case "all":
-                start = new Date('January 1, 2023 00:00:00');
-                return { type: timeRangeOption.value, startTime: start, endTime: end };
-            default:
-                return { type: timeRangeOption.value, startTime: start, endTime: end };
-        }
-    };
-
     const binStatsByTime = () => {
-        const now = new Date();
-        if (!timeRangeOption) return {};
-        const timeRange = getTimeRange(now);
         if (!timeRange) return {};
 
         const filteredStatsInRange = stats.filter(s => {
@@ -186,7 +82,6 @@ const StatsGraph = (props: StatsGraphProps) => {
     }
 
     const getResolveTimeStats = (bins: {[key: string]: TicketStats[]}) => {
-        if (timeRangeOption === undefined) return [];
         const data = Object.keys(bins).map(b => ({
             name: b,
             data: bins[b]!.filter(s => s.createdAt && s.resolvedAt).map(t => resolveTime(t)).sort()
@@ -202,7 +97,6 @@ const StatsGraph = (props: StatsGraphProps) => {
     };
 
     const getHelpTimeStats = (bins: {[key: string]: TicketStats[]}) => {
-        if (timeRangeOption === undefined) return [];
         const data = Object.keys(bins).map(b => ({
             name: b,
             data: bins[b]!.filter(s => s.createdAt && s.resolvedAt).map(t => helpTime(t)).sort((a, b) => a - b)
@@ -220,7 +114,6 @@ const StatsGraph = (props: StatsGraphProps) => {
     };
 
     const getNumberOfTicketStats = (bins: {[key: string]: TicketStats[]}) => {
-        if (timeRangeOption === undefined) return [];
         return Object.keys(bins).map(b => ({
             name: b,
             numberOfTickets: bins[b]?.length
@@ -259,10 +152,10 @@ const StatsGraph = (props: StatsGraphProps) => {
         } else if (statType !== undefined && statType.value === StatType.NUMBER_OF_TICKETS) {
             setData(getNumberOfTicketStats(binStatsByTime()));
         }
-    }, [timeRangeOption, statType]);
+    }, [timeRange, statType]);
 
     return (
-        <Flex direction="column" w="100%" h="100%" mt={4} ml={4}>
+        <Flex direction="column" w="100%" h="100%">
             <FormControl w="100%" mt={6} isRequired>
                 <Flex direction={"row"} justifyContent={"space-between"}>
                     <Select value={statType} onChange={val => setStatType(val ?? undefined)} options={statTypeOptions}
@@ -271,13 +164,6 @@ const StatsGraph = (props: StatsGraphProps) => {
                             ...provided,
                             width: "100%",
                             margin: "0 10px 0 0"
-                            })
-                        }} />
-                    <Select value={timeRangeOption} onChange={val => setTimeRangeOption(val ?? undefined)} options={timeRangeOptions}
-                        chakraStyles={{
-                            container: (provided) => ({
-                            ...provided,
-                            width: "180px"
                             })
                         }} />
                 </Flex>
