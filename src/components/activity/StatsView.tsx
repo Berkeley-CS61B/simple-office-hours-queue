@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flex, FormControl, Grid, GridItem, Heading } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Spinner, Text } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
 import StatsGraph, { StatType } from './StatsGraph';
 import { trpc } from '../../utils/trpc';
@@ -92,13 +92,13 @@ const StatsView = () => {
     const [globalTimeRangeOption, setGlobalTimeRangeOption] = useState(timeRangeOptions[0]);
     const [personalTimeRangeOption, setPersonalTimeRangeOption] = useState(timeRangeOptions[0]);
 
-    trpc.stats.getTicketStats.useQuery(undefined, {
+    const { isLoading: isStatsLoading } = trpc.stats.getTicketStats.useQuery(undefined, {
         refetchOnWindowFocus: false,
         onSuccess: data => {
             setTicketStats(data);
         }
     });
-    trpc.stats.getTicketStatsHelpedByUser.useQuery({ userId: userId }, {
+    const { isLoading: isPersonalStatsLoading } = trpc.stats.getTicketStatsHelpedByUser.useQuery({ userId: userId }, {
         refetchOnWindowFocus: false,
         onSuccess: data => {
             setPersonalTicketStats(data);
@@ -136,7 +136,9 @@ const StatsView = () => {
         <Grid m={4} h='100%' w='auto' templateRows='30px 1fr 30px 1fr' templateColumns='repeat(6, 1fr)' gap={4}>
             <GridItem rowSpan={1} colSpan={6}>
                 <Flex justifyContent="space-between">
-                    <Heading>Global Statistics</Heading>
+                    <Text fontSize='3xl' fontWeight='semibold' mb={3}>
+                        Global Statistics
+                    </Text>
                     <Select value={globalTimeRangeOption} 
                         onChange={val => setGlobalTimeRangeOption(val ?? undefined)} 
                         options={timeRangeOptions}
@@ -155,13 +157,19 @@ const StatsView = () => {
                     stats={ticketStats} />
             </GridItem>
             <GridItem mt={4} rowSpan={1} colSpan={2}>
-                <StatsPanel 
-                    timeRange={getTimeRange(globalTimeRangeOption?.value, new Date())}
-                    stats={ticketStats} />
+                { (isStatsLoading || isPersonalStatsLoading) ? (
+                    <Spinner />
+                ) : (
+                    <StatsPanel 
+                        timeRange={getTimeRange(globalTimeRangeOption?.value, new Date())}
+                        stats={ticketStats} />
+                )}
             </GridItem>
             <GridItem rowSpan={1} colSpan={6}>
                 <Flex justifyContent="space-between">
-                    <Heading>Personal Statistics</Heading>
+                    <Text fontSize='3xl' fontWeight='semibold' mb={3}>
+                        Personal Statistics
+                    </Text>
                     <Select value={personalTimeRangeOption} 
                         onChange={val => setPersonalTimeRangeOption(val ?? undefined)} 
                         options={timeRangeOptions}
@@ -180,9 +188,13 @@ const StatsView = () => {
                     stats={personalTicketStats} />
             </GridItem>
             <GridItem mt={4} rowSpan={1} colSpan={2}>
-                <StatsPanel 
-                    timeRange={getTimeRange(personalTimeRangeOption?.value, new Date())}
-                    stats={personalTicketStats} />
+                { (isStatsLoading || isPersonalStatsLoading) ? (
+                    <Spinner />
+                ) : (
+                    <StatsPanel 
+                        timeRange={getTimeRange(personalTimeRangeOption?.value, new Date())}
+                        stats={personalTicketStats} />
+                )}
             </GridItem>
         </Grid>
     );
