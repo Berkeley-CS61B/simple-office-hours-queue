@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Checkbox, Flex, Input, position, Text, Tooltip, useToast } from '@chakra-ui/react';
+import { Box, Button, Checkbox, Flex, Input, Text, Tooltip, useToast } from '@chakra-ui/react';
 import { Assignment, Location } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
 import AdminCard from './AdminCard';

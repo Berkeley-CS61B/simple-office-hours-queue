@@ -41,7 +41,7 @@ const EditableControls = ({ setIsEditing }: { setIsEditing: (val: boolean) => vo
 
   useEffect(() => {
     setIsEditing(isEditing);
-  }, [isEditing]);
+  }, [isEditing, setIsEditing]);
 
   return isEditing ? (
     <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>

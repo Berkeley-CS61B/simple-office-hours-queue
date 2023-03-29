@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Modal, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
@@ -243,7 +243,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             You have no tickets
           </Text>
         )}
-        {getMyTickets()?.map((ticket, idx) => (
+        {getMyTickets()?.map(ticket => (
           <TicketCard
             idx={getLocationOnQueue(ticket)}
             key={ticket.id}

@@ -1,5 +1,4 @@
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
-import Router from 'next/router';
 import { TicketWithNames } from '../server/trpc/router/ticket';
 
 export const uppercaseFirstLetter = (str: string) => {
