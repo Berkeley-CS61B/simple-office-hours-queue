@@ -255,10 +255,42 @@ export const ticketRouter = router({
       await channel.publish('tickets-assigned', undefined);
 
       // Uses ticket inner page channel
-      for (const id of input.ticketIds) {
+      for (const id of ticketsToAssign) {
         const channel = ably.channels.get(`ticket-${id}`);
         await channel.publish('ticket-assigned', undefined);
       }
+
+      return ticketsToAssign;
+    }),
+
+  // Assigns a ticket to the current user
+  takeOverTicket: protectedNotStudentProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.ticket.update({
+        where: { id: input.ticketId },
+        data: {
+          status: TicketStatus.ASSIGNED,
+          helpedAt: new Date(),
+          helpedBy: {
+            connect: {
+              id: ctx.session?.user?.id,
+            },
+          },
+        },
+      });
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const channel = ably.channels.get('tickets');
+      channel.publish('tickets-assigned', undefined);
+
+      // Uses ticket inner page channel
+      const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
+      ticketChannel.publish('ticket-assigned', undefined);
     }),
 
   resolveTickets: protectedNotStudentProcedure

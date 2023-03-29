@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Router from 'next/router';
-import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner } from '@chakra-ui/react';
+import { Box, Button, useColorModeValue, Text, Divider, Tag, Flex, Spinner, useToast } from '@chakra-ui/react';
 import { TicketStatus, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
@@ -24,6 +24,7 @@ const TicketCard = (props: TicketCardProps) => {
   const { ticket, userRole, userId, idx } = props;
 
   const context = trpc.useContext();
+  const toast = useToast();
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
 
@@ -77,8 +78,19 @@ const TicketCard = (props: TicketCardProps) => {
 
   const handleHelpTicket = async () => {
     onClickWrapper(async () => {
-      await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-      Router.push(getTicketUrl(ticket.id));
+      const res = await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+      if (res.length > 0) {
+        Router.push(getTicketUrl(ticket.id));
+      } else {
+        toast({
+          title: 'Ticket already assigned',
+          description: 'This ticket is already assigned to a staff member.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
+      }
     })();
   };
 
@@ -132,13 +144,11 @@ const TicketCard = (props: TicketCardProps) => {
         ticketId: ticket.id,
         isPriority: !isPriority,
       });
-      await requeueTicketsMutation.mutateAsync({ 
-        ticketIds: [ticket.id] 
+      await requeueTicketsMutation.mutateAsync({
+        ticketIds: [ticket.id],
       });
-    }
-    await onClickWrapper(() =>
-      prioritizeAndRequeue(),
-    )();
+    };
+    await onClickWrapper(() => prioritizeAndRequeue())();
   };
 
   const handleCloseTicket = async () => {
