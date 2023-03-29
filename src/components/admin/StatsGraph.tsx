@@ -122,9 +122,13 @@ const StatsGraph = (props: StatsGraphProps) => {
                 return { type: timeRangeOption.value, startTime: start, endTime: end };
             case "week":
                 start.setDate(end.getDate() - 7);
+                start.setHours(0, 0, 0, 0); // Round down start date
+                end.setHours(23, 59, 59, 999); // Round up end date
                 return { type: timeRangeOption.value, startTime: start, endTime: end };
             case "month":
                 start.setMonth(end.getMonth() - 1);
+                start.setHours(0, 0, 0, 0); // Round down start date
+                end.setHours(23, 59, 59, 999); // Round up end date
                 return { type: timeRangeOption.value, startTime: start, endTime: end };
             case "all":
                 start = new Date('January 1, 2023 00:00:00');
@@ -273,7 +277,7 @@ const StatsGraph = (props: StatsGraphProps) => {
                         chakraStyles={{
                             container: (provided) => ({
                             ...provided,
-                            width: "150px"
+                            width: "180px"
                             })
                         }} />
                 </Flex>
