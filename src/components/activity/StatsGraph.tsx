@@ -3,9 +3,9 @@ import { Flex, FormControl } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
 import { TicketStats } from '../../server/trpc/router/stats';
 import { LineChart, Line, CartesianGrid, Legend, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useTheme } from '@chakra-ui/react'
 import { TimeRange } from './StatsView';
 import { TicketStatus } from '@prisma/client';
+import { computeMean, computeMedian, helpTime, resolveTime } from '../../utils/utils';
 
 export interface StatsGraphProps {
     timeRange: TimeRange | undefined;
@@ -56,44 +56,16 @@ const StatsGraph = (props: StatsGraphProps) => {
         return bins;
     };
 
-    const resolveTime = (t: TicketStats) => {
-        if (!t.resolvedAt || !t.createdAt) {
-            return 0;
-        }
-        return Math.round(((t.resolvedAt.getTime() - t.createdAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
-    }
-
-    const helpTime = (t: TicketStats) => {
-        if (!t.resolvedAt || !t.helpedAt) {
-            return 0;
-        }
-        return Math.round(((t.resolvedAt.getTime() - t.helpedAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
-    }
-
-    const computeMeanAndMedian = (data: { name: string, data: number[] }[]) => {
-        return data.map(d => {
-            const meanResolveTime =  d.data.length > 0 ? Math.round(d.data.reduce((a, b) => a + b) / d.data.length * 1000) / 1000 : 0;
-            const medianResolveTime = d.data.length > 0 ? d.data[Math.floor(d.data.length / 2)]! : 0;
-            return {
-                name: d.name,
-                mean: meanResolveTime,
-                median: medianResolveTime
-            }
-        });
-    }
-
     const getResolveTimeStats = (bins: {[key: string]: TicketStats[]}) => {
         const data = Object.keys(bins).map(b => ({
             name: b,
             data: bins[b]!.filter(s => s.createdAt && s.resolvedAt).map(t => resolveTime(t)).sort()
         }));
 
-        const dataStats = computeMeanAndMedian(data);
-
-        return dataStats.map(d => ({
+        return data.map(d => ({
             name: d.name,
-            meanResolveTime: d.mean,
-            medianResolveTime: d.median
+            meanResolveTime: computeMean(d.data),
+            medianResolveTime: computeMedian(d.data)
         }));
     };
 
@@ -103,14 +75,10 @@ const StatsGraph = (props: StatsGraphProps) => {
             data: bins[b]!.filter(s => s.createdAt && s.resolvedAt).map(t => helpTime(t)).sort((a, b) => a - b)
         }));
 
-        console.log(data);
-
-        const dataStats = computeMeanAndMedian(data);
-
-        return dataStats.map(d => ({
+        return data.map(d => ({
             name: d.name,
-            meanHelpTime: d.mean,
-            medianHelpTime: d.median
+            meanHelpTime: computeMean(d.data),
+            medianHelpTime: computeMedian(d.data)
         }));
     };
 

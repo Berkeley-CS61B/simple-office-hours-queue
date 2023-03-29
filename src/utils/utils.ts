@@ -1,4 +1,5 @@
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
+import { TicketStats } from '../server/trpc/router/stats';
 import { TicketWithNames } from '../server/trpc/router/ticket';
 
 export const uppercaseFirstLetter = (str: string) => {
@@ -99,3 +100,25 @@ export const ImportUsersMethodPossiblities = {
 };
 
 export type ImportUsersMethodPossiblitiesType = 'IMPORT_STAFF' | 'IMPORT_STAFF_AND_STUDENTS';
+
+export const resolveTime = (t: TicketStats) => {
+  if (!t.resolvedAt || !t.createdAt) {
+      return 0;
+  }
+  return Math.round(((t.resolvedAt.getTime() - t.createdAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
+};
+
+export const helpTime = (t: TicketStats) => {
+  if (!t.resolvedAt || !t.helpedAt) {
+      return 0;
+  }
+  return Math.round(((t.resolvedAt.getTime() - t.helpedAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
+};
+
+export const computeMean = (data: number[]) => {
+  return data.length > 0 ? Math.round(data.reduce((a, b) => a + b) / data.length * 1000) / 1000 : 0;
+};
+
+export const computeMedian = (data: number[]) => {
+  return data.length > 0 ? data.sort((a, b) => a - b)[Math.floor(data.length / 2)]! : 0;
+};

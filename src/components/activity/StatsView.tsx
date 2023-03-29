@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Flex, Grid, GridItem, Spinner, Text } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
-import StatsGraph, { StatType } from './StatsGraph';
+import StatsGraph from './StatsGraph';
 import { trpc } from '../../utils/trpc';
 import { TicketStats } from '../../server/trpc/router/stats';
 import { useSession } from 'next-auth/react';
