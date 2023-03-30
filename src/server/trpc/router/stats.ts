@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, publicProcedure, protectedNotStudentProcedure } from '../trpc';
 import { TicketStatus, TicketType } from '@prisma/client';
 import { z } from 'zod';
 
@@ -18,28 +18,25 @@ export const statsRouter = router({
       },
     });
   }),
-  getTicketStatsHelpedByUser: publicProcedure
-    .input(z.object({ 
-      userId: z.string() 
-    }))
-    .query(async ({ input, ctx }) => {
-    return ctx.prisma.ticket.findMany({
-      select: {
-        createdAt: true,
-        helpedAt: true,
-        resolvedAt: true,
-        status: true,
-        ticketType: true,
-        description: true,
-        isPublic: true,
-        locationId: true,
-		    assignmentId: true,
-      },
-      where: {
-        helpedByUserId: input.userId
-      },
-    });
-  }),
+  getTicketStatsHelpedByUser: protectedNotStudentProcedure
+    .query(async ({ ctx }) => {
+      return ctx.prisma.ticket.findMany({
+        select: {
+          createdAt: true,
+          helpedAt: true,
+          resolvedAt: true,
+          status: true,
+          ticketType: true,
+          description: true,
+          isPublic: true,
+          locationId: true,
+          assignmentId: true,
+        },
+        where: {
+          helpedByUserId: ctx.session?.user?.id
+        },
+      });
+    }),
 });
 
 export interface TicketStats {

@@ -84,9 +84,6 @@ const timeRangeOptions: { label: string, value: TimeRangeType }[] = [{
 }];
 
 const StatsView = () => {
-    const { data: session } = useSession();
-    const userRole = session?.user?.role!;
-    const userId = session?.user?.id!;
     const [ticketStats, setTicketStats] = useState<TicketStats[]>([]);
     const [personalTicketStats, setPersonalTicketStats] = useState<TicketStats[]>([]);
     const [globalTimeRangeOption, setGlobalTimeRangeOption] = useState(timeRangeOptions[0]);
@@ -98,7 +95,7 @@ const StatsView = () => {
             setTicketStats(data);
         }
     });
-    const { isLoading: isPersonalStatsLoading } = trpc.stats.getTicketStatsHelpedByUser.useQuery({ userId: userId }, {
+    const { isLoading: isPersonalStatsLoading } = trpc.stats.getTicketStatsHelpedByUser.useQuery(undefined, {
         refetchOnWindowFocus: false,
         onSuccess: data => {
             setPersonalTicketStats(data);

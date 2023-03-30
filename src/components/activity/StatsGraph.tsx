@@ -145,7 +145,7 @@ const StatsGraph = (props: StatsGraphProps) => {
                     <Legend verticalAlign="top" height={36}/>
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip labelStyle={{ color: "#454545" }}/>
                     { getGraphLines() }
                 </LineChart>
             </ResponsiveContainer>
