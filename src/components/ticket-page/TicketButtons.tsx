@@ -36,6 +36,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
   const toggleIsPublicMutation = trpc.ticket.toggleIsPublic.useMutation();
+  const takeOverTicketMutation = trpc.ticket.takeOverTicket.useMutation();
   const isPending = ticket.status === TicketStatus.PENDING;
   const isOpen = ticket.status === TicketStatus.OPEN;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -75,6 +76,12 @@ const TicketButtons = (props: TicketCardProps) => {
   const handleHelpTicket = async () => {
     onClickWrapper(async () => {
       await assignTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    })();
+  };
+
+  const handleTakeOverTicket = async () => {
+    onClickWrapper(async () => {
+      await takeOverTicketMutation.mutateAsync({ ticketId: ticket.id });
     })();
   };
 
@@ -132,13 +139,11 @@ const TicketButtons = (props: TicketCardProps) => {
         ticketId: ticket.id,
         isPriority: !isPriority,
       });
-      await requeueTicketsMutation.mutateAsync({ 
-        ticketIds: [ticket.id] 
+      await requeueTicketsMutation.mutateAsync({
+        ticketIds: [ticket.id],
       });
-    }
-    await onClickWrapper(() =>
-      prioritizeAndRequeue(),
-    )();
+    };
+    await onClickWrapper(() => prioritizeAndRequeue())();
   };
 
   const handleToggleIsPublic = async () => {
@@ -174,6 +179,18 @@ const TicketButtons = (props: TicketCardProps) => {
         colorScheme='whatsapp'
       >
         Help
+      </Button>
+      <Button
+        title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
+        disabled={areButtonsDisabled}
+        isLoading={areButtonsLoading}
+        m={4}
+        mt={[1, 1, 1, 4]}
+        onClick={handleTakeOverTicket}
+        hidden={(!isStaff && !isIntern) || !isAssigned || ticket.helpedByUserId === userId}
+        colorScheme='twitter'
+      >
+        Take Over
       </Button>
       <Button
         title={areButtonsDisabled ? BUTTONS_DISABLED_WAIT_MSG : ''}
