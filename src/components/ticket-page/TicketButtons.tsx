@@ -155,7 +155,6 @@ const TicketButtons = (props: TicketCardProps) => {
     )();
   };
 
-  console.log(ticket.helpedByUserId, userId, ticket.helpedByUserId === userId)
   return (
     <Flex justifyContent='center' flexDirection={['column', 'column', 'column', 'row']}>
       <Button
