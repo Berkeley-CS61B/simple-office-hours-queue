@@ -694,6 +694,15 @@ export const ticketRouter = router({
       return ticketsWithNames;
     }),
 
+  /* For global log */
+  getAllTickets: protectedStaffProcedure.query(async ({ ctx }) => {
+    const tickets = await ctx.prisma.ticket.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return convertTicketToTicketWithNames(tickets, ctx);
+  }),
+
   getTicketsWithUserId: protectedProcedure
     .input(
       z.object({
