@@ -1,4 +1,4 @@
-import { Box, Button, Collapse, Flex, Spinner, Text, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Collapse, Flex, Spinner, useDisclosure } from '@chakra-ui/react';
 import { UserRole } from '@prisma/client';
 import { useSession } from 'next-auth/react';
 import { SessionUser } from '../../pages/api/auth/[...nextauth]';
@@ -20,45 +20,40 @@ const ActivityView = () => {
   );
 
   return (
-    <>
-      <Flex ml={4} mr={4} mt={4} mb={10} flexDirection='column'>
-        <Text fontSize='3xl' fontWeight='semibold' mb={3}>
-          Activity Log
-        </Text>
-        {isTicketsLoading ? (
-          <Spinner />
-        ) : (
-          <>
-            <Flex>
-              <Button mr={4} onClick={toggleHelpedTable} hidden={user.role === UserRole.STUDENT}>
-                {isHelpedTableOpen ? 'Hide ' : 'Show '} helped tickets
-              </Button>
-              <Button onClick={toggleCreatedTable}>{isCreatedTableOpen ? 'Hide ' : 'Show '} created tickets</Button>
-            </Flex>
+    <Flex ml={4} mr={4} mb={10} flexDirection='column'>
+      {isTicketsLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <Flex>
+            <Button mr={4} onClick={toggleHelpedTable} hidden={user.role === UserRole.STUDENT}>
+              {isHelpedTableOpen ? 'Hide ' : 'Show '} helped tickets
+            </Button>
+            <Button onClick={toggleCreatedTable}>{isCreatedTableOpen ? 'Hide ' : 'Show '} created tickets</Button>
+          </Flex>
 
-            <Box hidden={user.role === UserRole.STUDENT}>
-              <Collapse in={isHelpedTableOpen} animateOpacity>
-                <ActivityTable
-                  tickets={userTickets?.helpedTickets ?? []}
-                  title='Your helped tickets'
-                  shouldShowCreatedBy={true}
-                />
-              </Collapse>
-            </Box>
+          <Box hidden={user.role === UserRole.STUDENT}>
+            <Collapse in={isHelpedTableOpen} animateOpacity>
+              <ActivityTable
+                tickets={userTickets?.helpedTickets ?? []}
+                title={`${userTickets?.helpedTickets.length ?? 0} helped tickets`}
+                shouldShowCreatedBy={true}
+              />
+            </Collapse>
+          </Box>
 
-            <Box>
-              <Collapse in={isCreatedTableOpen} animateOpacity>
-                <ActivityTable
-                  tickets={userTickets?.createdTickets ?? []}
-                  title='Your created tickets'
-                  shouldShowCreatedBy={false}
-                />
-              </Collapse>
-            </Box>
-          </>
-        )}
-      </Flex>
-    </>
+          <Box>
+            <Collapse in={isCreatedTableOpen} animateOpacity>
+              <ActivityTable
+                tickets={userTickets?.createdTickets ?? []}
+                title={`${userTickets?.createdTickets.length ?? 0} created tickets`}
+                shouldShowCreatedBy={false}
+              />
+            </Collapse>
+          </Box>
+        </>
+      )}
+    </Flex>
   );
 };
 

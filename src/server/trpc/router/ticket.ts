@@ -14,6 +14,7 @@ import {
 import { router, protectedProcedure, protectedStaffProcedure, protectedNotStudentProcedure } from '../trpc';
 import { z } from 'zod';
 import { TRPCClientError } from '@trpc/client';
+import { EMAIL_REGEX } from '../../../utils/constants';
 
 export const ticketRouter = router({
   createTicket: protectedProcedure
@@ -701,27 +702,31 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
-        where: {
-          helpedByUserId: input.userId,
-        },
-        ...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+      return await getUserTicketsFromId(input.userId, input.shouldSortByCreatedAt, ctx);
+    }),
+
+  getTicketsWithUserEmail: protectedProcedure
+    .input(
+      z.object({
+        userEmail: z.string(),
+        shouldSortByCreatedAt: z.boolean().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (!input.userEmail.match(EMAIL_REGEX)) {
+        return null;
+      }
+
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.userEmail },
+        select: { id: true },
       });
 
-      const createdTicketsNoName = await ctx.prisma.ticket.findMany({
-        where: {
-          createdByUserId: input.userId,
-        },
-        ...(input.shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
-      });
+      if (!user) {
+        return null;
+      }
 
-      const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
-      const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
-
-      return {
-        helpedTickets,
-        createdTickets,
-      };
+      return await getUserTicketsFromId(user.id, input.shouldSortByCreatedAt, ctx);
     }),
 
   getUsersInTicketGroup: protectedProcedure
@@ -818,6 +823,31 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
   );
 
   return ticketsWithNames;
+};
+
+/** Given a user ID, return the helped and created tickets */
+const getUserTicketsFromId = async (userId: string, shouldSortByCreatedAt: boolean | undefined, ctx: any) => {
+  const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
+    where: {
+      helpedByUserId: userId,
+    },
+    ...(shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+  });
+
+  const createdTicketsNoName = await ctx.prisma.ticket.findMany({
+    where: {
+      createdByUserId: userId,
+    },
+    ...(shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+  });
+
+  const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
+  const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
+
+  return {
+    helpedTickets,
+    createdTickets,
+  };
 };
 
 export interface ChatMessageWithUserName extends ChatMessage {
