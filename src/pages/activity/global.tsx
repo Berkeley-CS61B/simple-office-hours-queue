@@ -1,7 +1,6 @@
 import { Flex, Spinner, Text } from '@chakra-ui/react';
 import { UserRole } from '@prisma/client';
 import { NextPage } from 'next';
-import Image from 'next/image';
 import ActivityTable from '../../components/activity/ActivityTable';
 import Layout from '../../components/layout/Layout';
 import { trpc } from '../../utils/trpc';

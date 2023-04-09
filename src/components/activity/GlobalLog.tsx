@@ -57,9 +57,6 @@ const GlobalLog = () => {
       <Text fontSize='3xl' fontWeight='semibold' mb={3}>
         Global Log
       </Text>
-      <Text mb={3}>
-        <Link href='/activity/global'>Click here to view all tickets</Link> or search for a user log below
-      </Text>
       <Input id='email' placeholder='Email' onChange={e => setEmail(e.target.value)} />
       <Button mb={2} mt={2} colorScheme='yellow' disabled={!email.match(EMAIL_REGEX)} onClick={handleLookup}>
         Search
