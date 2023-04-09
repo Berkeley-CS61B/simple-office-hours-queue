@@ -4,12 +4,6 @@ import { appRouter } from '../../../server/trpc/router/_app';
 import { createContext } from '../../../server/trpc/context';
 import { env } from '../../../env/server.mjs';
 
-export const config = {
-  api: {
-    responseLimit: false,
-  },
-};
-
 // export API handler
 export default createNextApiHandler({
   router: appRouter,
