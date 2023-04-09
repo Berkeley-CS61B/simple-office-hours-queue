@@ -43,7 +43,7 @@ const GlobalActivityPage: NextPage = () => {
             tickets={tickets}
             title={`${tickets.length} tickets`}
             shouldShowCreatedBy={true}
-            shoulShowHelpedBy={true}
+            shouldShowHelpedBy={true}
           />
         )}
         <Button mt={2} colorScheme='yellow' onClick={handleLoadMore} disabled={isLoading}>
