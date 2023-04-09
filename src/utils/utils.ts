@@ -21,8 +21,8 @@ export const timeDifferenceInMinutes = (first: Date | null, second: Date | null)
   return Math.round(difference / 60000);
 };
 
-export const getActivityTableColumns = (title: string, shouldShowCreatedBy: boolean) => {
-  return [
+export const getActivityTableColumns = (title: string, shouldShowCreatedBy: boolean, shouldShowHelpedBy: boolean) => {
+  const baseTable = [
     {
       Header: title,
       columns: [
@@ -42,15 +42,6 @@ export const getActivityTableColumns = (title: string, shouldShowCreatedBy: bool
           Header: 'Location',
           accessor: 'locationName',
         },
-        shouldShowCreatedBy
-          ? {
-              Header: 'Created by',
-              accessor: 'createdByName',
-            }
-          : {
-              Header: 'Helped by',
-              accessor: 'helpedByName',
-            },
         {
           Header: 'Duration (m)',
           accessor: 'duration',
@@ -62,6 +53,28 @@ export const getActivityTableColumns = (title: string, shouldShowCreatedBy: bool
       ],
     },
   ];
+
+  // This isn't necessary, but it keeps typescript happy
+  if (baseTable[0] === undefined) {
+    throw new Error('baseTable[0] is undefined');
+  }
+
+  // Add createdBy and/or helpedBy columns
+  if (shouldShowCreatedBy) {
+    baseTable[0].columns.splice(4, 0, {
+      Header: 'Created By',
+      accessor: 'createdByName',
+    });
+  }
+
+  if (shouldShowHelpedBy) {
+    baseTable[0].columns.splice(4, 0, {
+      Header: 'Helped By',
+      accessor: 'helpedByName',
+    });
+  }
+
+  return baseTable;
 };
 
 export const addDurationToTickets = (tickets: TicketWithNames[]) => {
@@ -103,20 +116,20 @@ export type ImportUsersMethodPossiblitiesType = 'IMPORT_STAFF' | 'IMPORT_STAFF_A
 
 export const resolveTime = (t: TicketStats) => {
   if (!t.resolvedAt || !t.createdAt) {
-      return 0;
+    return 0;
   }
   return Math.round(((t.resolvedAt.getTime() - t.createdAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
 };
 
 export const helpTime = (t: TicketStats) => {
   if (!t.resolvedAt || !t.helpedAt) {
-      return 0;
+    return 0;
   }
   return Math.round(((t.resolvedAt.getTime() - t.helpedAt.getTime()) / 60000) * 1000) / 1000; // in minutes, 3 decimals
 };
 
 export const computeMean = (data: number[]) => {
-  return data.length > 0 ? Math.round(data.reduce((a, b) => a + b) / data.length * 1000) / 1000 : 0;
+  return data.length > 0 ? Math.round((data.reduce((a, b) => a + b) / data.length) * 1000) / 1000 : 0;
 };
 
 export const computeMedian = (data: number[]) => {

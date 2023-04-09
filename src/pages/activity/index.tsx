@@ -3,13 +3,12 @@ import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import Layout from '../../components/layout/Layout';
 import { UserRole } from '@prisma/client';
-import { Divider, Text } from '@chakra-ui/react';
+import { Divider } from '@chakra-ui/react';
 
 /**
  * Activity page which displays the activity log
  */
 const ActivityPage: NextPage = () => {
-  //   const ActivityView = dynamic(() => import('../../components/activity/ActivityView'));
   const PersonalLog = dynamic(() => import('../../components/activity/PersonalLog'));
   const StatsView = dynamic(() => import('../../components/activity/StatsView'));
   const GlobalLog = dynamic(() => import('../../components/activity/GlobalLog'));

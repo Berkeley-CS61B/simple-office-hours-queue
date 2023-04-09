@@ -10,6 +10,7 @@ interface ActivityTableProps {
   tickets: TicketWithNames[];
   title: string;
   shouldShowCreatedBy: boolean;
+  shouldShowHelpedBy: boolean;
 }
 
 /**
@@ -17,8 +18,11 @@ interface ActivityTableProps {
  * helped or tickets that the user has created.
  */
 const ActivityTable = (props: ActivityTableProps) => {
-  const { tickets, title, shouldShowCreatedBy } = props;
-  const columns = useMemo(() => getActivityTableColumns(title, shouldShowCreatedBy), [shouldShowCreatedBy, title]);
+  const { tickets, title, shouldShowCreatedBy, shouldShowHelpedBy } = props;
+  const columns = useMemo(
+    () => getActivityTableColumns(title, shouldShowCreatedBy, shouldShowHelpedBy),
+    [shouldShowCreatedBy, shouldShowHelpedBy, title],
+  );
   const data = useMemo(() => addDurationToTickets(tickets), [tickets]);
 
   const {
