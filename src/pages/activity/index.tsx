@@ -17,9 +17,9 @@ const ActivityPage: NextPage = () => {
 
   return (
     <Layout>
-      {/* <PersonalLog /> */}
+      <PersonalLog />
       <Divider ml={4} mt={4} width='97%' border='none' height='5px' backgroundColor='gray.700' borderStyle='none' />
-      {/* {session?.user?.role === UserRole.STAFF && <GlobalLog />} */}
+      {session?.user?.role === UserRole.STAFF && <GlobalLog />}
       <Divider ml={4} mt={4} width='97%' border='none' height='5px' backgroundColor='gray.700' borderStyle='none' />
       {session?.user?.role === UserRole.STAFF && <StatsView />}
     </Layout>
