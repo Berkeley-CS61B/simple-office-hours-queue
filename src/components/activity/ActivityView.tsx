@@ -35,6 +35,7 @@ const ActivityView = (props: ActivityViewProps) => {
             tickets={helpedTickets}
             title={`${helpedTickets.length} helped tickets`}
             shouldShowCreatedBy={true}
+			shoulShowHelpedBy={false}
           />
         </Collapse>
       </Box>
@@ -45,6 +46,7 @@ const ActivityView = (props: ActivityViewProps) => {
             tickets={createdTickets}
             title={`${createdTickets.length} created tickets`}
             shouldShowCreatedBy={false}
+			shoulShowHelpedBy={true}
           />
         </Collapse>
       </Box>

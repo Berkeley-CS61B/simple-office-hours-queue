@@ -57,6 +57,12 @@ const GlobalLog = () => {
       <Text fontSize='3xl' fontWeight='semibold' mb={3}>
         Global Log
       </Text>
+      <Text mb={3} display='inherit'>
+        <Link href='/activity/global'>
+          <Text _hover={{ cursor: 'pointer' }} fontStyle='italic'>Click here to view all tickets&nbsp;</Text>
+        </Link>
+        or search for a user&lsquo;s log below
+      </Text>
       <Input id='email' placeholder='Email' onChange={e => setEmail(e.target.value)} />
       <Button mb={2} mt={2} colorScheme='yellow' disabled={!email.match(EMAIL_REGEX)} onClick={handleLookup}>
         Search

@@ -695,13 +695,22 @@ export const ticketRouter = router({
     }),
 
   /* For global log */
-  getAllTickets: protectedStaffProcedure.query(async ({ ctx }) => {
-    const tickets = await ctx.prisma.ticket.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+  getAllTickets: protectedStaffProcedure
+    .input(
+      z.object({
+        page: z.number(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      // With page size = 50
+      const tickets = await ctx.prisma.ticket.findMany({
+        skip: 50 * (input.page - 1),
+        take: 50,
+        orderBy: { createdAt: 'desc' },
+      });
 
-    return convertTicketToTicketWithNames(tickets, ctx);
-  }),
+      return convertTicketToTicketWithNames(tickets, ctx);
+    }),
 
   getTicketsWithUserId: protectedProcedure
     .input(
