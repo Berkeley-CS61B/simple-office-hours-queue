@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flex, Grid, GridItem, Spinner, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Input, Spinner, Text } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
 import StatsGraph from './StatsGraph';
 import { trpc } from '../../utils/trpc';
@@ -90,6 +90,8 @@ const StatsView = () => {
   const [personalTicketStats, setPersonalTicketStats] = useState<TicketStats[]>([]);
   const [globalTimeRangeOption, setGlobalTimeRangeOption] = useState(timeRangeOptions[0]);
   const [personalTimeRangeOption, setPersonalTimeRangeOption] = useState(timeRangeOptions[0]);
+  const [globalStartDate, setGlobalStartDate] = useState<Date>();
+  const [personalStartDate, setPersonalStartDate] = useState<Date>();
 
   const { isLoading: isStatsLoading } = trpc.stats.getTicketStats.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -104,28 +106,53 @@ const StatsView = () => {
     },
   });
 
-  const getTimeRange = (timeRangeOption: TimeRangeType | undefined, end: Date): TimeRange | undefined => {
-    let start = new Date(end);
+  const getStartDateFromCurrent = (timeRangeOption: TimeRangeType) => {
+    let start = new Date();
+    switch (timeRangeOption.type) {
+      case 'day':
+        start.setDate(start.getDate() - 1);
+        break;
+      case 'week':
+        start.setDate(start.getDate() - 7);
+        break;
+      case 'month':
+        start.setMonth(start.getMonth() - 1);
+        break;
+      case 'all':
+        start = new Date('January 1, 2023 00:00:00');
+        break;
+      default:
+        break;
+    }
+    return start;
+  }
+
+  const getTimeRange = (timeRangeOption: TimeRangeType | undefined, startDate: Date | undefined): TimeRange | undefined => {
     if (!timeRangeOption) {
       return undefined;
     }
+    let start = new Date();
+    if (startDate !== undefined) {
+      start = startDate;
+    } else {
+      start = getStartDateFromCurrent(timeRangeOption);
+    }
+    
+    const end = new Date(start);
     switch (timeRangeOption.type) {
       case 'day':
-        start.setDate(end.getDate() - 1);
+        end.setDate(start.getDate() + 1);
+        console.log(startDate, start, end);
         return { type: timeRangeOption, startTime: start, endTime: end };
       case 'week':
-        start.setDate(end.getDate() - 7);
-        start.setHours(0, 0, 0, 0); // Round down start date
-        end.setHours(23, 59, 59, 999); // Round up end date
+        end.setDate(start.getDate() + 7);
         return { type: timeRangeOption, startTime: start, endTime: end };
       case 'month':
-        start.setMonth(end.getMonth() - 1);
-        start.setHours(0, 0, 0, 0); // Round down start date
-        end.setHours(23, 59, 59, 999); // Round up end date
+        end.setMonth(start.getMonth() + 1);
         return { type: timeRangeOption, startTime: start, endTime: end };
       case 'all':
         start = new Date('January 1, 2023 00:00:00');
-        return { type: timeRangeOption, startTime: start, endTime: end };
+        return { type: timeRangeOption, startTime: start, endTime: new Date() };
       default:
         return { type: timeRangeOption, startTime: start, endTime: end };
     }
@@ -134,10 +161,22 @@ const StatsView = () => {
   return (
     <Grid m={4} h='100%' w='auto' templateRows='30px 1fr 30px 1fr' templateColumns='repeat(6, 1fr)' gap={4}>
       <GridItem rowSpan={1} colSpan={6}>
-        <Flex justifyContent='space-between'>
-          <Text fontSize='3xl' fontWeight='semibold' mb={3}>
+        <Flex justifyContent='flex-end' alignItems='center'>
+          <Text fontSize='3xl' fontWeight='semibold' mb={3} mr="auto">
             Global Statistics
           </Text>
+          <Text mr={3}>Start Date:</Text>
+          <Input
+            mr={3}
+            width="250px"
+            placeholder="Select Date and Time"
+            size="md"
+            type="datetime-local"
+            onChange={event => 
+              setGlobalStartDate(event.target.value === "" ? undefined : new Date(event.target.value))
+            }
+          />
+          <Text mr={3}>Range:</Text>
           <Select
             value={globalTimeRangeOption}
             onChange={val => setGlobalTimeRangeOption(val ?? undefined)}
@@ -152,20 +191,32 @@ const StatsView = () => {
         </Flex>
       </GridItem>
       <GridItem rowSpan={1} colSpan={4}>
-        <StatsGraph timeRange={getTimeRange(globalTimeRangeOption?.value, new Date())} stats={ticketStats} />
+        <StatsGraph timeRange={getTimeRange(globalTimeRangeOption?.value, globalStartDate)} stats={ticketStats} />
       </GridItem>
       <GridItem mt={4} rowSpan={1} colSpan={2}>
         {isStatsLoading || isPersonalStatsLoading ? (
           <Spinner />
         ) : (
-          <StatsPanel timeRange={getTimeRange(globalTimeRangeOption?.value, new Date())} stats={ticketStats} />
+          <StatsPanel timeRange={getTimeRange(globalTimeRangeOption?.value, globalStartDate)} stats={ticketStats} />
         )}
       </GridItem>
       <GridItem rowSpan={1} colSpan={6}>
-        <Flex justifyContent='space-between'>
-          <Text fontSize='3xl' fontWeight='semibold' mb={3}>
+        <Flex justifyContent='flex-end' alignItems="center">
+          <Text fontSize='3xl' fontWeight='semibold' mb={3} mr="auto">
             Personal Statistics
           </Text>
+          <Text mr={3}>Start Date:</Text>
+          <Input
+            mr={3}
+            width="250px"
+            placeholder="Select Date and Time"
+            size="md"
+            type="datetime-local"
+            onChange={event => 
+              setPersonalStartDate(event.target.value === "" ? undefined : new Date(event.target.value))
+            }
+          />
+          <Text mr={3}>Range:</Text>
           <Select
             value={personalTimeRangeOption}
             onChange={val => setPersonalTimeRangeOption(val ?? undefined)}
@@ -180,14 +231,14 @@ const StatsView = () => {
         </Flex>
       </GridItem>
       <GridItem rowSpan={1} colSpan={4}>
-        <StatsGraph timeRange={getTimeRange(personalTimeRangeOption?.value, new Date())} stats={personalTicketStats} />
+        <StatsGraph timeRange={getTimeRange(personalTimeRangeOption?.value, personalStartDate)} stats={personalTicketStats} />
       </GridItem>
       <GridItem mt={4} rowSpan={1} colSpan={2}>
         {isStatsLoading || isPersonalStatsLoading ? (
           <Spinner />
         ) : (
           <StatsPanel
-            timeRange={getTimeRange(personalTimeRangeOption?.value, new Date())}
+            timeRange={getTimeRange(personalTimeRangeOption?.value, personalStartDate)}
             stats={personalTicketStats}
           />
         )}
