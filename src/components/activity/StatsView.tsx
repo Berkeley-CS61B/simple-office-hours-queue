@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Flex, Grid, GridItem, Input, Spinner, Text } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
 import StatsGraph from './StatsGraph';
@@ -93,18 +93,37 @@ const StatsView = () => {
   const [globalStartDate, setGlobalStartDate] = useState<Date>();
   const [personalStartDate, setPersonalStartDate] = useState<Date>();
 
-  const { isLoading: isStatsLoading } = trpc.stats.getTicketStats.useQuery(undefined, {
+  const { isFetching: isFetchingStats, fetchNextPage: fetchNextStatsPage, hasNextPage: statsHasNextPage } = 
+    trpc.stats.getInfiniteTicketStats.useInfiniteQuery({ limit: 10000 }, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
-      setTicketStats(data);
+      setTicketStats(data.pages.map(p => p.items).reduce((a, b) => a.concat(b)));
     },
+    getNextPageParam: (lastPage) => lastPage.nextCursor
   });
-  const { isLoading: isPersonalStatsLoading } = trpc.stats.getTicketStatsHelpedByUser.useQuery(undefined, {
+
+  useEffect(() => {
+    if (statsHasNextPage) {
+      fetchNextStatsPage();
+    }
+  }, [ticketStats])
+
+  const { isFetching: isFetchingPersonalStats, fetchNextPage: fetchNextPersonalStatsPage, hasNextPage: personalStatsHasNextPage } = 
+    trpc.stats.getInfiniteTicketStats.useInfiniteQuery({ limit: 10000 }, {
     refetchOnWindowFocus: false,
     onSuccess: data => {
-      setPersonalTicketStats(data);
+      setPersonalTicketStats(data.pages.map(p => p.items).reduce((a, b) => a.concat(b)));
     },
+    getNextPageParam: (lastPage) => lastPage.nextCursor
   });
+
+  useEffect(() => {
+    if (personalStatsHasNextPage) {
+      fetchNextPersonalStatsPage();
+    }
+  }, [personalTicketStats])
+  
+  const isStatsLoading = isFetchingStats || statsHasNextPage || isFetchingPersonalStats || personalStatsHasNextPage;
 
   const getStartDateFromCurrent = (timeRangeOption: TimeRangeType) => {
     let start = new Date();
@@ -142,7 +161,6 @@ const StatsView = () => {
     switch (timeRangeOption.type) {
       case 'day':
         end.setDate(start.getDate() + 1);
-        console.log(startDate, start, end);
         return { type: timeRangeOption, startTime: start, endTime: end };
       case 'week':
         end.setDate(start.getDate() + 7);
@@ -194,7 +212,7 @@ const StatsView = () => {
         <StatsGraph timeRange={getTimeRange(globalTimeRangeOption?.value, globalStartDate)} stats={ticketStats} />
       </GridItem>
       <GridItem mt={4} rowSpan={1} colSpan={2}>
-        {isStatsLoading || isPersonalStatsLoading ? (
+        {isStatsLoading ? (
           <Spinner />
         ) : (
           <StatsPanel timeRange={getTimeRange(globalTimeRangeOption?.value, globalStartDate)} stats={ticketStats} />
@@ -234,7 +252,7 @@ const StatsView = () => {
         <StatsGraph timeRange={getTimeRange(personalTimeRangeOption?.value, personalStartDate)} stats={personalTicketStats} />
       </GridItem>
       <GridItem mt={4} rowSpan={1} colSpan={2}>
-        {isStatsLoading || isPersonalStatsLoading ? (
+        {isStatsLoading ? (
           <Spinner />
         ) : (
           <StatsPanel
