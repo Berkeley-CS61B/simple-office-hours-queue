@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
 import { Button, Box, Flex, Text, Spinner, useToast, Textarea } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
@@ -130,38 +130,49 @@ const Chat = (props: ChatProps) => {
       });
   };
 
-  const allMessages = messages.map((message, index: number) => {
-    const { content, sentByName, sentByUserId, sentByUserRole } = message;
-    const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
+  const allMessages = useMemo(
+    () =>
+      messages.map((message, index) => {
+        const { content, sentByName, sentByUserId, sentByUserRole } = message;
+        const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
 
-    return (
-      <Flex
-        key={index}
-        data-author={sentByName}
-        backgroundColor={amISender ? 'blue.600' : 'gray'}
-        p={3}
-        alignSelf={amISender ? 'flex-end' : 'flex-start'}
-        borderRadius={5}
-        borderBottomRightRadius={amISender ? 0 : 5}
-        borderBottomLeftRadius={amISender ? 5 : 0}
-        color='white'
-      >
-        <Text mr={2} fontWeight='bold' hidden={amISender}>
-          {canSeeName || sentByUserRole !== UserRole.STUDENT
-            ? sentByName
-            : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
-        </Text>
-        {content}
-      </Flex>
-    );
-  });
+        return (
+          <Flex
+            key={index}
+            data-author={sentByName}
+            backgroundColor={amISender ? 'blue.600' : 'gray'}
+            p={3}
+            alignSelf={amISender ? 'flex-end' : 'flex-start'}
+            borderRadius={5}
+            borderBottomRightRadius={amISender ? 0 : 5}
+            borderBottomLeftRadius={amISender ? 5 : 0}
+            color='white'
+          >
+            <Text mr={2} fontWeight='bold' hidden={amISender}>
+              {canSeeName || sentByUserRole !== UserRole.STUDENT
+                ? sentByName
+                : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
+            </Text>
+            {content}
+          </Flex>
+        );
+      }),
+    [messages],
+  );
 
   useEffect(() => {
     if (messageEnd) {
-      // Bug: This causes scroll to bottom of page
-      //   messageEnd.scrollIntoView({ behaviour: 'smooth' });
+      messageEnd.scrollIntoView({ behaviour: 'smooth' });
     }
   }, [messages, messageEnd]);
+
+  /** Pressing Enter should call handleFormSubmission */
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleFormSubmission(event as any);
+    }
+  };
 
   return (
     <>
@@ -180,6 +191,7 @@ const Chat = (props: ChatProps) => {
                 value={messageText}
                 placeholder='Type a message...'
                 onChange={e => setMessageText(e.target.value)}
+                onKeyDown={handleKeyPress}
                 mr={4}
                 maxLength={1000}
               />
