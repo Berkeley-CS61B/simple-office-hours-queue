@@ -1,6 +1,7 @@
-import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
+import { router, protectedStaffProcedure, protectedProcedure, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { TRPCClientError } from '@trpc/client';
+import { TicketStatus } from '@prisma/client';
 
 export const queueRouter = router({
   getQueueByName: protectedProcedure
@@ -25,6 +26,30 @@ export const queueRouter = router({
         },
       },
     });
+  }),
+
+  // Returns personal queue names mapping to isOpen, and the number of open tickets in each queue
+  getPersonalQueueStats: publicProcedure.query(async ({ ctx }) => {
+	const personalQueues = await ctx.prisma.personalQueue.findMany({
+	  select: {
+		name: true,
+		isOpen: true,
+		Ticket: {
+		  select: {
+			status: true,
+		  },
+		  where: {
+			status: TicketStatus.OPEN,
+		  },
+		}
+	  },
+	});
+
+	return personalQueues.map((queue) => ({
+	  queueName: queue.name,
+	  isQueueOpen: queue.isOpen,
+	  numOpenTickets: queue.Ticket.length,
+	}))
   }),
 
   createQueue: protectedStaffProcedure
