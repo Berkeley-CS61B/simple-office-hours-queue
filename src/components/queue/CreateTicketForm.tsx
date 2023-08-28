@@ -80,7 +80,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       setIsPublic(false);
     } else {
       setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
-      setIsPublic(true);
+      if (arePublicTicketsEnabled) {
+        setIsPublic(true);
+      }
     }
   };
 
@@ -220,8 +222,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               <Tooltip
                 hasArrow
                 label='Public tickets can be joined by other students. This is great for group work 
-						   or conceptual questions! If your ticket is public, we are more likely to 
-						   help you for a longer time.'
+               or conceptual questions! If your ticket is public, we are more likely to 
+               help you for a longer time.'
                 bg='gray.300'
                 color='black'
               >
