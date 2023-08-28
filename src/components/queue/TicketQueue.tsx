@@ -171,7 +171,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const isGetTicketsLoading =
     isGetOpenTicketsLoading || isGetAssignedTicketsLoading || isGetPendingTicketsLoading || isGetAbsentTicketsLoading;
 
-  /** Don't show priority tickets on the Open tab since they are in the  */
+  /** Don't show priority tickets on the Open tab */
   const removePriorityTickets = (tickets: TicketWithNames[]) => {
     return tickets.filter(ticket => !ticket.isPriority);
   };

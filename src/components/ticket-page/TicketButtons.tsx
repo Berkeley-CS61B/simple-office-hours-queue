@@ -3,6 +3,8 @@ import { Button, Flex, Spinner } from '@chakra-ui/react';
 import { TicketStatus, TicketType, UserRole } from '@prisma/client';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
+import useSiteSettings from '../../utils/hooks/useSiteSettings';
+import { SiteSettings, SiteSettingsValues } from '@prisma/client';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -25,6 +27,8 @@ const TicketButtons = (props: TicketCardProps) => {
 
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
+  const { siteSettings } = useSiteSettings();
+
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
   const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
@@ -155,6 +159,10 @@ const TicketButtons = (props: TicketCardProps) => {
     )();
   };
 
+  if (siteSettings === undefined) {
+    return <></>;
+  }
+
   return (
     <Flex justifyContent='center' flexDirection={['column', 'column', 'column', 'row']}>
       <Button
@@ -249,6 +257,7 @@ const TicketButtons = (props: TicketCardProps) => {
         onClick={handleToggleIsPublic}
         colorScheme='teal'
         hidden={
+          siteSettings?.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) === SiteSettingsValues.FALSE ||
           isAbsent ||
           isResolved ||
           isClosed ||

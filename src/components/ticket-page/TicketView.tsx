@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@chakra-ui/react';
 import Router, { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
-import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { useSession } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import InnerTicket from './InnerTicket';

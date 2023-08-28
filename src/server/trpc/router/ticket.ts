@@ -82,15 +82,25 @@ export const ticketRouter = router({
         return;
       }
 
+      const publicTicketsEnabled = await ctx.prisma.settings.findUnique({
+        where: {
+          setting: SiteSettings.ARE_PUBLIC_TICKETS_ENABLED,
+        },
+      });
+
+      // Ensure that public tickets are enabled if the ticket is public. This is necessary because
+      //  the client might have a stale value for the setting.
+      const isPublic = publicTicketsEnabled?.value === SiteSettingsValues.TRUE ? input.isPublic : false;
+
       // If a ticket is made with a priority assigment, it's a priority ticket
       const isPriority = assignment?.isPriority;
 
       const ticket = await ctx.prisma.ticket.create({
         data: {
           description: input.description,
-          isPublic: input.isPublic ?? false,
+          isPublic: isPublic,
           locationDescription: input.locationDescription,
-          usersInGroup: input.isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
+          usersInGroup: isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
           isPriority: isPriority,
           ticketType: input.ticketType,
           assignment: {
@@ -122,7 +132,7 @@ export const ticketRouter = router({
       });
 
       // Add the ticket to User.ticketsJoined if it is public
-      if (input.isPublic) {
+      if (isPublic) {
         await ctx.prisma.user.update({
           where: { id: ctx.session.user.id },
           data: {
