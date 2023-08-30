@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PersonalQueue, TicketStatus, UserRole } from '@prisma/client';
-import { Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
+import { Button, Flex, Skeleton, SkeletonText, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import { uppercaseFirstLetter } from '../../utils/utils';
@@ -26,6 +26,7 @@ export type TabType = TicketStatus | 'Priority' | 'Public';
  */
 const TicketQueue = (props: TicketQueueProps) => {
   const { userRole, isPendingStageEnabled, isQueueOpen, userId, personalQueue } = props;
+  const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const [tabIndex, setTabIndex] = useState(0);
 
   const context = trpc.useContext();
@@ -222,13 +223,27 @@ const TicketQueue = (props: TicketQueueProps) => {
     return -1;
   };
 
+  const clearQueue = async () => {
+    await clearQueueMutation.mutateAsync({ personalQueueName: personalQueue?.name });
+    context.ticket.getTicketsWithStatus.invalidate();
+  };
+
+  const totalTicketsLength =
+    getTickets(TicketStatus.OPEN).length +
+    getTickets(TicketStatus.PENDING).length +
+    getTickets(TicketStatus.ASSIGNED).length +
+    getTickets(TicketStatus.ABSENT).length;
+
   return (
     <Flex width='full' align='left' flexDir='column' p={4}>
       {!isQueueOpen ? (
-        <Flex alignItems='center' justifyContent='center' width='100%' mt={5}>
+        <Flex flexDir='column' alignItems='center' justifyContent='center' width='100%' mt={5}>
           <Text fontSize='2xl' fontWeight='bold'>
             Queue is currently closed
           </Text>
+          <Button hidden={totalTicketsLength === 0} onClick={clearQueue} ml={5} colorScheme='green'>
+            Clear Queue
+          </Button>
         </Flex>
       ) : (
         <></>
