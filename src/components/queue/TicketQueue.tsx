@@ -241,7 +241,12 @@ const TicketQueue = (props: TicketQueueProps) => {
           <Text fontSize='2xl' fontWeight='bold'>
             Queue is currently closed
           </Text>
-          <Button hidden={totalTicketsLength === 0} onClick={clearQueue} ml={5} colorScheme='green'>
+          <Button
+            hidden={totalTicketsLength === 0 || userRole !== UserRole.STAFF}
+            onClick={clearQueue}
+            ml={5}
+            colorScheme='green'
+          >
             Clear Queue
           </Button>
         </Flex>
