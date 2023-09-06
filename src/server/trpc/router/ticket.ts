@@ -588,7 +588,7 @@ export const ticketRouter = router({
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: {
-            in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ASSIGNED, TicketStatus.ABSENT],
+            in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ABSENT],
           },
           ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
         },

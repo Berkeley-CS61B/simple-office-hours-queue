@@ -228,10 +228,9 @@ const TicketQueue = (props: TicketQueueProps) => {
     context.ticket.getTicketsWithStatus.invalidate();
   };
 
-  const totalTicketsLength =
+  const totalNonAssignedTicketsLength =
     getTickets(TicketStatus.OPEN).length +
     getTickets(TicketStatus.PENDING).length +
-    getTickets(TicketStatus.ASSIGNED).length +
     getTickets(TicketStatus.ABSENT).length;
 
   return (
@@ -242,7 +241,7 @@ const TicketQueue = (props: TicketQueueProps) => {
             Queue is currently closed
           </Text>
           <Button
-            hidden={totalTicketsLength === 0 || userRole !== UserRole.STAFF}
+            hidden={totalNonAssignedTicketsLength === 0 || userRole !== UserRole.STAFF}
             onClick={clearQueue}
             ml={5}
             colorScheme='green'
