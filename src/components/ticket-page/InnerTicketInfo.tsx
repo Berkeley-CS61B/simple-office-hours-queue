@@ -29,6 +29,7 @@ import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
 import Countdown from './Countdown';
+import TicketLocation from './TicketLocation';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -129,12 +130,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-left',
       'ticket-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-changed',
       'ticket-location-description-changed',
       'ticket-toggle-public',
     ];
 
     const messageShouldBeUpdate: string[] = [
       'ticket-description-changed',
+      'ticket-location-changed',
       'ticket-location-description-changed',
       'ticket-toggle-public',
     ];
@@ -247,9 +250,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
           {ticket.assignmentName}
         </Tag>
-        <Tag p={2.5} size='lg' colorScheme='orange' borderRadius={5}>
-          {ticket.locationName}
-        </Tag>
+        <TicketLocation ticket={ticket} />
       </Box>
 
       <Text hidden={!ticket.locationDescription}>

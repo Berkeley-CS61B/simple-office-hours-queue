@@ -57,6 +57,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-changed',
       'ticket-toggle-public',
     ];
     const shouldInvalidateAssigned = [
@@ -67,6 +68,7 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-changed',
       'ticket-toggle-public',
     ];
     const shouldInvalidatePending = [
@@ -76,9 +78,10 @@ const TicketQueue = (props: TicketQueueProps) => {
       'ticket-closed',
       'tickets-marked-as-priority',
       'ticket-description-changed',
+      'ticket-location-changed',
       'ticket-toggle-public',
     ];
-    const shouldInvalidateAbsent = ['tickets-marked-as-absent', 'ticket-closed'];
+    const shouldInvalidateAbsent = ['tickets-marked-as-absent', 'ticket-closed', 'ticket-location-changed'];
 
     if (message === 'ticket-joined' || message === 'ticket-left') {
       context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticketData.data.id });
