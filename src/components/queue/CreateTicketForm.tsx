@@ -22,6 +22,7 @@ import { PersonalQueue, TicketType } from '@prisma/client';
 import { STARTER_CONCEPTUAL_TICKET_DESCRIPTION, STARTER_DEBUGGING_TICKET_DESCRIPTION } from '../../utils/constants';
 import { getTicketUrl, uppercaseFirstLetter } from '../../utils/utils';
 import ConfirmPublicToggleModal from '../modals/ConfirmPublicToggleModal';
+import { TicketWithNames } from '../../server/trpc/router/ticket';
 
 interface Assignment {
   id: number;
@@ -38,20 +39,34 @@ interface Location {
 interface CreateTicketFormProps {
   arePublicTicketsEnabled: boolean;
   personalQueue?: PersonalQueue;
+  isEditingTicket?: boolean;
+  existingTicket?: TicketWithNames; // Existing ticket that is being edited
 }
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
-  const { arePublicTicketsEnabled, personalQueue } = props;
-  const [ticketType, setTicketType] = useState<TicketType>();
-  const [description, setDescription] = useState<string>('');
-  const [locationDescription, setLocationDescription] = useState<string>('');
-  const [assignment, setAssignment] = useState<Assignment>();
+  const { arePublicTicketsEnabled, personalQueue, isEditingTicket, existingTicket } = props;
+  const [ticketType, setTicketType] = useState<TicketType | undefined>(existingTicket?.ticketType);
+  const [description, setDescription] = useState<string>(existingTicket?.description ?? '');
+  const [locationDescription, setLocationDescription] = useState<string>(existingTicket?.locationDescription ?? '');
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
   const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
-  const [location, setLocation] = useState<Location>();
-  const [isPublic, setIsPublic] = useState<boolean>(false);
+  const [isPublic, setIsPublic] = useState<boolean>(existingTicket?.isPublic ?? false);
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
+  const [assignment, setAssignment] = useState<Assignment | undefined>(
+    existingTicket
+      ? { id: existingTicket.assignmentId, label: existingTicket.assignmentName, value: existingTicket.assignmentName }
+      : undefined,
+  );
+  const [location, setLocation] = useState<Location | undefined>(
+    existingTicket
+      ? {
+          id: existingTicket.locationId,
+          label: existingTicket.locationName,
+          value: existingTicket.locationName,
+        }
+      : undefined,
+  );
   const toast = useToast();
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
@@ -232,7 +247,14 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             </FormLabel>
             <Switch isChecked={isPublic} mt={1} onChange={handleTogglePublic} />
           </FormControl>
-          <Button type='submit' width='full' mt={4} colorScheme='whatsapp' isLoading={isButtonLoading}>
+          <Button
+            hidden={isEditingTicket}
+            type='submit'
+            width='full'
+            mt={4}
+            colorScheme='whatsapp'
+            isLoading={isButtonLoading}
+          >
             Request Help
           </Button>
         </form>

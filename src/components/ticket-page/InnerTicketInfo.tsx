@@ -30,6 +30,7 @@ import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
 import Countdown from './Countdown';
 import TicketLocation from './TicketLocation';
+import EditTicketModal from '../modals/EditTicketModal';
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -65,6 +66,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [showEditTicketModal, setShowEditTicketModal] = useState(false);
   const [isEditingLocationDescription, setIsEditingLocationDescription] = useState(false);
 
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
@@ -204,6 +206,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   };
 
+  const handleEditTicket = () => {
+    setShowEditTicketModal(false);
+    console.log('hi');
+  };
+
   return (
     <>
       <Text fontSize='2xl'>
@@ -250,7 +257,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         <Tag p={2.5} size='lg' mr={3} colorScheme='blue' borderRadius={5}>
           {ticket.assignmentName}
         </Tag>
-        <TicketLocation ticket={ticket} />
+        <Tag p={2.5} size='md' colorScheme='orange' borderRadius={5}>
+          {ticket.locationName}
+        </Tag>
       </Box>
 
       <Text hidden={!ticket.locationDescription}>
@@ -339,6 +348,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         numberOfPieces={200}
         run={showConfetti}
         onConfettiComplete={() => setShowConfetti(false)}
+      />
+
+      <Button onClick={() => setShowEditTicketModal(true)}>Edit</Button>
+      <EditTicketModal
+        isModalOpen={showEditTicketModal}
+        setIsModalOpen={setShowEditTicketModal}
+        onSubmit={handleEditTicket}
+        ticket={ticket}
       />
     </>
   );

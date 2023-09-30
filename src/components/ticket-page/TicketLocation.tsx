@@ -1,7 +1,9 @@
-import { Flex, Spinner, Tag } from '@chakra-ui/react';
+import { useState } from 'react';
+import { Spinner, Tag, IconButton } from '@chakra-ui/react';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
+import { FaChevronDown } from 'react-icons/fa';
 
 interface TicketLocationProps {
   ticket: TicketWithNames;
@@ -16,6 +18,7 @@ interface SelectLocation {
 /** Specifies location of ticket and allows them to be edited */
 const TicketLocation = (props: TicketLocationProps) => {
   const { ticket } = props;
+  const [showDropdown, setShowDropdown] = useState(false);
   const editTicketLocationMutation = trpc.ticket.editTicketLocation.useMutation();
 
   const { data: activeLocations, isLoading: isGetActiveLocationsLoading } = trpc.admin.getActiveLocations.useQuery(
@@ -50,8 +53,17 @@ const TicketLocation = (props: TicketLocationProps) => {
 
   return (
     <Tag p={2.5} size='md' colorScheme='orange' borderRadius={5}>
-      {/* {currentLocation.label} */}
-      <Select value={currentLocation} onChange={handleLocationChange} options={locationOptions} />
+      {currentLocation.label}
+      {/* <Select value={currentLocation} onChange={handleLocationChange} options={locationOptions} /> */}
+      {/* <IconButton
+        size='xs'
+        onClick={() => setShowDropdown(!showDropdown)}
+        cursor='pointer'
+        backgroundColor='transparent'
+        aria-label='Change location icon'
+        as={FaChevronDown}
+        ml={2}
+      /> */}
     </Tag>
   );
 };
