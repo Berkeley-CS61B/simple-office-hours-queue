@@ -77,6 +77,8 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
   const editTicketDescriptionMutation = trpc.ticket.editTicketDescription.useMutation();
   const editTicketLocationDescriptionMutation = trpc.ticket.editTicketLocationDescription.useMutation();
+  const editTicketMutation = trpc.ticket.editTicket.useMutation();
+
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isClosed = ticket.status === TicketStatus.CLOSED;
@@ -85,6 +87,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const isStaff = userRole === UserRole.STAFF;
   const isStudent = userRole === UserRole.STUDENT;
+
   const isIntern = userRole === UserRole.INTERN;
   const helpOrJoin = isStaff || isIntern ? 'Help' : 'Join';
 
@@ -133,6 +136,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-marked-as-priority',
       'ticket-description-changed',
       'ticket-location-changed',
+      'ticket-edited',
       'ticket-location-description-changed',
       'ticket-toggle-public',
     ];
@@ -140,6 +144,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     const messageShouldBeUpdate: string[] = [
       'ticket-description-changed',
       'ticket-location-changed',
+      'ticket-edited',
       'ticket-location-description-changed',
       'ticket-toggle-public',
     ];
@@ -206,9 +211,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }
   };
 
-  const handleEditTicket = () => {
+  const handleEditTicket = async (newTicket: TicketWithNames) => {
     setShowEditTicketModal(false);
-    console.log('hi');
+    editTicketMutation.mutateAsync({
+      ticketId: ticket.id,
+      ticket: newTicket,
+    });
   };
 
   return (

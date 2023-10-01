@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ModalFooter,
   Modal,
@@ -5,7 +6,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Center,
   Button,
   useColorModeValue,
 } from '@chakra-ui/react';
@@ -16,13 +16,14 @@ import CreateTicketForm from '../queue/CreateTicketForm';
 interface EditTicketModalProps {
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
-  onSubmit: () => void;
+  onSubmit: (_: TicketWithNames) => void;
   ticket: TicketWithNames;
 }
 
 /** Allows users to modify their ticket description, location, and assignment */
 const EditTicketModal = (props: EditTicketModalProps) => {
   const { isModalOpen, setIsModalOpen, onSubmit, ticket } = props;
+  const [existingTicket, setExistingTicket] = useState<TicketWithNames>(ticket);
 
   return (
     <Modal size='6xl' isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -30,13 +31,18 @@ const EditTicketModal = (props: EditTicketModalProps) => {
         <ModalHeader>Edit Ticket</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <CreateTicketForm arePublicTicketsEnabled={true} isEditingTicket={true} existingTicket={ticket} />
+          <CreateTicketForm
+            arePublicTicketsEnabled={true}
+            isEditingTicket={true}
+            existingTicket={existingTicket}
+            setExistingTicket={setExistingTicket}
+          />
         </ModalBody>
         <ModalFooter>
           <Button variant='ghost' mr={3} onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
-          <Button colorScheme='blue' onClick={onSubmit}>
+          <Button colorScheme='blue' onClick={() => onSubmit(existingTicket)}>
             Confirm
           </Button>
         </ModalFooter>

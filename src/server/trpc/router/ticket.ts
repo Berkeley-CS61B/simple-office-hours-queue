@@ -232,6 +232,51 @@ export const ticketRouter = router({
       await channel.publish('ticket-location-changed', undefined);
     }),
 
+  editTicket: protectedProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        ticket: z.object({
+          description: z.string().nullable(),
+          locationDescription: z.string().nullable(),
+          locationId: z.number(),
+          assignmentId: z.number(),
+          isPublic: z.boolean(),
+          ticketType: z.nativeEnum(TicketType),
+        }),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.ticket.update({
+        where: {
+          id: input.ticketId,
+        },
+        data: {
+          description: input.ticket.description,
+          locationDescription: input.ticket.locationDescription,
+          location: {
+            connect: {
+              id: input.ticket.locationId,
+            },
+          },
+          assignment: {
+            connect: {
+              id: input.ticket.assignmentId,
+            },
+          },
+          isPublic: input.ticket.isPublic,
+          ticketType: input.ticket.ticketType,
+        },
+      });
+
+      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
+      const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
+      await ticketChannel.publish('ticket-edited', undefined);
+
+      const channel = ably.channels.get(`tickets`);
+      await channel.publish('ticket-edited', undefined);
+    }),
+
   approveTickets: protectedStaffProcedure
     .input(
       z.object({

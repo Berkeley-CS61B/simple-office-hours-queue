@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trpc } from '../../utils/trpc';
 import { Select } from 'chakra-react-select';
 import Router from 'next/router';
@@ -40,11 +40,13 @@ interface CreateTicketFormProps {
   arePublicTicketsEnabled: boolean;
   personalQueue?: PersonalQueue;
   isEditingTicket?: boolean;
-  existingTicket?: TicketWithNames; // Existing ticket that is being edited
+  // Existing ticket is used to prepopulate the form when editing a ticket
+  existingTicket?: TicketWithNames;
+  setExistingTicket?: (ticket: TicketWithNames) => void;
 }
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
-  const { arePublicTicketsEnabled, personalQueue, isEditingTicket, existingTicket } = props;
+  const { arePublicTicketsEnabled, personalQueue, isEditingTicket, existingTicket, setExistingTicket } = props;
   const [ticketType, setTicketType] = useState<TicketType | undefined>(existingTicket?.ticketType);
   const [description, setDescription] = useState<string>(existingTicket?.description ?? '');
   const [locationDescription, setLocationDescription] = useState<string>(existingTicket?.locationDescription ?? '');
@@ -68,6 +70,23 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       : undefined,
   );
   const toast = useToast();
+
+  // When a property of the ticket changes, update the existing ticket if it exists
+  useEffect(() => {
+    if (existingTicket && setExistingTicket) {
+      setExistingTicket({
+        ...existingTicket,
+        description,
+        locationDescription,
+        assignmentId: assignment?.id ?? existingTicket.assignmentId,
+        assignmentName: assignment?.label ?? existingTicket.assignmentName,
+        locationId: location?.id ?? existingTicket.locationId,
+        locationName: location?.label ?? existingTicket.locationName,
+        ticketType: ticketType ?? existingTicket.ticketType,
+        isPublic,
+      });
+    }
+  }, [description, locationDescription, assignment, location, ticketType, isPublic, existingTicket, setExistingTicket]);
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
   trpc.admin.getActiveAssignments.useQuery(undefined, {
