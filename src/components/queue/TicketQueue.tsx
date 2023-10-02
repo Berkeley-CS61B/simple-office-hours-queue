@@ -56,8 +56,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       'tickets-marked-as-absent',
       'all-tickets-closed',
       'tickets-marked-as-priority',
-      'ticket-description-changed',
-      'ticket-location-changed',
       'ticket-edited',
       'ticket-toggle-public',
     ];
@@ -68,8 +66,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'ticket-closed',
       'tickets-marked-as-priority',
-      'ticket-description-changed',
-      'ticket-location-changed',
       'ticket-edited',
       'ticket-toggle-public',
     ];
@@ -79,8 +75,6 @@ const TicketQueue = (props: TicketQueueProps) => {
       'all-tickets-closed',
       'ticket-closed',
       'tickets-marked-as-priority',
-      'ticket-description-changed',
-      'ticket-location-changed',
       'ticket-edited',
       'ticket-toggle-public',
     ];

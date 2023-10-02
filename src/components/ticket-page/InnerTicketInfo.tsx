@@ -1,25 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UserRole, TicketStatus, User } from '@prisma/client';
-import {
-  Text,
-  Spinner,
-  Box,
-  List,
-  ListItem,
-  Tag,
-  Flex,
-  Button,
-  Tooltip,
-  Textarea,
-  Editable,
-  EditableInput,
-  EditableTextarea,
-  useEditableControls,
-  ButtonGroup,
-  IconButton,
-} from '@chakra-ui/react';
+import { Text, Spinner, Box, List, ListItem, Tag, Flex, Button, Tooltip } from '@chakra-ui/react';
 import { timeDifferenceInMinutes, uppercaseFirstLetter } from '../../utils/utils';
-import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { FIVE_MINUTES_IN_MS } from '../../utils/constants';
 import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
@@ -29,7 +11,6 @@ import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
 import Countdown from './Countdown';
-import TicketLocation from './TicketLocation';
 import EditTicketModal from '../modals/EditTicketModal';
 
 interface InnerTicketInfoProps {
@@ -37,25 +18,6 @@ interface InnerTicketInfoProps {
   userRole: UserRole;
   userId: string;
 }
-
-const EditableControls = ({ setIsEditing }: { setIsEditing: (val: boolean) => void }) => {
-  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
-
-  useEffect(() => {
-    setIsEditing(isEditing);
-  }, [isEditing, setIsEditing]);
-
-  return isEditing ? (
-    <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
-      <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
-    </ButtonGroup>
-  ) : (
-    <Flex ml={2} mt={1} justifyContent='center'>
-      <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
-    </Flex>
-  );
-};
 
 /**
  * InnerTicketInfo component that displays the ticket information (left column)
@@ -65,9 +27,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [showEditTicketModal, setShowEditTicketModal] = useState(false);
-  const [isEditingLocationDescription, setIsEditingLocationDescription] = useState(false);
 
   const isCurrentUserInGroup = usersInGroup.some(user => user.id === userId);
 
@@ -75,8 +35,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
   const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
-  const editTicketDescriptionMutation = trpc.ticket.editTicketDescription.useMutation();
-  const editTicketLocationDescriptionMutation = trpc.ticket.editTicketLocationDescription.useMutation();
   const editTicketMutation = trpc.ticket.editTicket.useMutation();
 
   const isResolved = ticket.status === TicketStatus.RESOLVED;
@@ -134,20 +92,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-joined',
       'ticket-left',
       'ticket-marked-as-priority',
-      'ticket-description-changed',
-      'ticket-location-changed',
       'ticket-edited',
-      'ticket-location-description-changed',
       'ticket-toggle-public',
     ];
 
-    const messageShouldBeUpdate: string[] = [
-      'ticket-description-changed',
-      'ticket-location-changed',
-      'ticket-edited',
-      'ticket-location-description-changed',
-      'ticket-toggle-public',
-    ];
+    const messageShouldBeUpdate: string[] = ['ticket-edited', 'ticket-toggle-public'];
 
     const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
 
@@ -196,21 +145,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     );
   };
 
-  const handleDescriptionChange = async (newDescription: string) => {
-    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
-      await editTicketDescriptionMutation.mutateAsync({ ticketId: ticket.id, description: newDescription });
-    }
-  };
-
-  const handleLocationDescriptionChange = async (newLocationDescription: string) => {
-    if (ticket.status == TicketStatus.PENDING || ticket.status == TicketStatus.OPEN) {
-      await editTicketLocationDescriptionMutation.mutateAsync({
-        ticketId: ticket.id,
-        locationDescription: newLocationDescription,
-      });
-    }
-  };
-
   const handleEditTicket = async (newTicket: TicketWithNames) => {
     setShowEditTicketModal(false);
     editTicketMutation.mutateAsync({
@@ -239,23 +173,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Text hidden={!isResolved}>Helped by {ticket.helpedByName}</Text>
       <Text mt={4}>Description:</Text>
       <Flex justifyContent='center'>
-        <Text hidden={isEditingDescription} whiteSpace='pre-line' mt={2} textAlign='left' ml={4}>
+        <Text whiteSpace='pre-line' mt={2} textAlign='left' ml={4}>
           {ticket.description}
         </Text>
-        <Editable
-          hidden={ticket.status !== TicketStatus.PENDING && ticket.status !== TicketStatus.OPEN}
-          onSubmit={handleDescriptionChange}
-          fontWeight='semibold'
-          submitOnBlur={false}
-          defaultValue={ticket.description ?? ''}
-          display='flex'
-          justifyContent='center'
-          fontSize='md'
-          isPreviewFocusable={false}
-        >
-          <Textarea as={EditableTextarea} textAlign='left' maxLength={1000} resize='both' />
-          <EditableControls setIsEditing={setIsEditingDescription} />
-        </Editable>
       </Flex>
 
       <Box mb={4} mt={4}>
@@ -275,23 +195,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Text>
 
       <Flex justifyContent='center'>
-        <Text hidden={isEditingLocationDescription} fontWeight='semibold' mt={2}>
+        <Text fontWeight='semibold' mt={2}>
           {ticket.locationDescription}
         </Text>
-        <Editable
-          hidden={ticket.status !== TicketStatus.PENDING && ticket.status !== TicketStatus.OPEN}
-          onSubmit={handleLocationDescriptionChange}
-          fontWeight='semibold'
-          submitOnBlur={false}
-          defaultValue={ticket.locationDescription ?? ''}
-          display='flex'
-          justifyContent='center'
-          fontSize='md'
-          isPreviewFocusable={false}
-        >
-          <Text as={EditableInput} textAlign='left' maxLength={190} />
-          <EditableControls setIsEditing={setIsEditingLocationDescription} />
-        </Editable>
       </Flex>
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
@@ -350,6 +256,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <Button colorScheme='whatsapp' m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
         I am here
       </Button>
+      <Button w='95%' colorScheme='cyan' onClick={() => setShowEditTicketModal(true)}>
+        Edit Ticket
+      </Button>
 
       <Confetti
         recycle={false}
@@ -358,7 +267,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         onConfettiComplete={() => setShowConfetti(false)}
       />
 
-      <Button onClick={() => setShowEditTicketModal(true)}>Edit</Button>
       <EditTicketModal
         isModalOpen={showEditTicketModal}
         setIsModalOpen={setShowEditTicketModal}

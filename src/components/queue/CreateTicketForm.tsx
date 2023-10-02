@@ -130,6 +130,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isEditingTicket) {
+      // Edit ticket has it's own submit handler
+      return;
+    }
+
     if (!assignment || !location || !ticketType) {
       toast({
         title: 'Error',

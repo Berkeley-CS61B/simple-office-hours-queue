@@ -26,7 +26,7 @@ const EditTicketModal = (props: EditTicketModalProps) => {
   const [existingTicket, setExistingTicket] = useState<TicketWithNames>(ticket);
 
   return (
-    <Modal size='6xl' isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+    <Modal size='2xl' isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
       <ModalContent backgroundColor={useColorModeValue('', DARK_GRAY_COLOR)}>
         <ModalHeader>Edit Ticket</ModalHeader>
         <ModalCloseButton />
