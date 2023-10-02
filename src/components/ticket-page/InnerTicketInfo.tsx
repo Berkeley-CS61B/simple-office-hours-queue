@@ -202,6 +202,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
       <Text fontWeight='semibold'>{ticket.isPublic ? 'Public' : 'Private'} ticket</Text>
 
+      <Button mt={2} mb={2} colorScheme='cyan' onClick={() => setShowEditTicketModal(true)}>
+        Edit Ticket
+      </Button>
+
       <Box hidden={!ticket.isPublic} mb={3}>
         <Text fontWeight='bold'>Users in group:</Text>
         {canSeeName ? (
@@ -255,9 +259,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Flex>
       <Button colorScheme='whatsapp' m={4} onClick={handleMarkAsAbsent} hidden={!isStudent || !isAbsent}>
         I am here
-      </Button>
-      <Button w='95%' colorScheme='cyan' onClick={() => setShowEditTicketModal(true)}>
-        Edit Ticket
       </Button>
 
       <Confetti
