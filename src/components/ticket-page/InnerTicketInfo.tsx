@@ -263,9 +263,11 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
       <Confetti
         recycle={false}
-        numberOfPieces={200}
-        run={showConfetti}
-        onConfettiComplete={() => setShowConfetti(false)}
+        numberOfPieces={showConfetti ? 200 : 0}
+        onConfettiComplete={(confetti) => {
+          setShowConfetti(false);
+          confetti?.reset();
+        }}
       />
 
       <EditTicketModal
