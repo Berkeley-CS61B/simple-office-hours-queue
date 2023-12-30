@@ -7,7 +7,6 @@ import { trpc } from '../../utils/trpc';
 import { useChannel } from '@ably-labs/react-hooks';
 import Confetti from 'react-confetti';
 import { TicketWithNames } from '../../server/trpc/router/ticket';
-import StaffNotes from './StaffNotes';
 import useNotification from '../../utils/hooks/useNotification';
 import TicketButtons from './TicketButtons';
 import Countdown from './Countdown';
@@ -86,7 +85,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       'ticket-assigned',
       'ticket-reopened',
       'ticket-requeued',
-      'ticket-staffnote',
       'ticket-marked-as-absent',
       'ticket-closed',
       'ticket-joined',
@@ -98,7 +96,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
     const messageShouldBeUpdate: string[] = ['ticket-edited', 'ticket-toggle-public'];
 
-    const shouldNotNotifyStudent: string[] = ['ticket-staffnote', 'ticket-marked-as-priority'];
+    const shouldNotNotifyStudent: string[] = ['ticket-marked-as-priority'];
 
     if (shouldUpdateTicketMessages.includes(message)) {
       context.ticket.getTicket.invalidate({ id: ticket.id });
@@ -233,7 +231,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
-      <StaffNotes ticket={ticket} userRole={userRole} />
       <Flex
         hidden={!isAbsent}
         flexDirection='column'

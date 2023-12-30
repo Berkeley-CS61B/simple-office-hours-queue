@@ -546,12 +546,18 @@ export const ticketRouter = router({
       z.object({
         ticketId: z.number(),
         message: z.string(),
+        visibleToStudents: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (!input.visibleToStudents && ctx.session.user.role === UserRole.STUDENT) {
+        throw new TRPCClientError('You are not authorized to send this message');
+      }
+
       const chatMessage = await ctx.prisma.chatMessage.create({
         data: {
           message: input.message,
+          visibleToStudents: input.visibleToStudents,
           author: {
             connect: {
               id: ctx.session?.user?.id,
@@ -565,16 +571,10 @@ export const ticketRouter = router({
         },
       });
 
-      // Add userName to the chatMessage
-      const user = await ctx.prisma.user.findUnique({
-        where: {
-          id: ctx.session?.user?.id,
-        },
-      });
       const chatMessageWithUserName: ChatMessageWithUserName = {
         ...chatMessage,
-        userName: user?.preferredName ?? user?.name!,
-        userRole: user?.role!,
+        userName: ctx.session.user.preferredName ?? ctx.session.user.name,
+        userRole: ctx.session.user.role,
       };
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
@@ -624,26 +624,6 @@ export const ticketRouter = router({
         const channel = ably.channels.get(`ticket-${ticket.id}`);
         await channel.publish('ticket-closed', undefined);
       }
-    }),
-
-  setStaffNotes: protectedNotStudentProcedure
-    .input(
-      z.object({
-        ticketId: z.number(),
-        notes: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.ticket.update({
-        where: { id: input.ticketId },
-        data: { staffNotes: input.notes },
-      });
-
-      const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-
-      // Uses ticket inner page channel
-      const channel = ably.channels.get(`ticket-${input.ticketId}`);
-      await channel.publish('ticket-staffnote', undefined);
     }),
 
   toggleIsPublic: protectedProcedure
@@ -790,13 +770,15 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const userRole = ctx.session.user.role;
       const messages: ChatMessage[] = await ctx.prisma.chatMessage.findMany({
         where: {
           ticketId: input.ticketId,
+          ...(userRole === UserRole.STUDENT && { visibleToStudents: true }),
         },
       });
 
-      //   Add user name to each message
+      // Add user name to each message
       const messagesWithUser: ChatMessageWithUserName[] = await Promise.all(
         messages.map(async (message: ChatMessage) => {
           const user = await ctx.prisma.user.findUnique({

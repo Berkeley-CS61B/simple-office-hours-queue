@@ -1,23 +1,32 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Box, Flex, Text, Spinner, useToast, Textarea } from '@chakra-ui/react';
+import { Button, Box, Flex, Spinner, useToast, Textarea, Tooltip } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
 import useNotification from '../../utils/hooks/useNotification';
 import { UserRole } from '@prisma/client';
-import { uppercaseFirstLetter } from '../../utils/utils';
+import ChatMessage from './ChatMessage';
 
 interface ChatProps {
   ticket: TicketWithNames;
 }
 
-interface Message {
+export interface Message {
   content: string;
   sentByName: string;
   sentByUserId: string;
   sentByUserRole: UserRole;
+  visibleToStudents: boolean;
 }
+
+export const chatMessageColors = {
+  notVisibleToStudents: 'green.600',
+  notVisibleToStudentsHover: 'green.700',
+  visibleToStudents: 'blue.600',
+  visibleToStudentsHover: 'blue.700',
+  notSentByCurrentUser: 'gray',
+};
 
 const Chat = (props: ChatProps) => {
   const { ticket } = props;
@@ -27,6 +36,7 @@ const Chat = (props: ChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState<string>('');
   const [isChatLoaded, setIsChatLoaded] = useState<boolean>(false);
+  const [sentToStaff, setSentToStaff] = useState<boolean>(false);
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
@@ -59,6 +69,7 @@ const Chat = (props: ChatProps) => {
             sentByName: message.userName,
             sentByUserId: message.userId,
             sentByUserRole: message.userRole,
+            visibleToStudents: message.visibleToStudents,
           };
         });
         setMessages(messages);
@@ -71,10 +82,15 @@ const Chat = (props: ChatProps) => {
   let messageEnd: any = null;
 
   useChannel(`ticket-${ticketId}`, 'chat-message', ablyMsg => {
-    const { message, userName, userId, userRole } = ablyMsg.data as ChatMessageWithUserName;
+    const { message, userName, userId, userRole, visibleToStudents } = ablyMsg.data as ChatMessageWithUserName;
 
     // The chat message is from the current user, and it was optimisticly added to the chat
     if (userId === session?.user?.id) {
+      return;
+    }
+
+    // The chat message is not visible to students, and the current user is a student
+    if (!visibleToStudents && session?.user?.role === UserRole.STUDENT) {
       return;
     }
 
@@ -83,6 +99,7 @@ const Chat = (props: ChatProps) => {
       sentByName: userName,
       sentByUserId: userId,
       sentByUserRole: userRole,
+      visibleToStudents,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
@@ -103,6 +120,7 @@ const Chat = (props: ChatProps) => {
       sentByName: session?.user?.preferredName ?? session?.user?.name ?? 'Unknown',
       sentByUserId: session?.user?.id ?? 'Unknown',
       sentByUserRole: session?.user?.role ?? 'STUDENT',
+      visibleToStudents: sentToStaff ? false : true,
     };
     // Optimistic update on chat message
     setMessages(prevMessages => [...prevMessages, newMessage]);
@@ -116,6 +134,7 @@ const Chat = (props: ChatProps) => {
       .mutateAsync({
         ticketId,
         message: messageText,
+        visibleToStudents: sentToStaff ? false : true,
       })
       .catch(err => {
         console.error(err);
@@ -128,37 +147,14 @@ const Chat = (props: ChatProps) => {
           isClosable: true,
         });
       });
+
+    // Reset so the default message is sent to students
+    setSentToStaff(false);
   };
 
-  const allMessages = useMemo(
-    () =>
-      messages.map((message, index) => {
-        const { content, sentByName, sentByUserId, sentByUserRole } = message;
-        const amISender = sentByUserId === (session?.user?.id ?? 'Unknown');
-
-        return (
-          <Flex
-            key={index}
-            data-author={sentByName}
-            backgroundColor={amISender ? 'blue.600' : 'gray'}
-            p={3}
-            alignSelf={amISender ? 'flex-end' : 'flex-start'}
-            borderRadius={5}
-            borderBottomRightRadius={amISender ? 0 : 5}
-            borderBottomLeftRadius={amISender ? 5 : 0}
-            color='white'
-          >
-            <Text mr={2} fontWeight='bold' hidden={amISender}>
-              {canSeeName || sentByUserRole !== UserRole.STUDENT
-                ? sentByName
-                : 'Anonymous' + ' (' + uppercaseFirstLetter(sentByUserRole) + ')'}
-            </Text>
-            {content}
-          </Flex>
-        );
-      }),
-    [messages],
-  );
+  const allMessages = useMemo(() => {
+    return messages.map((message, index) => <ChatMessage key={index} message={message} canSeeName={canSeeName} />);
+  }, [messages, canSeeName]);
 
   useEffect(() => {
     if (messageEnd) {
@@ -195,9 +191,33 @@ const Chat = (props: ChatProps) => {
                 mr={4}
                 maxLength={1000}
               />
-              <Button colorScheme='green' type='submit' disabled={messageTextIsEmpty}>
-                Send
-              </Button>
+              <Flex flexDirection='column' gap={0.5}>
+                <Tooltip hasArrow label='Send to everyone (enter)'>
+                  <Button
+                    backgroundColor={chatMessageColors.visibleToStudents}
+                    _hover={{ backgroundColor: chatMessageColors.visibleToStudentsHover }}
+                    color='white'
+                    type='submit'
+                    disabled={messageTextIsEmpty}
+                    onClick={() => setSentToStaff(false)}
+                  >
+                    Send
+                  </Button>
+                </Tooltip>
+                <Tooltip hasArrow label='Send to staff only'>
+                  <Button
+                    backgroundColor={chatMessageColors.notVisibleToStudents}
+                    _hover={{ backgroundColor: chatMessageColors.notVisibleToStudentsHover }}
+                    color={'white'}
+                    type='submit'
+                    hidden={session?.user?.role === UserRole.STUDENT}
+                    disabled={messageTextIsEmpty}
+                    onClick={() => setSentToStaff(true)}
+                  >
+                    Staff Send
+                  </Button>
+                </Tooltip>
+              </Flex>
             </Flex>
           </form>
         </Box>

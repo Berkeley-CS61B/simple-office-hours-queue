@@ -1,4 +1,4 @@
-import {  UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { Box, SimpleGrid } from '@chakra-ui/react';
 import InnerTicketInfo from './InnerTicketInfo';
 import Chat from './Chat';
@@ -19,7 +19,7 @@ const InnerTicket = (props: InnerTicketProps) => {
         <InnerTicketInfo ticket={ticket} userRole={userRole} userId={userId} />
       </Box>
       <Box mt={6}>
-		<Chat ticket={ticket} />
+        <Chat ticket={ticket} />
       </Box>
     </SimpleGrid>
   );
