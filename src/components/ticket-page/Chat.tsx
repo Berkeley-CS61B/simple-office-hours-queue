@@ -84,7 +84,6 @@ const Chat = (props: ChatProps) => {
   useChannel(`ticket-${ticketId}`, 'chat-message', ablyMsg => {
     const { message, userName, userId, userRole, visibleToStudents } = ablyMsg.data as ChatMessageWithUserName;
 
-    console.log('Chat message received', ablyMsg.data);
     // The chat message is from the current user, and it was optimisticly added to the chat
     if (userId === session?.user?.id) {
       return;
