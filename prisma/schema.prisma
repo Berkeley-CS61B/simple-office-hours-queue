@@ -1,222 +1,223 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider     = "mysql"
-    url          = env("DATABASE_URL")
-    relationMode = "prisma"
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Settings {
-    setting SiteSettings       @id
-    value   SiteSettingsValues
+  setting SiteSettings       @id
+  value   SiteSettingsValues
 }
 
 // This should only be used for sitewide settings that can be any string.
 // For settings that are a boolean or have concrete types, use the SiteSettings enum.
 model VariableSettings {
-    setting VariableSiteSettings @id
-    value   String               @default("")
+  setting VariableSiteSettings @id
+  value   String               @default("")
 }
 
 model ChatMessage {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
-    message   String   @db.VarChar(1000)
-    author    User     @relation(fields: [userId], references: [id])
-    ticket    Ticket   @relation(fields: [ticketId], references: [id])
-    userId    String
-    ticketId  Int
+  id                Int      @id @default(autoincrement())
+  createdAt         DateTime @default(now())
+  message           String   @db.VarChar(1000)
+  author            User     @relation(fields: [userId], references: [id])
+  ticket            Ticket   @relation(fields: [ticketId], references: [id])
+  visibleToStudents Boolean  @default(true)
+  userId            String
+  ticketId          Int
 
-    @@index([userId])
-    @@index([ticketId])
+  @@index([userId])
+  @@index([ticketId])
 }
 
 model Ticket {
-    id                  Int            @id @default(autoincrement())
-    createdBy           User           @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
-    helpedBy            User?          @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
-    helpedAt            DateTime?
-    resolvedAt          DateTime?
-    markedAbsentAt      DateTime?
-    createdAt           DateTime       @default(now())
-    updatedAt           DateTime       @default(now()) @updatedAt
-    status              TicketStatus   @default(PENDING)
-    description         String?        @db.VarChar(1000)
-    assignment          Assignment     @relation(fields: [assignmentId], references: [id])
-    location            Location       @relation(fields: [locationId], references: [id])
-    locationDescription String?
-    resolution          String         @default("")
-    staffNotes          String?
-    ChatMessage         ChatMessage[]
-    isPublic            Boolean        @default(false)
-    isPriority          Boolean        @default(false)
-    usersInGroup        User[]         @relation("groupTickets")
-    PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
-    ticketType          TicketType     @default(DEBUGGING)
+  id                  Int            @id @default(autoincrement())
+  createdBy           User           @relation("ticketsCreatedBy", fields: [createdByUserId], references: [id])
+  helpedBy            User?          @relation("ticketsHelpedBy", fields: [helpedByUserId], references: [id])
+  helpedAt            DateTime?
+  resolvedAt          DateTime?
+  markedAbsentAt      DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @default(now()) @updatedAt
+  status              TicketStatus   @default(PENDING)
+  description         String?        @db.VarChar(1000)
+  assignment          Assignment     @relation(fields: [assignmentId], references: [id])
+  location            Location       @relation(fields: [locationId], references: [id])
+  locationDescription String?
+  resolution          String         @default("")
+  staffNotes          String? // Replaced with ChatMessage
+  ChatMessage         ChatMessage[]
+  isPublic            Boolean        @default(false)
+  isPriority          Boolean        @default(false)
+  usersInGroup        User[]         @relation("groupTickets")
+  PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
+  ticketType          TicketType     @default(DEBUGGING)
 
-    helpedByUserId    String?
-    createdByUserId   String
-    assignmentId      Int
-    locationId        Int
-    personalQueueId   Int?
-    personalQueueName String?
+  helpedByUserId    String?
+  createdByUserId   String
+  assignmentId      Int
+  locationId        Int
+  personalQueueId   Int?
+  personalQueueName String?
 
-    @@index([locationId])
-    @@index([assignmentId])
-    @@index([helpedByUserId])
-    @@index([createdByUserId])
-    @@index([personalQueueId])
-    @@index([personalQueueName])
-    @@index([status])
+  @@index([locationId])
+  @@index([assignmentId])
+  @@index([helpedByUserId])
+  @@index([createdByUserId])
+  @@index([personalQueueId])
+  @@index([personalQueueName])
+  @@index([status])
 }
 
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
-    @@index([userId])
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model User {
-    id             String         @id @default(cuid())
-    name           String?
-    preferredName  String?
-    email          String?        @unique
-    emailVerified  DateTime?
-    image          String?
-    role           UserRole       @default(STUDENT)
-    accounts       Account[]
-    sessions       Session[]
-    ticketsCreated Ticket[]       @relation("ticketsCreatedBy")
-    ticketsHelped  Ticket[]       @relation("ticketsHelpedBy")
-    ticketsJoined  Ticket[]       @relation("groupTickets")
-    ChatMessage    ChatMessage[]
-    PersonalQueue  PersonalQueue?
+  id             String         @id @default(cuid())
+  name           String?
+  preferredName  String?
+  email          String?        @unique
+  emailVerified  DateTime?
+  image          String?
+  role           UserRole       @default(STUDENT)
+  accounts       Account[]
+  sessions       Session[]
+  ticketsCreated Ticket[]       @relation("ticketsCreatedBy")
+  ticketsHelped  Ticket[]       @relation("ticketsHelpedBy")
+  ticketsJoined  Ticket[]       @relation("groupTickets")
+  ChatMessage    ChatMessage[]
+  PersonalQueue  PersonalQueue?
 
-    @@index(id)
+  @@index(id)
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
 
 model Assignment {
-    id         Int      @id @default(autoincrement())
-    name       String
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @default(now()) @updatedAt
-    isActive   Boolean  @default(true)
-    isHidden   Boolean  @default(false)
-    isPriority Boolean  @default(false)
-    Ticket     Ticket[]
+  id         Int      @id @default(autoincrement())
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  isActive   Boolean  @default(true)
+  isHidden   Boolean  @default(false)
+  isPriority Boolean  @default(false)
+  Ticket     Ticket[]
 
-    @@index(id)
+  @@index(id)
 }
 
 model Location {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    isActive  Boolean  @default(true)
-    isHidden  Boolean  @default(false)
-    Ticket    Ticket[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  isActive  Boolean  @default(true)
+  isHidden  Boolean  @default(false)
+  Ticket    Ticket[]
 
-    @@index(id)
+  @@index(id)
 }
 
 model PersonalQueue {
-    name             String   @id
-    createdAt        DateTime @default(now())
-    updatedAt        DateTime @default(now()) @updatedAt
-    owner            User     @relation(fields: [ownerId], references: [id])
-    ownerId          String   @unique
-    isOpen           Boolean  @default(false)
-    allowStaffToOpen Boolean  @default(false)
-    Ticket           Ticket[]
+  name             String   @id
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  owner            User     @relation(fields: [ownerId], references: [id])
+  ownerId          String   @unique
+  isOpen           Boolean  @default(false)
+  allowStaffToOpen Boolean  @default(false)
+  Ticket           Ticket[]
 
-    @@index([ownerId])
+  @@index([ownerId])
 }
 
 model ConfirmedUser {
-    id        Int      @id @default(autoincrement())
-    email     String   @unique
-    role      UserRole @default(STUDENT)
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  role      UserRole @default(STUDENT)
+  createdAt DateTime @default(now())
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
 
 // This is automatically generated by Prisma
 model groupTickets {
-    A Int
-    B String
+  A Int
+  B String
 
-    @@unique([A, B], map: "_groupTickets_AB_unique")
-    @@index([B], map: "_groupTickets_B_index")
-    @@map("_groupTickets")
+  @@unique([A, B], map: "_groupTickets_AB_unique")
+  @@index([B], map: "_groupTickets_B_index")
+  @@map("_groupTickets")
 }
 
 enum UserRole {
-    STUDENT
-    STAFF
-    INTERN
+  STUDENT
+  STAFF
+  INTERN
 }
 
 enum TicketStatus {
-    PENDING
-    OPEN
-    ASSIGNED
-    RESOLVED
-    CLOSED
-    ABSENT
+  PENDING
+  OPEN
+  ASSIGNED
+  RESOLVED
+  CLOSED
+  ABSENT
 }
 
 enum TicketType {
-    CONCEPTUAL
-    DEBUGGING
+  CONCEPTUAL
+  DEBUGGING
 }
 
 enum SiteSettings {
-    IS_PENDING_STAGE_ENABLED
-    ARE_PUBLIC_TICKETS_ENABLED
-    IS_QUEUE_OPEN
-    IMPORT_USERS_METHOD // IMPORT_STAFF or IMPORT_STAFF_AND_STUDENTS
+  IS_PENDING_STAGE_ENABLED
+  ARE_PUBLIC_TICKETS_ENABLED
+  IS_QUEUE_OPEN
+  IMPORT_USERS_METHOD // IMPORT_STAFF or IMPORT_STAFF_AND_STUDENTS
 }
 
 enum SiteSettingsValues {
-    TRUE
-    FALSE
-    IMPORT_STAFF
-    IMPORT_STAFF_AND_STUDENTS
+  TRUE
+  FALSE
+  IMPORT_STAFF
+  IMPORT_STAFF_AND_STUDENTS
 }
 
 enum VariableSiteSettings {
-    EMAIL_DOMAIN
+  EMAIL_DOMAIN
 }
