@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useChannel } from '@ably-labs/react-hooks';
-import { Button, Box, Flex, Spinner, useToast, Textarea } from '@chakra-ui/react';
+import { Button, Box, Flex, Spinner, useToast, Textarea, Tooltip } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 import { useSession } from 'next-auth/react';
 import { ChatMessageWithUserName, TicketWithNames } from '../../server/trpc/router/ticket';
@@ -195,27 +195,31 @@ const Chat = (props: ChatProps) => {
 								maxLength={1000}
 							/>
 							<Flex flexDirection='column' gap={0.5}>
-								<Button
-									backgroundColor={chatMessageColors.visibleToStudents}
-									_hover={{ backgroundColor: chatMessageColors.visibleToStudentsHover }}
-									color='white'
-									type='submit'
-									disabled={messageTextIsEmpty}
-									onClick={() => setSentToStaff(false)}
-								>
-									Send
-								</Button>
-								<Button
-									backgroundColor={chatMessageColors.notVisibleToStudents}
-									_hover={{ backgroundColor: chatMessageColors.notVisibleToStudentsHover }}
-									color={'white'}
-									type='submit'
-									hidden={session?.user?.role === UserRole.STUDENT}
-									disabled={messageTextIsEmpty}
-									onClick={() => setSentToStaff(true)}
-								>
-									Staff Send
-								</Button>
+								<Tooltip hasArrow label='Send to everyone (enter)'>
+									<Button
+										backgroundColor={chatMessageColors.visibleToStudents}
+										_hover={{ backgroundColor: chatMessageColors.visibleToStudentsHover }}
+										color='white'
+										type='submit'
+										disabled={messageTextIsEmpty}
+										onClick={() => setSentToStaff(false)}
+									>
+										Send
+									</Button>
+								</Tooltip>
+								<Tooltip hasArrow label='Send to staff only'>
+									<Button
+										backgroundColor={chatMessageColors.notVisibleToStudents}
+										_hover={{ backgroundColor: chatMessageColors.notVisibleToStudentsHover }}
+										color={'white'}
+										type='submit'
+										hidden={session?.user?.role === UserRole.STUDENT}
+										disabled={messageTextIsEmpty}
+										onClick={() => setSentToStaff(true)}
+									>
+										Staff Send
+									</Button>
+								</Tooltip>
 							</Flex>
 						</Flex>
 					</form>
