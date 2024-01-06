@@ -9,8 +9,7 @@ For a brief usage guide, click [here](https://docs.google.com/presentation/d/1nP
 ## Installation
 
 ### Prerequisites
-- Git
-- Node.js >= 14.7
+- Node.js >= 18.17
 
 Clone the reposity and `cd` into it.
 
