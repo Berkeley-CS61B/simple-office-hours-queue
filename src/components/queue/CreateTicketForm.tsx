@@ -199,6 +199,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         });
         Router.push(getTicketUrl(ticket.id));
       });
+    
     setIsButtonLoading(false);
   };
 
