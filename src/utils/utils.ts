@@ -114,6 +114,14 @@ export const ImportUsersMethodPossiblities = {
 
 export type ImportUsersMethodPossiblitiesType = 'IMPORT_STAFF' | 'IMPORT_STAFF_AND_STUDENTS';
 
+// I don't think there's a way to include this enum in the SiteSettingsValues enum
+export const ImportNumberPossibilities = {
+  SINGLE_IMPORT: 'SINGLE_IMPORT' as const,
+  BATCH_IMPORT: 'BATCH_IMPORT' as const,
+};
+
+export type ImportNumberPossibilitiesType = 'SINGLE_IMPORT' | 'BATCH_IMPORT';
+
 export const resolveTime = (t: TicketStats) => {
   if (!t.resolvedAt || !t.createdAt) {
     return 0;
