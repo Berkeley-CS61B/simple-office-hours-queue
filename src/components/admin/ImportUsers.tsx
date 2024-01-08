@@ -1,79 +1,40 @@
-import { useToast } from '@chakra-ui/react';
-import { UserRole } from '@prisma/client';
-import { useState } from 'react';
-import { Importer, ImporterField } from 'react-csv-importer';
-import 'react-csv-importer/dist/index.css';
-import { trpc } from '../../utils/trpc';
-import { EMAIL_REGEX } from '../../utils/constants';
+import {Radio, RadioGroup, Stack, Text} from '@chakra-ui/react';
+import {UserRole} from '@prisma/client';
+import {useState} from 'react';
+import {trpc} from '../../utils/trpc';
+import {ImportNumberPossibilities, ImportNumberPossibilitiesType} from "../../utils/utils";
+import SingleImporter from "./import/SingleImporter";
+import BatchImporter from "./import/BatchImporter";
 
-interface ImportedUser {
-  email: string;
-  role: UserRole;
+export interface ImportedUser {
+    email: string;
+    role: UserRole;
 }
 
 const ImportUsers = () => {
-  const [invalidEmails, setInvalidEmails] = useState<string[]>([]);
-  const [invlidRoles, setInvalidRoles] = useState<string[]>([]);
-  const addUserMutation = trpc.user.addUsers.useMutation();
-  const toast = useToast();
+    const [importType, setImportType] = useState<ImportNumberPossibilitiesType>(ImportNumberPossibilities.SINGLE_IMPORT);
+    const addUserMutation = trpc.user.addUsers.useMutation();
 
-  const handleAddUsers = async (users: ImportedUser[]) => {
-    await addUserMutation.mutateAsync(users);
-  };
+    const handleAddUsers = async (users: ImportedUser[]) => {
+        await addUserMutation.mutateAsync(users);
+    };
 
-  return (
-    <Importer
-      //   chunkSize={10000}
-      assumeNoHeaders={false}
-      restartable
-      processChunk={async rows => {
-        const users = rows.filter(user => {
-          const userRole = user.role as string;
-          const userEmail = user.email as string;
-
-          // Check if userEmail is valid email
-          if (!userEmail.match(EMAIL_REGEX)) {
-            setInvalidEmails(prev => [...prev, userEmail]);
-            return false;
-          }
-
-          // Check if user role is valid, meaning it's in the UserRole enum
-          if (!Object.values(UserRole).includes(userRole.toUpperCase() as UserRole)) {
-            setInvalidRoles(prev => [...prev, userRole]);
-            return false;
-          }
-
-          return true;
-        });
-
-        handleAddUsers(users as unknown as ImportedUser[]);
-      }}
-      onComplete={() => {
-        if (invalidEmails.length > 0) {
-          toast({
-            title: 'Invalid emails',
-            description: `Added valid users. The following emails are invalid: ${invalidEmails.join(', ')}`,
-            status: 'error',
-            isClosable: true,
-			position: 'top-right',
-          });
-        }
-
-        if (invlidRoles.length > 0) {
-          toast({
-            title: 'Invalid roles',
-            description: `Added valid usres. The following roles are invalid: ${invlidRoles.join(', ')}`,
-            status: 'error',
-            isClosable: true,
-			position: 'top-right',
-          });
-        }
-      }}
-    >
-      <ImporterField name='email' label='Email' />
-      <ImporterField name='role' label='Role' />
-    </Importer>
-  );
+    return (
+        <>
+            <Text fontSize='xl' mb={1}>Import method</Text>
+            <RadioGroup onChange={(val: ImportNumberPossibilitiesType) => setImportType(val)} value={importType}>
+                <Stack spacing={5} direction='row'>
+                    <Radio value={ImportNumberPossibilities.SINGLE_IMPORT}>Single import</Radio>
+                    <Radio value={ImportNumberPossibilities.BATCH_IMPORT}>Batch import</Radio>
+                </Stack>
+            </RadioGroup>
+            {
+                importType === ImportNumberPossibilities.BATCH_IMPORT
+                    ? <BatchImporter handleAddUsers={handleAddUsers}/>
+                    : <SingleImporter handleAddUsers={handleAddUsers}/>
+            }
+        </>
+    );
 };
 
 export default ImportUsers;
