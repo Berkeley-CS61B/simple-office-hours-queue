@@ -12,7 +12,7 @@ export interface ImportedUser {
 }
 
 const ImportUsers = () => {
-    const [importType, setImportType] = useState<ImportNumberPossibilitiesType | undefined>();
+    const [importType, setImportType] = useState<ImportNumberPossibilitiesType>(ImportNumberPossibilities.SINGLE_IMPORT);
     const addUserMutation = trpc.user.addUsers.useMutation();
 
     const handleAddUsers = async (users: ImportedUser[]) => {

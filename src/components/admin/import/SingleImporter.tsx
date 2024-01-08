@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {UserRole} from "@prisma/client";
-import {Button, Flex, Input, Select, useToast} from "@chakra-ui/react";
+import {Button, Flex, Input, useToast} from "@chakra-ui/react";
+import {Select, SingleValue} from "chakra-react-select"
 import {EMAIL_REGEX} from "../../../utils/constants";
 import {ImportedUser} from "../ImportUsers";
 
@@ -46,20 +47,12 @@ const SingleImporter = ({handleAddUsers}: SingleImporterProps) => {
 
     }
 
+    const userRoles = Object.values(UserRole).map((role: UserRole) => ({ label: role, value: role }));
+
     return (
         <Flex direction='row'>
             <Input placeholder='Input email' value={email} onChange={e => setEmail(e.target.value)}/>
-            <Select placeholder='Select role' value={role} onChange={e => setRole(e.target.value)}>
-                <option value={UserRole.STUDENT}>
-                    STUDENT
-                </option>
-                <option value={UserRole.STAFF}>
-                    STAFF
-                </option>
-                <option value={UserRole.INTERN}>
-                    INTERN
-                </option>
-            </Select>
+            <Select options={userRoles} onChange={(val: SingleValue<{label: UserRole, value: UserRole}>) => setRole(val?.value)}/>
             <Button onClick={handleAddUser}>Import</Button>
         </Flex>
     );

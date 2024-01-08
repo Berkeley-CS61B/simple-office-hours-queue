@@ -4,6 +4,7 @@ import {UserRole} from "@prisma/client";
 import {ImportedUser} from "../ImportUsers";
 import {useState} from "react";
 import {useToast} from "@chakra-ui/react";
+import 'react-csv-importer/dist/index.css';
 
 interface BatchImporterProps {
     handleAddUsers: (users: ImportedUser[]) => Promise<void>
