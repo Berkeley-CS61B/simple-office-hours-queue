@@ -32,7 +32,8 @@ const Layout = (props: LayoutProps) => {
   useEffect(() => {
     if (!("Notification" in window)) {
       return;
-    } else if (
+    }
+    if (
       Notification.permission === "denied" ||
       Notification.permission === "default"
     ) {
@@ -51,7 +52,7 @@ const Layout = (props: LayoutProps) => {
   }, []);
 
   useEffect(() => {
-    if (session && session.user) {
+    if (session?.user) {
       if (
         props.restrictedTo &&
         !props.restrictedTo.includes(session.user.role)
@@ -77,7 +78,7 @@ const Layout = (props: LayoutProps) => {
         resolve(setIsAblyConnected(true));
       }).catch((err) => console.error(err));
     }
-  }, [session]);
+  }, [session, props.restrictedTo, toast]);
 
   return (
     <Flex direction="column" minH="100vh" justifyContent="space-between">
@@ -95,7 +96,7 @@ const Layout = (props: LayoutProps) => {
       <Flex direction="column">
         <Navbar />
         {!session && status !== "loading" && <Landing />}
-        {status === "authenticated" && isAuthorized && <>{children}</>}
+        {status === "authenticated" && isAuthorized && children}
         {isAblyConnected && <ReceiveBroadcast />}
       </Flex>
 
@@ -107,7 +108,10 @@ const Layout = (props: LayoutProps) => {
             rel="noopener noreferrer"
             aria-label="Powered by Vercel"
           >
-            <img src="https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg" />
+            <img
+              alt="Vercel logo"
+              src="https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg"
+            />
           </a>
         </footer>
       </Flex>

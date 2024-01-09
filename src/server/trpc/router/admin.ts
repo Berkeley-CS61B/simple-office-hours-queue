@@ -162,7 +162,7 @@ export const adminRouter = router({
       const channel = ably.channels.get("settings");
       if (input.personalQueueName) {
         await channel.publish(
-          "queue-open-close-" + input.personalQueueName,
+          `queue-open-close-${input.personalQueueName}`,
           input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
         );
       } else {
@@ -274,11 +274,11 @@ export const adminRouter = router({
 
     if (setting.value === SiteSettingsValues.IMPORT_STAFF_AND_STUDENTS) {
       return ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
-    } else if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
-      return ImportUsersMethodPossiblities.IMPORT_STAFF;
-    } else {
-      throw new TRPCClientError("Invalid import users method");
     }
+    if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF;
+    }
+    throw new TRPCClientError("Invalid import users method");
   }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {

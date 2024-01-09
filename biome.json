@@ -6,7 +6,8 @@
   "files": {
     "ignore": [
       "src/components/activity/StatsView.tsx",
-      "src/components/activity/StatsGraph.tsx"
+      "src/components/activity/StatsGraph.tsx",
+      "src/server/db/client.ts"
     ]
   },
   "formatter": {
@@ -17,15 +18,18 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "recommended": true,
       "suspicious": {
         "noExplicitAny": "off"
       },
       "nursery": {
         "noUnusedImports": "error"
       },
-      "recommended": true,
       "style": {
         "noNonNullAssertion": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
       }
     }
   }

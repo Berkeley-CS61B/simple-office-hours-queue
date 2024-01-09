@@ -53,7 +53,7 @@ const ChatMessage = ({ message, canSeeName }: ChatMessageProps) => {
       <Text mr={2} fontWeight="bold" hidden={amISender}>
         {canSeeName || sentByUserRole !== UserRole.STUDENT
           ? sentByName
-          : "Anonymous" + " (" + uppercaseFirstLetter(sentByUserRole) + ")"}
+          : `Anonymous (${uppercaseFirstLetter(sentByUserRole)})`}
       </Text>
       <Text filter={messageBlur} transition="filter 0.1s ease-in-out">
         {content}

@@ -174,7 +174,11 @@ const Chat = (props: ChatProps) => {
 
   const allMessages = useMemo(() => {
     return messages.map((message, index) => (
-      <ChatMessage key={index} message={message} canSeeName={canSeeName} />
+      <ChatMessage
+        key={index.toString()}
+        message={message}
+        canSeeName={canSeeName}
+      />
     ));
   }, [messages, canSeeName]);
 
@@ -205,13 +209,19 @@ const Chat = (props: ChatProps) => {
             overflowY="auto"
           >
             {allMessages}
-            <Box ref={(element) => (messageEnd = element)} />
+            <Box
+              ref={(element) => {
+                messageEnd = element;
+              }}
+            />
           </Flex>
 
           <form onSubmit={handleFormSubmission}>
             <Flex>
               <Textarea
-                ref={(element) => (inputBox = element)}
+                ref={(element) => {
+                  inputBox = element;
+                }}
                 value={messageText}
                 placeholder="Type a message..."
                 onChange={(e) => setMessageText(e.target.value)}

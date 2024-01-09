@@ -190,10 +190,9 @@ const TicketList = (props: TicketListProps) => {
             alignSelf="flex-end"
             onClick={() => setIsModalOpen(true)}
           >
-            {uppercaseFirstLetter(handleAllText()) +
-              " " +
-              displayedTickets.length +
-              " displayed"}
+            {`${uppercaseFirstLetter(handleAllText())} ${
+              displayedTickets.length
+            } displayed`}
           </Button>
         </Flex>
         <Box ref={parent}>

@@ -97,7 +97,7 @@ const CreatePersonalQueue = () => {
           border="2px"
           borderRadius={8}
         >
-          <InputLeftAddon>{window.location.origin + "/queue/"}</InputLeftAddon>
+          <InputLeftAddon>{`${window.location.origin}/queue/`}</InputLeftAddon>
           <Input
             placeholder="queue-name"
             value={queueName}

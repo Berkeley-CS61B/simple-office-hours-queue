@@ -84,18 +84,22 @@ const timeRangeTypes: { [key: string]: TimeRangeType } = {
 const timeRangeOptions: { label: string; value: TimeRangeType }[] = [
   {
     label: "Day",
+    // biome-ignore lint: Exists
     value: timeRangeTypes["day"]!,
   },
   {
     label: "Week",
+    // biome-ignore lint: Exists
     value: timeRangeTypes["week"]!,
   },
   {
     label: "Month",
+    // biome-ignore lint: Exists
     value: timeRangeTypes["month"]!,
   },
   {
     label: "All",
+    // biome-ignore lint: none
     value: timeRangeTypes["all"]!,
   },
 ];

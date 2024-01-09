@@ -37,10 +37,9 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     if (!personalQueue) {
       channel.publish({
         name: "broadcast",
-        data:
-          "The queue has been " +
-          (isQueueOpen ? "closed" : "opened") +
-          (shouldClearQueue ? " and cleared" : ""),
+        data: `The queue has been ${isQueueOpen ? "closed" : "opened"}${
+          shouldClearQueue ? " and cleared" : ""
+        }`,
       });
     }
   };

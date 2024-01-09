@@ -263,7 +263,8 @@ const TicketQueue = (props: TicketQueueProps) => {
   const getLocationOnQueue = (ticket: TicketWithNames) => {
     if (ticket.status === TicketStatus.OPEN) {
       return getTickets(TicketStatus.OPEN).findIndex((t) => t.id === ticket.id);
-    } else if (ticket.status === TicketStatus.PENDING) {
+    }
+    if (ticket.status === TicketStatus.PENDING) {
       return getTickets(TicketStatus.PENDING).findIndex(
         (t) => t.id === ticket.id,
       );
@@ -358,9 +359,7 @@ const TicketQueue = (props: TicketQueueProps) => {
               color={tab === "Priority" ? "red.300" : undefined}
             >
               {uppercaseFirstLetter(tab) +
-                (isGetTicketsLoading
-                  ? "(?)"
-                  : " (" + getTickets(tab).length + ")")}
+                (isGetTicketsLoading ? "(?)" : ` (${getTickets(tab).length})`)}
             </Tab>
           ))}
         </TabList>

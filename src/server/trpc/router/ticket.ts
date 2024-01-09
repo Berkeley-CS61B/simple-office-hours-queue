@@ -228,7 +228,7 @@ export const ticketRouter = router({
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
       await ticketChannel.publish("ticket-edited", undefined);
 
-      const channel = ably.channels.get(`tickets`);
+      const channel = ably.channels.get("tickets");
       await channel.publish("ticket-edited", undefined);
     }),
 
