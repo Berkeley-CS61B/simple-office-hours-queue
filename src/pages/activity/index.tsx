@@ -9,43 +9,43 @@ import Layout from "../../components/layout/Layout";
  * Activity page which displays the activity log
  */
 const ActivityPage: NextPage = () => {
-	const PersonalLog = dynamic(
-		() => import("../../components/activity/PersonalLog"),
-	);
-	const StatsView = dynamic(
-		() => import("../../components/activity/StatsView"),
-	);
-	const GlobalLog = dynamic(
-		() => import("../../components/activity/GlobalLog"),
-	);
+  const PersonalLog = dynamic(
+    () => import("../../components/activity/PersonalLog"),
+  );
+  const StatsView = dynamic(
+    () => import("../../components/activity/StatsView"),
+  );
+  const GlobalLog = dynamic(
+    () => import("../../components/activity/GlobalLog"),
+  );
 
-	const { data: session } = useSession();
+  const { data: session } = useSession();
 
-	return (
-		<Layout>
-			<PersonalLog />
-			<Divider
-				ml={4}
-				mt={4}
-				width="97%"
-				border="none"
-				height="5px"
-				backgroundColor="gray.700"
-				borderStyle="none"
-			/>
-			{session?.user?.role === UserRole.STAFF && <GlobalLog />}
-			<Divider
-				ml={4}
-				mt={4}
-				width="97%"
-				border="none"
-				height="5px"
-				backgroundColor="gray.700"
-				borderStyle="none"
-			/>
-			{session?.user?.role === UserRole.STAFF && <StatsView />}
-		</Layout>
-	);
+  return (
+    <Layout>
+      <PersonalLog />
+      <Divider
+        ml={4}
+        mt={4}
+        width="97%"
+        border="none"
+        height="5px"
+        backgroundColor="gray.700"
+        borderStyle="none"
+      />
+      {session?.user?.role === UserRole.STAFF && <GlobalLog />}
+      <Divider
+        ml={4}
+        mt={4}
+        width="97%"
+        border="none"
+        height="5px"
+        backgroundColor="gray.700"
+        borderStyle="none"
+      />
+      {session?.user?.role === UserRole.STAFF && <StatsView />}
+    </Layout>
+  );
 };
 
 export default ActivityPage;

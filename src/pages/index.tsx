@@ -3,13 +3,13 @@ import dynamic from "next/dynamic";
 import Layout from "../components/layout/Layout";
 
 const Home: NextPage = () => {
-	const QueueLayout = dynamic(() => import("../components/queue/QueueLayout"));
+  const QueueLayout = dynamic(() => import("../components/queue/QueueLayout"));
 
-	return (
-		<Layout>
-			<QueueLayout />
-		</Layout>
-	);
+  return (
+    <Layout>
+      <QueueLayout />
+    </Layout>
+  );
 };
 
 export default Home;

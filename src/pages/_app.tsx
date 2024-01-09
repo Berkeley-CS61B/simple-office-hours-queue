@@ -1,8 +1,8 @@
 import {
-	ChakraProvider,
-	ColorModeScript,
-	StyleFunctionProps,
-	extendTheme,
+  ChakraProvider,
+  ColorModeScript,
+  StyleFunctionProps,
+  extendTheme,
 } from "@chakra-ui/react";
 import { mode } from "@chakra-ui/theme-tools";
 import { Session } from "next-auth";
@@ -22,38 +22,38 @@ import { trpc } from "../utils/trpc";
 // const theme = extendTheme({ config });
 
 const theme = extendTheme({
-	config: {
-		initialColorMode: "dark",
-		useSystemColorMode: false,
-	},
+  config: {
+    initialColorMode: "dark",
+    useSystemColorMode: false,
+  },
 
-	colors: {
-		gray: {
-			700: DARK_GRAY_COLOR,
-		},
-	},
+  colors: {
+    gray: {
+      700: DARK_GRAY_COLOR,
+    },
+  },
 
-	styles: {
-		global: (props: StyleFunctionProps) => ({
-			body: {
-				bg: mode("white", DARK_MODE_COLOR)(props),
-			},
-		}),
-	},
+  styles: {
+    global: (props: StyleFunctionProps) => ({
+      body: {
+        bg: mode("white", DARK_MODE_COLOR)(props),
+      },
+    }),
+  },
 });
 
 const MyApp: AppType<{ session: Session | null }> = ({
-	Component,
-	pageProps: { session, ...pageProps },
+  Component,
+  pageProps: { session, ...pageProps },
 }) => {
-	return (
-		<SessionProvider session={session} refetchOnWindowFocus={false}>
-			<ChakraProvider theme={theme}>
-				<ColorModeScript initialColorMode={theme.config.initialColorMode} />
-				<Component {...pageProps} />
-			</ChakraProvider>
-		</SessionProvider>
-	);
+  return (
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
+      <ChakraProvider theme={theme}>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <Component {...pageProps} />
+      </ChakraProvider>
+    </SessionProvider>
+  );
 };
 
 export default trpc.withTRPC(MyApp);

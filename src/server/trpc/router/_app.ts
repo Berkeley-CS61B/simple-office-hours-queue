@@ -7,11 +7,11 @@ import { ticketRouter } from "./ticket";
 import { userRouter } from "./user";
 
 export const appRouter = router({
-	admin: adminRouter,
-	ticket: ticketRouter,
-	user: userRouter,
-	queue: queueRouter,
-	stats: statsRouter,
+  admin: adminRouter,
+  ticket: ticketRouter,
+  user: userRouter,
+  queue: queueRouter,
+  stats: statsRouter,
 });
 
 // export type definition of API
