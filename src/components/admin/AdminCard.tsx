@@ -1,25 +1,25 @@
-import { useState } from 'react';
+import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
 import {
-  Flex,
-  Text,
-  IconButton,
-  Switch,
-  useColorModeValue,
   ButtonGroup,
-  useEditableControls,
-  Editable,
-  EditablePreview,
-  Input,
-  EditableInput,
-  useToast,
   Checkbox,
-} from '@chakra-ui/react';
-import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
-import { Assignment, Location } from '@prisma/client';
-import { UseTRPCMutationResult } from '@trpc/react/shared';
-import { DARK_GRAY_COLOR } from '../../utils/constants';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { trpc } from '../../utils/trpc';
+  Editable,
+  EditableInput,
+  EditablePreview,
+  Flex,
+  IconButton,
+  Input,
+  Switch,
+  Text,
+  useColorModeValue,
+  useEditableControls,
+  useToast,
+} from "@chakra-ui/react";
+import { Assignment, Location } from "@prisma/client";
+import { UseTRPCMutationResult } from "@trpc/react/shared";
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { DARK_GRAY_COLOR } from "../../utils/constants";
+import { trpc } from "../../utils/trpc";
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
@@ -29,16 +29,34 @@ interface AdminCardProps {
 }
 
 const EditableControls = () => {
-  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } = useEditableControls();
+  const {
+    isEditing,
+    getSubmitButtonProps,
+    getCancelButtonProps,
+    getEditButtonProps,
+  } = useEditableControls();
 
   return isEditing ? (
-    <ButtonGroup ml={4} mt={1} justifyContent='center' size='sm'>
-      <IconButton aria-label='Confirm' icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton aria-label='Cancel' icon={<CloseIcon />} {...getCancelButtonProps()} />
+    <ButtonGroup ml={4} mt={1} justifyContent="center" size="sm">
+      <IconButton
+        aria-label="Confirm"
+        icon={<CheckIcon />}
+        {...getSubmitButtonProps()}
+      />
+      <IconButton
+        aria-label="Cancel"
+        icon={<CloseIcon />}
+        {...getCancelButtonProps()}
+      />
     </ButtonGroup>
   ) : (
-    <Flex ml={2} mt={1} justifyContent='center'>
-      <IconButton aria-label='Edit' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+    <Flex ml={2} mt={1} justifyContent="center">
+      <IconButton
+        aria-label="Edit"
+        size="sm"
+        icon={<EditIcon />}
+        {...getEditButtonProps()}
+      />
     </Flex>
   );
 };
@@ -47,11 +65,14 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation, isHiddenVisible, isAssignment } = props;
-  const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
+  const { assignmentOrLocation, editMutation, isHiddenVisible, isAssignment } =
+    props;
+  const boxColor = useColorModeValue("gray.100", DARK_GRAY_COLOR);
   const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
-  const [isPriority, setIsPriority] = useState(isAssignment ? (assignmentOrLocation as Assignment).isPriority : false);
+  const [isPriority, setIsPriority] = useState(
+    isAssignment ? (assignmentOrLocation as Assignment).isPriority : false,
+  );
   const context = trpc.useContext();
   const toast = useToast();
 
@@ -89,14 +110,14 @@ const AdminCard = (props: AdminCardProps) => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error',
+          title: "Error",
           description: err.message,
-          status: 'error',
+          status: "error",
           duration: 3000,
           isClosable: true,
-          position: 'top-right',
+          position: "top-right",
         });
       });
   };
@@ -114,14 +135,14 @@ const AdminCard = (props: AdminCardProps) => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error',
+          title: "Error",
           description: err.message,
-          status: 'error',
+          status: "error",
           duration: 3000,
           isClosable: true,
-          position: 'top-right',
+          position: "top-right",
         });
       });
   };
@@ -131,31 +152,43 @@ const AdminCard = (props: AdminCardProps) => {
   }
 
   return (
-    <Flex borderRadius={4} mb={2} flexDirection='row' p={2} backgroundColor={boxColor} justifyContent='space-between'>
+    <Flex
+      borderRadius={4}
+      mb={2}
+      flexDirection="row"
+      p={2}
+      backgroundColor={boxColor}
+      justifyContent="space-between"
+    >
       <Flex>
         <Editable
           onSubmit={handleNameChange}
-          textAlign='center'
-          fontWeight='semibold'
-          display='flex'
+          textAlign="center"
+          fontWeight="semibold"
+          display="flex"
           defaultValue={assignmentOrLocation.name}
-          fontSize='xl'
+          fontSize="xl"
           isPreviewFocusable={false}
         >
           <EditablePreview />
           <Input as={EditableInput} />
           <EditableControls />
         </Editable>
-        <Text fontSize='large' mt={1.5} ml={5}>
+        <Text fontSize="large" mt={1.5} ml={5}>
           Active?
         </Text>
-        <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActive} />
+        <Switch
+          onChange={handleActiveChange}
+          mt={2.5}
+          ml={3}
+          isChecked={isActive}
+        />
       </Flex>
       <Checkbox
         hidden={!isActive || !isAssignment}
         onChange={() => handlePriorityChange(!isPriority)}
-        colorScheme='telegram'
-        size='lg'
+        colorScheme="telegram"
+        size="lg"
         ml={2}
         isChecked={isPriority}
       >
@@ -164,9 +197,19 @@ const AdminCard = (props: AdminCardProps) => {
       {!isActive && (
         <Flex>
           {isHidden ? (
-            <FaEyeSlash size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+            <FaEyeSlash
+              size="20px"
+              className="hover-cursor"
+              style={{ marginTop: "10px" }}
+              onClick={handleHidden}
+            />
           ) : (
-            <FaEye size='20px' className='hover-cursor' style={{ marginTop: '10px' }} onClick={handleHidden} />
+            <FaEye
+              size="20px"
+              className="hover-cursor"
+              style={{ marginTop: "10px" }}
+              onClick={handleHidden}
+            />
           )}
         </Flex>
       )}

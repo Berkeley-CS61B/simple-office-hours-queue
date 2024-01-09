@@ -2,18 +2,6 @@
   "name": "simple-office-hours-queue",
   "version": "0.1.0",
   "private": true,
-  "prettier": {
-    "singleQuote": true,
-    "trailingComma": "all",
-    "quoteProps": "as-needed",
-    "arrowParens": "avoid",
-    "printWidth": 120,
-    "tabWidth": 2,
-    "semi": true,
-    "bracketSpacing": true,
-    "jsxBracketSameLine": false,
-    "jsxSingleQuote": true
-  },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
@@ -22,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "fmt": "npx @biomejs/biome check --apply ./src"
   },
   "dependencies": {
     "@ably-labs/react-hooks": "^2.0.9",
@@ -54,6 +43,7 @@
     "zod": "^3.22.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.5.0",
     "@types/node": "^18.0.0",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",

@@ -1,6 +1,11 @@
-import { ArrowBackIcon, ArrowForwardIcon, ArrowLeftIcon, ArrowRightIcon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Input } from '@chakra-ui/react';
-import { Select } from 'chakra-react-select';
+import {
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+} from "@chakra-ui/icons";
+import { Box, Button, Flex, Input } from "@chakra-ui/react";
+import { Select } from "chakra-react-select";
 
 interface ActivityTablePaginationProps {
   setPageSize: (size: number) => void;
@@ -29,50 +34,74 @@ const ActivityTablePagination = (props: ActivityTablePaginationProps) => {
     setPageSize,
   } = props;
   return (
-    <Flex justifyContent='flex-end' alignItems='center' transform='translateY(30px)'>
-      <Button mr={1} size='sm' onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+    <Flex
+      justifyContent="flex-end"
+      alignItems="center"
+      transform="translateY(30px)"
+    >
+      <Button
+        mr={1}
+        size="sm"
+        onClick={() => gotoPage(0)}
+        disabled={!canPreviousPage}
+      >
         <ArrowLeftIcon />
       </Button>
-      <Button mr={1} size='sm' onClick={() => previousPage()} disabled={!canPreviousPage}>
+      <Button
+        mr={1}
+        size="sm"
+        onClick={() => previousPage()}
+        disabled={!canPreviousPage}
+      >
         <ArrowBackIcon />
       </Button>
-      <Button mr={1} size='sm' onClick={() => nextPage()} disabled={!canNextPage}>
+      <Button
+        mr={1}
+        size="sm"
+        onClick={() => nextPage()}
+        disabled={!canNextPage}
+      >
         <ArrowForwardIcon />
       </Button>
-      <Button mr={1} size='sm' onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+      <Button
+        mr={1}
+        size="sm"
+        onClick={() => gotoPage(pageCount - 1)}
+        disabled={!canNextPage}
+      >
         <ArrowRightIcon />
       </Button>
       <Box mr={1}>
-        Page{' '}
+        Page{" "}
         <strong>
           {pageIndex + 1} of {pageOptions.length}
         </strong>
       </Box>
-      <Box as='span'>
+      <Box as="span">
         | Go to page:
         <Input
           ml={1}
           mr={1}
-          type='number'
+          type="number"
           defaultValue={pageIndex + 1}
-          onChange={e => {
+          onChange={(e) => {
             const page = e.target.value ? Number(e.target.value) - 1 : 0;
             gotoPage(page);
           }}
-          style={{ width: '100px' }}
+          style={{ width: "100px" }}
         />
-      </Box>{' '}
+      </Box>{" "}
       <Select
-        placeholder='#'
+        placeholder="#"
         value={pageSize}
         options={[
-          { value: 10, label: '10', id: 10 } as any, // Not sure why TS is complaining here
-          { value: 20, label: '20', id: 20 } as any,
-          { value: 30, label: '30', id: 30 } as any,
-          { value: 40, label: '40', id: 40 } as any,
-          { value: 50, label: '50', id: 50 } as any,
+          { value: 10, label: "10", id: 10 } as any, // Not sure why TS is complaining here
+          { value: 20, label: "20", id: 20 } as any,
+          { value: 30, label: "30", id: 30 } as any,
+          { value: 40, label: "40", id: 40 } as any,
+          { value: 50, label: "50", id: 50 } as any,
         ]}
-        onChange={e => {
+        onChange={(e) => {
           const newPage = e as any;
           setPageSize(newPage.value);
         }}

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@chakra-ui/react';
-import Router, { useRouter } from 'next/router';
-import { trpc } from '../../utils/trpc';
-import { useSession } from 'next-auth/react';
-import { UserRole } from '@prisma/client';
-import InnerTicket from './InnerTicket';
+import { useToast } from "@chakra-ui/react";
+import { UserRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import Router, { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { trpc } from "../../utils/trpc";
+import InnerTicket from "./InnerTicket";
 
 /**
  * Component that renders the ticket view. It ensures that
@@ -22,9 +22,9 @@ const TicketView = () => {
   const { data: ticket } = trpc.ticket.getTicket.useQuery(
     { id },
     {
-      enabled: id !== undefined && !isNaN(id),
+      enabled: id !== undefined && !Number.isNaN(id),
       refetchOnWindowFocus: false,
-      onSuccess: data => {
+      onSuccess: (data) => {
         if (data) {
           //   setTicket(data);
           setIsInvalidTicket(false);
@@ -55,22 +55,24 @@ const TicketView = () => {
 
     if (isInvalidTicket || !authorized) {
       toast({
-        title: 'Invalid ticket',
-        description: 'The ticket you are trying to access is invalid.',
-        status: 'error',
-        position: 'top-right',
+        title: "Invalid ticket",
+        description: "The ticket you are trying to access is invalid.",
+        status: "error",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
-      Router.push('/');
+      Router.push("/");
     }
-  }, [userRole, isInvalidTicket, authorized]);
+  }, [userRole, isInvalidTicket, authorized, toast]);
 
   return (
-	<>
-	{ticket && <InnerTicket ticket={ticket} userId={userId!} userRole={userRole!} />}
-	</>
-  )
+    <>
+      {ticket && (
+        <InnerTicket ticket={ticket} userId={userId!} userRole={userRole!} />
+      )}
+    </>
+  );
 };
 
 export default TicketView;

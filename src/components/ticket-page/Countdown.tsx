@@ -1,5 +1,5 @@
-import { Text } from '@chakra-ui/react';
-import { useState, useEffect } from 'react';
+import { Text } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 /**
  * Countdown component that displays the time remaining for a ticket.
@@ -36,8 +36,8 @@ const Countdown = (props: CountdownProps) => {
     return <span>0:00</span>;
   }
   return (
-    <Text fontWeight='bold' fontSize='xl'>
-      {minutes}:{parseInt(seconds) < 10 ? '0' : ''}
+    <Text fontWeight="bold" fontSize="xl">
+      {minutes}:{parseInt(seconds) < 10 ? "0" : ""}
       {seconds}
     </Text>
   );

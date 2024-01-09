@@ -1,7 +1,12 @@
-import { router, protectedStaffProcedure, protectedProcedure, publicProcedure } from '../trpc';
-import { z } from 'zod';
-import { TRPCClientError } from '@trpc/client';
-import { TicketStatus } from '@prisma/client';
+import { TicketStatus } from "@prisma/client";
+import { TRPCClientError } from "@trpc/client";
+import { z } from "zod";
+import {
+  protectedProcedure,
+  protectedStaffProcedure,
+  publicProcedure,
+  router,
+} from "../trpc";
 
 export const queueRouter = router({
   getQueueByName: protectedProcedure
@@ -30,26 +35,26 @@ export const queueRouter = router({
 
   // Returns personal queue names mapping to isOpen, and the number of open tickets in each queue
   getPersonalQueueStats: publicProcedure.query(async ({ ctx }) => {
-	const personalQueues = await ctx.prisma.personalQueue.findMany({
-	  select: {
-		name: true,
-		isOpen: true,
-		Ticket: {
-		  select: {
-			status: true,
-		  },
-		  where: {
-			status: TicketStatus.OPEN,
-		  },
-		}
-	  },
-	});
+    const personalQueues = await ctx.prisma.personalQueue.findMany({
+      select: {
+        name: true,
+        isOpen: true,
+        Ticket: {
+          select: {
+            status: true,
+          },
+          where: {
+            status: TicketStatus.OPEN,
+          },
+        },
+      },
+    });
 
-	return personalQueues.map((queue) => ({
-	  queueName: queue.name,
-	  isQueueOpen: queue.isOpen,
-	  numOpenTickets: queue.Ticket.length,
-	}))
+    return personalQueues.map((queue) => ({
+      queueName: queue.name,
+      isQueueOpen: queue.isOpen,
+      numOpenTickets: queue.Ticket.length,
+    }));
   }),
 
   createQueue: protectedStaffProcedure
@@ -73,7 +78,9 @@ export const queueRouter = router({
       });
 
       if (queueExists) {
-        throw new TRPCClientError('Queue with this name already exists or you already have a queue.');
+        throw new TRPCClientError(
+          "Queue with this name already exists or you already have a queue.",
+        );
       }
 
       return ctx.prisma.personalQueue.create({
@@ -120,7 +127,7 @@ export const queueRouter = router({
       });
 
       if (queueExists) {
-        throw new TRPCClientError('Queue with this name already exists');
+        throw new TRPCClientError("Queue with this name already exists");
       }
 
       return ctx.prisma.personalQueue.update({

@@ -1,15 +1,15 @@
 import {
-  ModalFooter,
+  Button,
+  Center,
   Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Center,
-  Button,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { DARK_GRAY_COLOR } from '../../utils/constants';
+} from "@chakra-ui/react";
+import { DARK_GRAY_COLOR } from "../../utils/constants";
 
 interface BroadcastConfirmationModalProps {
   isModalOpen: boolean;
@@ -23,20 +23,20 @@ const BroadcastConfirmationModal = (props: BroadcastConfirmationModalProps) => {
 
   return (
     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-      <ModalContent backgroundColor={useColorModeValue('', DARK_GRAY_COLOR)}>
+      <ModalContent backgroundColor={useColorModeValue("", DARK_GRAY_COLOR)}>
         <ModalHeader>Confirm Broadcast</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          Are you sure you want to broadcast this message? <br /> <br />{' '}
+          Are you sure you want to broadcast this message? <br /> <br />{" "}
           <Center>
             <strong>{broadcastMsg}</strong>
           </Center>
         </ModalBody>
         <ModalFooter>
-          <Button variant='ghost' mr={3} onClick={() => setIsModalOpen(false)}>
+          <Button variant="ghost" mr={3} onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
-          <Button colorScheme='blue' onClick={broadcast}>
+          <Button colorScheme="blue" onClick={broadcast}>
             Confirm
           </Button>
         </ModalFooter>

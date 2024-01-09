@@ -1,9 +1,9 @@
-import { useChannel } from '@ably-labs/react-hooks';
-import { Button } from '@chakra-ui/react';
-import { PersonalQueue } from '@prisma/client';
-import { useState } from 'react';
-import { trpc } from '../../utils/trpc';
-import OpenOrCloseQueueModal from '../modals/OpenOrCloseQueueModal';
+import { useChannel } from "@ably-labs/react-hooks";
+import { Button } from "@chakra-ui/react";
+import { PersonalQueue } from "@prisma/client";
+import { useState } from "react";
+import { trpc } from "../../utils/trpc";
+import OpenOrCloseQueueModal from "../modals/OpenOrCloseQueueModal";
 
 interface OpenOrCloseQueueProps {
   isQueueOpen: boolean;
@@ -11,7 +11,7 @@ interface OpenOrCloseQueueProps {
 }
 
 const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
-  const [channel] = useChannel('broadcast', () => {});
+  const [channel] = useChannel("broadcast", () => {});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isQueueOpen, personalQueue } = props;
   const openOrCloseQueueMutation = trpc.admin.openOrCloseQueue.useMutation();
@@ -27,15 +27,19 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
 
     if (shouldClearQueue) {
       // Add queue name to clearQueue mutation
-      await clearQueueMutation.mutateAsync({ personalQueueName: personalQueue?.name });
+      await clearQueueMutation.mutateAsync({
+        personalQueueName: personalQueue?.name,
+      });
       context.ticket.getTicketsWithStatus.invalidate();
     }
 
     // Only broadcast if the user is not in a personal queue
     if (!personalQueue) {
       channel.publish({
-        name: 'broadcast',
-        data: 'The queue has been ' + (isQueueOpen ? 'closed' : 'opened') + (shouldClearQueue ? ' and cleared' : ''),
+        name: "broadcast",
+        data: `The queue has been ${isQueueOpen ? "closed" : "opened"}${
+          shouldClearQueue ? " and cleared" : ""
+        }`,
       });
     }
   };
@@ -44,12 +48,12 @@ const OpenOrCloseQueue = (props: OpenOrCloseQueueProps) => {
     <>
       <Button
         onClick={() => setIsModalOpen(true)}
-        outlineColor={isQueueOpen ? 'red.300' : 'green.300'}
+        outlineColor={isQueueOpen ? "red.300" : "green.300"}
         outlineOffset={-2}
         m={4}
         mb={0}
       >
-        {isQueueOpen ? 'Close' : 'Open'} Queue
+        {isQueueOpen ? "Close" : "Open"} Queue
       </Button>
       <OpenOrCloseQueueModal
         isModalOpen={isModalOpen}

@@ -1,6 +1,6 @@
-import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
-import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
+import { z } from "zod";
+import { protectedProcedure, protectedStaffProcedure, router } from "../trpc";
 
 export const userRouter = router({
   addUsers: protectedStaffProcedure
@@ -31,7 +31,7 @@ export const userRouter = router({
     });
 
     // Delete the user from the 'ConfirmedUser' table since they are now in 'User'
-    if (!!curUserRole) {
+    if (curUserRole) {
       await ctx.prisma.confirmedUser.delete({
         where: {
           email: ctx.session.user.email!,

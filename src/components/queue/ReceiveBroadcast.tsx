@@ -1,8 +1,8 @@
-import { useChannel } from '@ably-labs/react-hooks';
-import { useToast } from '@chakra-ui/react';
-import { UserRole } from '@prisma/client';
-import { useSession } from 'next-auth/react';
-import useNotification from '../../utils/hooks/useNotification';
+import { useChannel } from "@ably-labs/react-hooks";
+import { useToast } from "@chakra-ui/react";
+import { UserRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import useNotification from "../../utils/hooks/useNotification";
 
 /*
  * Listen for broadcast messages from staff. Note: This assumes Ably is connected.
@@ -13,20 +13,20 @@ const ReceiveBroadcast = () => {
   const { showNotification } = useNotification();
   const { data: session } = useSession();
 
-  useChannel('broadcast', 'broadcast', msg => {
-    const toastId = 'broadcast';
+  useChannel("broadcast", "broadcast", (msg) => {
+    const toastId = "broadcast";
     if (toast.isActive(toastId)) return;
     toast({
       id: toastId,
       title: msg.data,
-      position: 'top',
-      status: 'info',
+      position: "top",
+      status: "info",
       duration: 8000,
       isClosable: true,
       containerStyle: {
         zIndex: 9999,
-        width: '95vw',
-        maxWidth: '100%',
+        width: "95vw",
+        maxWidth: "100%",
       },
     });
 
@@ -34,24 +34,27 @@ const ReceiveBroadcast = () => {
     showNotification(undefined, msg.data);
   });
 
-  useChannel('staff-broadcast', msg => {
-    if (session?.user?.role !== UserRole.STAFF && session?.user?.role !== UserRole.INTERN) {
+  useChannel("staff-broadcast", (msg) => {
+    if (
+      session?.user?.role !== UserRole.STAFF &&
+      session?.user?.role !== UserRole.INTERN
+    ) {
       return;
     }
 
-    const toastId = 'staff-broadcast';
+    const toastId = "staff-broadcast";
     if (toast.isActive(toastId)) return;
     toast({
       id: toastId,
       title: msg.data,
-      position: 'top',
-      status: 'warning',
+      position: "top",
+      status: "warning",
       duration: 8000,
       isClosable: true,
       containerStyle: {
         zIndex: 9999,
-        width: '95vw',
-        maxWidth: '100%',
+        width: "95vw",
+        maxWidth: "100%",
       },
     });
 

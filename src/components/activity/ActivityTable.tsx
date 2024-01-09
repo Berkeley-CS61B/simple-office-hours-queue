@@ -1,10 +1,26 @@
-import { ExternalLinkIcon, TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react';
-import { useMemo } from 'react';
-import { useTable, usePagination, useSortBy } from 'react-table';
-import { TicketWithNames } from '../../server/trpc/router/ticket';
-import { addDurationToTickets, getActivityTableColumns } from '../../utils/utils';
-import ActivityTablePagination from './ActivityTablePagination';
+import {
+  ExternalLinkIcon,
+  TriangleDownIcon,
+  TriangleUpIcon,
+} from "@chakra-ui/icons";
+import {
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
+import { useMemo } from "react";
+import { usePagination, useSortBy, useTable } from "react-table";
+import { TicketWithNames } from "../../server/trpc/router/ticket";
+import {
+  addDurationToTickets,
+  getActivityTableColumns,
+} from "../../utils/utils";
+import ActivityTablePagination from "./ActivityTablePagination";
 
 interface ActivityTableProps {
   tickets: TicketWithNames[];
@@ -20,7 +36,8 @@ interface ActivityTableProps {
 const ActivityTable = (props: ActivityTableProps) => {
   const { tickets, title, shouldShowCreatedBy, shouldShowHelpedBy } = props;
   const columns = useMemo(
-    () => getActivityTableColumns(title, shouldShowCreatedBy, shouldShowHelpedBy),
+    () =>
+      getActivityTableColumns(title, shouldShowCreatedBy, shouldShowHelpedBy),
     [shouldShowCreatedBy, shouldShowHelpedBy, title],
   );
   const data = useMemo(() => addDurationToTickets(tickets), [tickets]);
@@ -61,13 +78,21 @@ const ActivityTable = (props: ActivityTableProps) => {
         setPageSize={setPageSize}
       />
       <TableContainer>
-        <Table variant='striped' {...getTableProps()}>
+        <Table variant="striped" {...getTableProps()}>
           <Thead>
-            {headerGroups.map(headerGroup => (
-              <Tr className='activity-table-header' {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                {headerGroup.headers.map(column => (
-                  <Th pl={0} {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
-                    {column.render('Header')}
+            {headerGroups.map((headerGroup) => (
+              <Tr
+                className="activity-table-header"
+                {...headerGroup.getHeaderGroupProps()}
+                key={headerGroup.id}
+              >
+                {headerGroup.headers.map((column) => (
+                  <Th
+                    pl={0}
+                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                    key={column.id}
+                  >
+                    {column.render("Header")}
                     <>
                       {column.isSorted ? (
                         column.isSortedDesc ? (
@@ -76,7 +101,7 @@ const ActivityTable = (props: ActivityTableProps) => {
                           <TriangleUpIcon ml={1} mb={0.5} />
                         )
                       ) : (
-                        ''
+                        ""
                       )}
                     </>
                   </Th>
@@ -86,30 +111,46 @@ const ActivityTable = (props: ActivityTableProps) => {
           </Thead>
 
           <Tbody {...getTableBodyProps()}>
-            {page.map(row => {
+            {page.map((row) => {
               prepareRow(row);
               return (
                 <Tr {...row.getRowProps()} key={row.id}>
-                  {row.cells.map(cell => {
-                    if (cell.column.id === 'id') {
+                  {row.cells.map((cell) => {
+                    if (cell.column.id === "id") {
                       return (
-                        <Td pl={0} {...cell.getCellProps()} key={cell.getCellProps().key}>
-                          <a target='_blank' rel='noreferrer' href={`/ticket/${cell.value}`}>
+                        <Td
+                          pl={0}
+                          {...cell.getCellProps()}
+                          key={cell.getCellProps().key}
+                        >
+                          <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href={`/ticket/${cell.value}`}
+                          >
                             <ExternalLinkIcon />
                           </a>
                         </Td>
                       );
                     }
-                    if (cell.column.id === 'createdAt') {
+                    if (cell.column.id === "createdAt") {
                       return (
-                        <Td pl={0} {...cell.getCellProps()} key={cell.getCellProps().key}>
+                        <Td
+                          pl={0}
+                          {...cell.getCellProps()}
+                          key={cell.getCellProps().key}
+                        >
                           {new Date(cell.value).toLocaleString()}
                         </Td>
                       );
                     }
                     return (
-                      <Td pl={2} {...cell.getCellProps()} key={cell.getCellProps().key}>
-                        {cell.render('Cell')}
+                      <Td
+                        pl={2}
+                        {...cell.getCellProps()}
+                        key={cell.getCellProps().key}
+                      >
+                        {cell.render("Cell")}
                       </Td>
                     );
                   })}

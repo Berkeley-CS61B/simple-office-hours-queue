@@ -1,28 +1,31 @@
-import { useState, useEffect } from 'react';
-import { trpc } from '../../utils/trpc';
-import { Select } from 'chakra-react-select';
-import Router from 'next/router';
+import { InfoIcon } from "@chakra-ui/icons";
 import {
   Box,
-  FormControl,
-  Input,
-  FormLabel,
   Button,
-  useToast,
-  Switch,
-  Tooltip,
-  Textarea,
-  RadioGroup,
-  Radio,
   Flex,
+  FormControl,
+  FormLabel,
+  Input,
+  Radio,
+  RadioGroup,
+  Switch,
   Text,
-} from '@chakra-ui/react';
-import { InfoIcon } from '@chakra-ui/icons';
-import { PersonalQueue, TicketType } from '@prisma/client';
-import { STARTER_CONCEPTUAL_TICKET_DESCRIPTION, STARTER_DEBUGGING_TICKET_DESCRIPTION } from '../../utils/constants';
-import { getTicketUrl, uppercaseFirstLetter } from '../../utils/utils';
-import ConfirmPublicToggleModal from '../modals/ConfirmPublicToggleModal';
-import { TicketWithNames } from '../../server/trpc/router/ticket';
+  Textarea,
+  Tooltip,
+  useToast,
+} from "@chakra-ui/react";
+import { PersonalQueue, TicketType } from "@prisma/client";
+import { Select } from "chakra-react-select";
+import Router from "next/router";
+import { useEffect, useState } from "react";
+import { TicketWithNames } from "../../server/trpc/router/ticket";
+import {
+  STARTER_CONCEPTUAL_TICKET_DESCRIPTION,
+  STARTER_DEBUGGING_TICKET_DESCRIPTION,
+} from "../../utils/constants";
+import { trpc } from "../../utils/trpc";
+import { getTicketUrl, uppercaseFirstLetter } from "../../utils/utils";
+import ConfirmPublicToggleModal from "../modals/ConfirmPublicToggleModal";
 
 interface Assignment {
   id: number;
@@ -46,18 +49,36 @@ interface CreateTicketFormProps {
 }
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
-  const { arePublicTicketsEnabled, personalQueue, isEditingTicket, existingTicket, setExistingTicket } = props;
-  const [ticketType, setTicketType] = useState<TicketType | undefined>(existingTicket?.ticketType);
-  const [description, setDescription] = useState<string>(existingTicket?.description ?? '');
-  const [locationDescription, setLocationDescription] = useState<string>(existingTicket?.locationDescription ?? '');
+  const {
+    arePublicTicketsEnabled,
+    personalQueue,
+    isEditingTicket,
+    existingTicket,
+    setExistingTicket,
+  } = props;
+  const [ticketType, setTicketType] = useState<TicketType | undefined>(
+    existingTicket?.ticketType,
+  );
+  const [description, setDescription] = useState<string>(
+    existingTicket?.description ?? "",
+  );
+  const [locationDescription, setLocationDescription] = useState<string>(
+    existingTicket?.locationDescription ?? "",
+  );
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
   const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
-  const [isPublic, setIsPublic] = useState<boolean>(existingTicket?.isPublic ?? false);
+  const [isPublic, setIsPublic] = useState<boolean>(
+    existingTicket?.isPublic ?? false,
+  );
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
   const [assignment, setAssignment] = useState<Assignment | undefined>(
     existingTicket
-      ? { id: existingTicket.assignmentId, label: existingTicket.assignmentName, value: existingTicket.assignmentName }
+      ? {
+          id: existingTicket.assignmentId,
+          label: existingTicket.assignmentName,
+          value: existingTicket.assignmentName,
+        }
       : undefined,
   );
   const [location, setLocation] = useState<Location | undefined>(
@@ -86,23 +107,46 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         isPublic,
       });
     }
-  }, [description, locationDescription, assignment, location, ticketType, isPublic, existingTicket, setExistingTicket]);
+  }, [
+    description,
+    locationDescription,
+    assignment,
+    location,
+    ticketType,
+    isPublic,
+    existingTicket,
+    setExistingTicket,
+  ]);
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
   trpc.admin.getActiveAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
-    onSuccess: data => {
+    onSuccess: (data) => {
       setAssignmentOptions(
-        data.map(assignment => ({ label: assignment.name, value: assignment.name, id: assignment.id } as Assignment)),
+        data.map(
+          (assignment) =>
+            ({
+              label: assignment.name,
+              value: assignment.name,
+              id: assignment.id,
+            }) as Assignment,
+        ),
       );
     },
   });
 
   trpc.admin.getActiveLocations.useQuery(undefined, {
     refetchOnWindowFocus: false,
-    onSuccess: data => {
+    onSuccess: (data) => {
       setLocationOptions(
-        data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
+        data.map(
+          (location) =>
+            ({
+              label: location.name,
+              value: location.name,
+              id: location.id,
+            }) as Location,
+        ),
       );
     },
   });
@@ -137,10 +181,10 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
 
     if (!assignment || !location || !ticketType) {
       toast({
-        title: 'Error',
-        description: 'Please select an assignment and location',
-        status: 'error',
-        position: 'top-right',
+        title: "Error",
+        description: "Please select an assignment and location",
+        status: "error",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -148,12 +192,16 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     }
 
     // If description has "[this test]" or "[this concept]" in it, toast and return
-    if (description.includes('[this test]') || description.includes('[this concept]')) {
+    if (
+      description.includes("[this test]") ||
+      description.includes("[this concept]")
+    ) {
       toast({
-        title: 'Error',
-        description: 'Please replace [this concept] or [this test] with the the specific concept or test',
-        status: 'error',
-        position: 'top-right',
+        title: "Error",
+        description:
+          "Please replace [this concept] or [this test] with the the specific concept or test",
+        status: "error",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -173,45 +221,53 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         ticketType,
         isPublic,
       })
-      .then(ticket => {
+      .then((ticket) => {
         if (!ticket) {
           toast({
-            title: 'Error',
-            description: 'Could not create ticket. You may already have a ticket open. If not, refresh and try again.',
-            status: 'error',
-            position: 'top-right',
+            title: "Error",
+            description:
+              "Could not create ticket. You may already have a ticket open. If not, refresh and try again.",
+            status: "error",
+            position: "top-right",
             duration: 5000,
             isClosable: true,
           });
           return;
         }
-        setDescription('');
+        setDescription("");
         // Resets the select options
-        setAssignment('' as unknown as Assignment);
-        setLocation('' as unknown as Location);
+        setAssignment("" as unknown as Assignment);
+        setLocation("" as unknown as Location);
         toast({
-          title: 'Ticket created',
-          description: 'Your help request has been created',
-          status: 'success',
+          title: "Ticket created",
+          description: "Your help request has been created",
+          status: "success",
           duration: 3000,
           isClosable: true,
-          position: 'top-right',
+          position: "top-right",
         });
         Router.push(getTicketUrl(ticket.id));
       });
-    
+
     setIsButtonLoading(false);
   };
 
   return (
-    <Box p={8} pt={2} width='full' borderWidth={1} borderRadius={8} boxShadow='lg'>
-      <Box my={4} textAlign='left'>
+    <Box
+      p={8}
+      pt={2}
+      width="full"
+      borderWidth={1}
+      borderRadius={8}
+      boxShadow="lg"
+    >
+      <Box my={4} textAlign="left">
         <form onSubmit={onSubmit}>
           <FormControl isRequired>
             <Flex>
               <FormLabel>Ticket Type</FormLabel>
               <RadioGroup onChange={handleTicketTypeChange} value={ticketType}>
-                {Object.keys(TicketType).map(type => (
+                {Object.keys(TicketType).map((type) => (
                   <Radio mr={2} key={type} value={type}>
                     {uppercaseFirstLetter(type)}
                   </Radio>
@@ -222,50 +278,61 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           <FormControl isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Description</FormLabel>
             <Text hidden={ticketType !== TicketType.CONCEPTUAL} mb={2}>
-              Please make sure staff does not have to look at your code to answer your question.
+              Please make sure staff does not have to look at your code to
+              answer your question.
             </Text>
             <Textarea
               value={description}
-              onChange={e => setDescription(e.target.value)}
-              name='description'
-              size='md'
+              onChange={(e) => setDescription(e.target.value)}
+              name="description"
+              size="md"
               maxLength={1000}
             />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Assignment</FormLabel>
-            <Select value={assignment} onChange={val => setAssignment(val ?? undefined)} options={assignmentOptions} />
+            <Select
+              value={assignment}
+              onChange={(val) => setAssignment(val ?? undefined)}
+              options={assignmentOptions}
+            />
           </FormControl>
           <FormControl mt={6} isRequired>
             <FormLabel>Location</FormLabel>
-            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={locationOptions} />
+            <Select
+              value={location}
+              onChange={(val) => setLocation(val ?? undefined)}
+              options={locationOptions}
+            />
           </FormControl>
           <FormControl mt={6} isRequired={isPublic}>
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}
-              onChange={e => setLocationDescription(e.target.value)}
-              type='text'
-              placeholder='Back right corner of the room'
-              name='locationDescription'
+              onChange={(e) => setLocationDescription(e.target.value)}
+              type="text"
+              placeholder="Back right corner of the room"
+              name="locationDescription"
               maxLength={140}
             />
           </FormControl>
           <FormControl
             mt={6}
-            display='flex'
+            display="flex"
             hidden={!arePublicTicketsEnabled}
-            isDisabled={ticketType === TicketType.DEBUGGING || ticketType === undefined}
+            isDisabled={
+              ticketType === TicketType.DEBUGGING || ticketType === undefined
+            }
           >
             <FormLabel>
               Public
               <Tooltip
                 hasArrow
-                label='Public tickets can be joined by other students. This is great for group work 
+                label="Public tickets can be joined by other students. This is great for group work 
                or conceptual questions! If your ticket is public, we are more likely to 
-               help you for a longer time.'
-                bg='gray.300'
-                color='black'
+               help you for a longer time."
+                bg="gray.300"
+                color="black"
               >
                 <InfoIcon ml={2} mb={1} />
               </Tooltip>
@@ -274,10 +341,10 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <Button
             hidden={isEditingTicket}
-            type='submit'
-            width='full'
+            type="submit"
+            width="full"
             mt={4}
-            colorScheme='whatsapp'
+            colorScheme="whatsapp"
             isLoading={isButtonLoading}
           >
             Request Help

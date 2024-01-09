@@ -1,14 +1,14 @@
 import {
-  ModalFooter,
+  Button,
   Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Button,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { DARK_GRAY_COLOR } from '../../utils/constants';
+} from "@chakra-ui/react";
+import { DARK_GRAY_COLOR } from "../../utils/constants";
 
 interface HandleAllConfirmationModalProps {
   isModalOpen: boolean;
@@ -22,15 +22,17 @@ const HandleAllConfirmationModal = (props: HandleAllConfirmationModalProps) => {
 
   return (
     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-      <ModalContent backgroundColor={useColorModeValue('', DARK_GRAY_COLOR)}>
+      <ModalContent backgroundColor={useColorModeValue("", DARK_GRAY_COLOR)}>
         <ModalHeader>Confirm</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>Are you sure you want to {handleAllText} displayed tickets? </ModalBody>
+        <ModalBody>
+          Are you sure you want to {handleAllText} displayed tickets?{" "}
+        </ModalBody>
         <ModalFooter>
-          <Button variant='ghost' mr={3} onClick={() => setIsModalOpen(false)}>
+          <Button variant="ghost" mr={3} onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
-          <Button colorScheme='blue' onClick={handleConfirm}>
+          <Button colorScheme="blue" onClick={handleConfirm}>
             Confirm
           </Button>
         </ModalFooter>

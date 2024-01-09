@@ -1,16 +1,15 @@
-import Head from 'next/head';
-import { useSession } from 'next-auth/react';
-import { Flex, useToast } from '@chakra-ui/react';
-import { Navbar } from './Navbar';
-import { ReactNode, useEffect, useState } from 'react';
-import ReceiveBroadcast from '../queue/ReceiveBroadcast';
-import Landing from './Landing';
-import { configureAbly } from '@ably-labs/react-hooks';
-import { clientEnv } from '../../env/schema.mjs';
-import { UserRole } from '@prisma/client';
-import Router from 'next/router';
-import Image from 'next/image';
-import { SITE_BASE_TITLE } from '../../utils/constants';
+import { configureAbly } from "@ably-labs/react-hooks";
+import { Flex, useToast } from "@chakra-ui/react";
+import { UserRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import Head from "next/head";
+import Router from "next/router";
+import { ReactNode, useEffect, useState } from "react";
+import { clientEnv } from "../../env/schema.mjs";
+import { SITE_BASE_TITLE } from "../../utils/constants";
+import ReceiveBroadcast from "../queue/ReceiveBroadcast";
+import Landing from "./Landing";
+import { Navbar } from "./Navbar";
 
 interface LayoutProps {
   children: ReactNode;
@@ -31,70 +30,88 @@ const Layout = (props: LayoutProps) => {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (!('Notification' in window)) {
+    if (!("Notification" in window)) {
       return;
-    } else if (Notification.permission === 'denied' || Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
+    }
+    if (
+      Notification.permission === "denied" ||
+      Notification.permission === "default"
+    ) {
+      Notification.requestPermission().then((permission) => {
         if (
-          localStorage.getItem('notificationPermission') == null &&
-          (permission === 'denied' || permission === 'default')
+          localStorage.getItem("notificationPermission") == null &&
+          (permission === "denied" || permission === "default")
         ) {
-          alert('We highly recommend enabling desktop notifications to receive updates on your queue status.');
-          localStorage.setItem('notificationPermission', JSON.stringify(true));
+          alert(
+            "We highly recommend enabling desktop notifications to receive updates on your queue status.",
+          );
+          localStorage.setItem("notificationPermission", JSON.stringify(true));
         }
       });
     }
   }, []);
 
   useEffect(() => {
-    if (session && session.user) {
-      if (props.restrictedTo && !props.restrictedTo.includes(session.user.role)) {
+    if (session?.user) {
+      if (
+        props.restrictedTo &&
+        !props.restrictedTo.includes(session.user.role)
+      ) {
         toast({
-          title: 'Not Authorized',
-          description: 'You are not authorized to view this page.',
-          status: 'error',
-          position: 'top-right',
+          title: "Not Authorized",
+          description: "You are not authorized to view this page.",
+          status: "error",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
-        Router.push('/');
+        Router.push("/");
       } else {
         setIsAuthorized(true);
       }
 
-      new Promise(resolve => {
+      new Promise((resolve) => {
         configureAbly({
           key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
           clientId: session?.user?.id,
         });
         resolve(setIsAblyConnected(true));
-      }).catch(err => console.error(err));
+      }).catch((err) => console.error(err));
     }
-  }, [session]);
+  }, [session, props.restrictedTo, toast]);
 
   return (
-    <Flex direction='column' minH='100vh' justifyContent='space-between'>
+    <Flex direction="column" minH="100vh" justifyContent="space-between">
       <Head>
         <title>{SITE_BASE_TITLE}</title>
-        <meta name='OH Queue' content='Office Hours Queue' lang='en' translate='no' dir='ltr' />
+        <meta
+          name="OH Queue"
+          content="Office Hours Queue"
+          lang="en"
+          translate="no"
+          dir="ltr"
+        />
       </Head>
 
-      <Flex direction='column'>
+      <Flex direction="column">
         <Navbar />
-        {!session && status !== 'loading' && <Landing />}
-        {status === 'authenticated' && isAuthorized && <>{children}</>}
+        {!session && status !== "loading" && <Landing />}
+        {status === "authenticated" && isAuthorized && children}
         {isAblyConnected && <ReceiveBroadcast />}
       </Flex>
 
-      <Flex alignSelf='flex-end'>
+      <Flex alignSelf="flex-end">
         <footer>
           <a
-            href='https://vercel.com?utm_source=cs61b&utm_campaign=oss'
-            target='_blank'
-            rel='noopener noreferrer'
-            aria-label='Powered by Vercel'
+            href="https://vercel.com?utm_source=cs61b&utm_campaign=oss"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Powered by Vercel"
           >
-            <img src='https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg' />
+            <img
+              alt="Vercel logo"
+              src="https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg"
+            />
           </a>
         </footer>
       </Flex>

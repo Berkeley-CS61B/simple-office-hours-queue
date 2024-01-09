@@ -1,10 +1,17 @@
-import Ably from 'ably/promises';
-import { router, protectedStaffProcedure, protectedProcedure } from '../trpc';
-import { z } from 'zod';
-import { SiteSettings, SiteSettingsValues, VariableSiteSettings } from '@prisma/client';
-import { settingsToDefault, ImportUsersMethodPossiblities } from '../../../utils/utils';
-import { TRPCClientError } from '@trpc/client';
-import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from '../../../utils/constants';
+import {
+  SiteSettings,
+  SiteSettingsValues,
+  VariableSiteSettings,
+} from "@prisma/client";
+import { TRPCClientError } from "@trpc/client";
+import Ably from "ably/promises";
+import { z } from "zod";
+import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from "../../../utils/constants";
+import {
+  ImportUsersMethodPossiblities,
+  settingsToDefault,
+} from "../../../utils/utils";
+import { protectedProcedure, protectedStaffProcedure, router } from "../trpc";
 
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
@@ -23,13 +30,15 @@ export const adminRouter = router({
       });
     }),
 
-  createLocation: protectedStaffProcedure.input(z.object({ name: z.string() })).mutation(async ({ input, ctx }) => {
-    return ctx.prisma.location.create({
-      data: {
-        name: input.name,
-      },
-    });
-  }),
+  createLocation: protectedStaffProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.location.create({
+        data: {
+          name: input.name,
+        },
+      });
+    }),
 
   editAssignment: protectedStaffProcedure
     .input(
@@ -38,7 +47,7 @@ export const adminRouter = router({
         name: z.string(),
         isActive: z.boolean(),
         isHidden: z.boolean(),
-		isPriority: z.boolean().optional(),
+        isPriority: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -50,7 +59,9 @@ export const adminRouter = router({
           name: input.name,
           isActive: input.isActive,
           isHidden: input.isHidden,
-		  ...(input.isPriority !== undefined && { isPriority: input.isPriority }),
+          ...(input.isPriority !== undefined && {
+            isPriority: input.isPriority,
+          }),
         },
       });
     }),
@@ -89,11 +100,15 @@ export const adminRouter = router({
           setting: SiteSettings.ARE_PUBLIC_TICKETS_ENABLED,
         },
         update: {
-          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldBeEnabled
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
         create: {
           setting: SiteSettings.ARE_PUBLIC_TICKETS_ENABLED,
-          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldBeEnabled
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
       });
     }),
@@ -110,11 +125,15 @@ export const adminRouter = router({
           setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
         },
         update: {
-          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldBeEnabled
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
         create: {
           setting: SiteSettings.IS_PENDING_STAGE_ENABLED,
-          value: input.shouldBeEnabled ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldBeEnabled
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
       });
     }),
@@ -140,15 +159,15 @@ export const adminRouter = router({
       }
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('settings');
+      const channel = ably.channels.get("settings");
       if (input.personalQueueName) {
         await channel.publish(
-          'queue-open-close-' + input.personalQueueName,
+          `queue-open-close-${input.personalQueueName}`,
           input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
         );
       } else {
         await channel.publish(
-          'queue-open-close',
+          "queue-open-close",
           input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
         );
       }
@@ -162,11 +181,15 @@ export const adminRouter = router({
           setting: SiteSettings.IS_QUEUE_OPEN,
         },
         update: {
-          value: input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldOpen
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
         create: {
           setting: SiteSettings.IS_QUEUE_OPEN,
-          value: input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          value: input.shouldOpen
+            ? SiteSettingsValues.TRUE
+            : SiteSettingsValues.FALSE,
         },
       });
     }),
@@ -178,8 +201,10 @@ export const adminRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (!Object.values(ImportUsersMethodPossiblities).includes(input.method)) {
-        throw new TRPCClientError('Invalid import users method');
+      if (
+        !Object.values(ImportUsersMethodPossiblities).includes(input.method)
+      ) {
+        throw new TRPCClientError("Invalid import users method");
       }
 
       await ctx.prisma.settings.upsert({
@@ -204,7 +229,7 @@ export const adminRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       if (!EMAIL_DOMAIN_REGEX_OR_EMPTY.test(input.domain)) {
-        throw new TRPCClientError('Invalid email domain');
+        throw new TRPCClientError("Invalid email domain");
       }
 
       await ctx.prisma.variableSettings.upsert({
@@ -229,7 +254,7 @@ export const adminRouter = router({
       update: {},
       create: {
         setting: VariableSiteSettings.EMAIL_DOMAIN,
-        value: '',
+        value: "",
       },
     });
     return setting.value;
@@ -249,11 +274,11 @@ export const adminRouter = router({
 
     if (setting.value === SiteSettingsValues.IMPORT_STAFF_AND_STUDENTS) {
       return ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
-    } else if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
-      return ImportUsersMethodPossiblities.IMPORT_STAFF;
-    } else {
-      throw new TRPCClientError('Invalid import users method');
     }
+    if (setting.value === SiteSettingsValues.IMPORT_STAFF) {
+      return ImportUsersMethodPossiblities.IMPORT_STAFF;
+    }
+    throw new TRPCClientError("Invalid import users method");
   }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
@@ -286,7 +311,7 @@ export const adminRouter = router({
     // Add missing settings to the database if they dont exist. I initially
     // had upsert, but it was very slow so I changed it to manually add
     for (const setting of Object.keys(settingsToDefault)) {
-      if (!settings.some(s => s.setting === setting)) {
+      if (!settings.some((s) => s.setting === setting)) {
         await ctx.prisma.settings.create({
           data: {
             setting: setting as SiteSettings,

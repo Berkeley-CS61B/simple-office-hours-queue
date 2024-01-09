@@ -1,7 +1,7 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import type { Context } from './context';
-import superjson from 'superjson';
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
+import { TRPCError, initTRPC } from "@trpc/server";
+import superjson from "superjson";
+import type { Context } from "./context";
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -23,7 +23,7 @@ export const publicProcedure = t.procedure;
  */
 const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
@@ -37,8 +37,12 @@ const isAuthed = t.middleware(({ ctx, next }) => {
  * Reusable middleware to ensure the user is staff
  */
 const isStaff = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session?.user?.role != UserRole.STAFF) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  if (
+    !ctx.session ||
+    !ctx.session.user ||
+    ctx.session?.user?.role !== UserRole.STAFF
+  ) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
@@ -49,8 +53,12 @@ const isStaff = t.middleware(({ ctx, next }) => {
 
 /** Includes intern */
 const isNotStudent = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session?.user?.role === UserRole.STUDENT) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  if (
+    !ctx.session ||
+    !ctx.session.user ||
+    ctx.session?.user?.role === UserRole.STUDENT
+  ) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
@@ -60,13 +68,17 @@ const isNotStudent = t.middleware(({ ctx, next }) => {
 });
 
 const isStudent = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session?.user?.role !== UserRole.STUDENT) {
-	throw new TRPCError({ code: 'UNAUTHORIZED' });
+  if (
+    !ctx.session ||
+    !ctx.session.user ||
+    ctx.session?.user?.role !== UserRole.STUDENT
+  ) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
-	ctx: {
-	  session: { ...ctx.session, user: ctx.session.user },
-	},
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
   });
 });
 

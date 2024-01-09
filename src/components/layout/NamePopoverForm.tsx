@@ -1,4 +1,4 @@
-import { EditIcon } from '@chakra-ui/icons';
+import { EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -15,10 +15,10 @@ import {
   Stack,
   useColorModeValue,
   useToast,
-} from '@chakra-ui/react';
-import React, { useState } from 'react';
-import { DARK_MODE_COLOR } from '../../utils/constants';
-import { trpc } from '../../utils/trpc';
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { DARK_MODE_COLOR } from "../../utils/constants";
+import { trpc } from "../../utils/trpc";
 
 interface NamePopoverFormProps {
   name: string;
@@ -43,21 +43,21 @@ const NamePopoverForm = (props: NamePopoverFormProps) => {
       .mutateAsync({ preferredName })
       .then(() => {
         toast({
-          title: 'Name updated.',
-          status: 'success',
+          title: "Name updated.",
+          status: "success",
           duration: 3000,
           isClosable: true,
-          position: 'top-right',
+          position: "top-right",
         });
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error updating name. Refresh and try again.',
+          title: "Error updating name. Refresh and try again.",
           description: err.message,
-          status: 'error',
+          status: "error",
           duration: 3000,
           isClosable: true,
-          position: 'top-right',
+          position: "top-right",
         });
         console.error(err);
       });
@@ -71,23 +71,39 @@ const NamePopoverForm = (props: NamePopoverFormProps) => {
   return (
     <>
       <Box mr={3}>{preferredName}</Box>
-      <Popover isOpen={isOpen} onOpen={onOpen} onClose={handleClose} placement='bottom' closeOnBlur={false}>
+      <Popover
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={handleClose}
+        placement="bottom"
+        closeOnBlur={false}
+      >
         <PopoverTrigger>
-          <IconButton aria-label='edit-icon' size='sm' icon={<EditIcon />} />
+          <IconButton aria-label="edit-icon" size="sm" icon={<EditIcon />} />
         </PopoverTrigger>
-        <PopoverContent p={5} backgroundColor={useColorModeValue('white', DARK_MODE_COLOR)}>
+        <PopoverContent
+          p={5}
+          backgroundColor={useColorModeValue("white", DARK_MODE_COLOR)}
+        >
           <PopoverArrow />
           <PopoverCloseButton />
           <Stack spacing={4}>
             <FormControl>
-              <FormLabel htmlFor='name'>Preferred name</FormLabel>
-              <Input onChange={e => setPreferredName(e.target.value)} value={preferredName} />
+              <FormLabel htmlFor="name">Preferred name</FormLabel>
+              <Input
+                onChange={(e) => setPreferredName(e.target.value)}
+                value={preferredName}
+              />
             </FormControl>
-            <ButtonGroup display='flex' justifyContent='flex-end'>
-              <Button variant='outline' onClick={handleClose}>
+            <ButtonGroup display="flex" justifyContent="flex-end">
+              <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button isDisabled={preferredName.trim().length <= 0} colorScheme='whatsapp' onClick={handleNameChange}>
+              <Button
+                isDisabled={preferredName.trim().length <= 0}
+                colorScheme="whatsapp"
+                onClick={handleNameChange}
+              >
                 Save
               </Button>
             </ButtonGroup>

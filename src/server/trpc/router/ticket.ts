@@ -1,4 +1,3 @@
-import Ably from 'ably/promises';
 import {
   Assignment,
   ChatMessage,
@@ -10,11 +9,17 @@ import {
   TicketType,
   User,
   UserRole,
-} from '@prisma/client';
-import { router, protectedProcedure, protectedStaffProcedure, protectedNotStudentProcedure } from '../trpc';
-import { z } from 'zod';
-import { TRPCClientError } from '@trpc/client';
-import { EMAIL_REGEX } from '../../../utils/constants';
+} from "@prisma/client";
+import { TRPCClientError } from "@trpc/client";
+import Ably from "ably/promises";
+import { z } from "zod";
+import { EMAIL_REGEX } from "../../../utils/constants";
+import {
+  protectedNotStudentProcedure,
+  protectedProcedure,
+  protectedStaffProcedure,
+  router,
+} from "../trpc";
 
 export const ticketRouter = router({
   createTicket: protectedProcedure
@@ -40,8 +45,12 @@ export const ticketRouter = router({
             { status: TicketStatus.ASSIGNED },
             { status: TicketStatus.ABSENT },
           ],
-          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
-          ...(input.personalQueueName && { personalQueueName: input.personalQueueName }),
+          ...(input.personalQueueName
+            ? { personalQueueName: input.personalQueueName }
+            : { personalQueueName: null }),
+          ...(input.personalQueueName && {
+            personalQueueName: input.personalQueueName,
+          }),
         },
       });
 
@@ -62,7 +71,10 @@ export const ticketRouter = router({
         return;
       }
 
-      if (doesStudentHaveActiveTicket && ctx.session.user.role === UserRole.STUDENT) {
+      if (
+        doesStudentHaveActiveTicket &&
+        ctx.session.user.role === UserRole.STUDENT
+      ) {
         return;
       }
 
@@ -100,7 +112,10 @@ export const ticketRouter = router({
 
       // Ensure that public tickets are enabled if the ticket is public. This is necessary because
       //  the client might have a stale value for the setting.
-      const isPublic = publicTicketsEnabled?.value === SiteSettingsValues.TRUE ? input.isPublic : false;
+      const isPublic =
+        publicTicketsEnabled?.value === SiteSettingsValues.TRUE
+          ? input.isPublic
+          : false;
 
       // If a ticket is made with a priority assigment, it's a priority ticket
       const isPriority = assignment?.isPriority;
@@ -110,7 +125,9 @@ export const ticketRouter = router({
           description: input.description,
           isPublic: isPublic,
           locationDescription: input.locationDescription,
-          usersInGroup: isPublic ? { connect: [{ id: ctx.session.user.id }] } : undefined,
+          usersInGroup: isPublic
+            ? { connect: [{ id: ctx.session.user.id }] }
+            : undefined,
           isPriority: isPriority,
           ticketType: input.ticketType,
           assignment: {
@@ -129,7 +146,10 @@ export const ticketRouter = router({
             },
           },
           // If pending stage is enabled, set status to pending
-          status: pendingStageEnabled?.value === SiteSettingsValues.TRUE ? TicketStatus.PENDING : TicketStatus.OPEN,
+          status:
+            pendingStageEnabled?.value === SiteSettingsValues.TRUE
+              ? TicketStatus.PENDING
+              : TicketStatus.OPEN,
           // If personal queue name is provided, connect to it
           ...(input.personalQueueName && {
             PersonalQueue: {
@@ -151,11 +171,12 @@ export const ticketRouter = router({
         });
       }
 
-      const ticketWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
+      const ticketWithNames: TicketWithNames[] =
+        await convertTicketToTicketWithNames([ticket], ctx);
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('new-ticket', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("new-ticket", undefined);
 
       /***** Removing staff broadcast for now *****/
       //   if (isPriority && ticket.personalQueueId === null) {
@@ -205,10 +226,10 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await ticketChannel.publish('ticket-edited', undefined);
+      await ticketChannel.publish("ticket-edited", undefined);
 
-      const channel = ably.channels.get(`tickets`);
-      await channel.publish('ticket-edited', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("ticket-edited", undefined);
     }),
 
   approveTickets: protectedStaffProcedure
@@ -224,13 +245,13 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-approved', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-approved", undefined);
 
       // Use inner ticket channel
       for (const id of input.ticketIds) {
         const channel = ably.channels.get(`ticket-${id}`);
-        await channel.publish('ticket-approved', undefined);
+        await channel.publish("ticket-approved", undefined);
       }
     }),
 
@@ -270,13 +291,13 @@ export const ticketRouter = router({
       }
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-assigned', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-assigned", undefined);
 
       // Uses ticket inner page channel
       for (const id of ticketsToAssign) {
         const channel = ably.channels.get(`ticket-${id}`);
-        await channel.publish('ticket-assigned', undefined);
+        await channel.publish("ticket-assigned", undefined);
       }
 
       return ticketsToAssign;
@@ -304,12 +325,12 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      channel.publish('tickets-assigned', undefined);
+      const channel = ably.channels.get("tickets");
+      channel.publish("tickets-assigned", undefined);
 
       // Uses ticket inner page channel
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      ticketChannel.publish('ticket-assigned', undefined);
+      ticketChannel.publish("ticket-assigned", undefined);
     }),
 
   resolveTickets: protectedNotStudentProcedure
@@ -325,13 +346,13 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-resolved', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-resolved", undefined);
 
       // Uses ticket inner page channel
       for (const id of input.ticketIds) {
         const channel = ably.channels.get(`ticket-${id}`);
-        await channel.publish('ticket-resolved', undefined);
+        await channel.publish("ticket-resolved", undefined);
       }
     }),
 
@@ -345,16 +366,19 @@ export const ticketRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
         where: { id: input.ticketId },
-        data: { status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN, markedAbsentAt: new Date() },
+        data: {
+          status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN,
+          markedAbsentAt: new Date(),
+        },
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-marked-as-absent', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-marked-as-absent", undefined);
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-marked-as-absent', undefined);
+      await innerChannel.publish("ticket-marked-as-absent", undefined);
     }),
 
   markAsPriority: protectedNotStudentProcedure
@@ -371,11 +395,11 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-marked-as-priority', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-marked-as-priority", undefined);
 
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await ticketChannel.publish('ticket-marked-as-priority', undefined);
+      await ticketChannel.publish("ticket-marked-as-priority", undefined);
 
       /***** Removing staff broadcast for now *****/
 
@@ -399,8 +423,13 @@ export const ticketRouter = router({
       });
 
       // We only allow the creator of the ticket to close it
-      if (ticket?.createdByUserId !== ctx.session?.user?.id && ctx.session?.user?.role !== UserRole.STAFF) {
-        throw new TRPCClientError('You are not authorized to close this ticket');
+      if (
+        ticket?.createdByUserId !== ctx.session?.user?.id &&
+        ctx.session?.user?.role !== UserRole.STAFF
+      ) {
+        throw new TRPCClientError(
+          "You are not authorized to close this ticket",
+        );
       }
 
       await ctx.prisma.ticket.update({
@@ -409,12 +438,12 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-closed', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("ticket-closed", undefined);
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-closed', undefined);
+      await innerChannel.publish("ticket-closed", undefined);
     }),
 
   requeueTickets: protectedNotStudentProcedure
@@ -432,13 +461,13 @@ export const ticketRouter = router({
       }
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-requeued', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-requeued", undefined);
 
       // Uses ticket inner page channel
       for (const id of input.ticketIds) {
         const channel = ably.channels.get(`ticket-${id}`);
-        await channel.publish('ticket-requeued', undefined);
+        await channel.publish("ticket-requeued", undefined);
       }
     }),
 
@@ -455,13 +484,13 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('tickets-reopened', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("tickets-reopened", undefined);
 
       // Uses ticket inner page channel
       for (const id of input.ticketIds) {
         const channel = ably.channels.get(`ticket-${id}`);
-        await channel.publish('ticket-reopened', undefined);
+        await channel.publish("ticket-reopened", undefined);
       }
     }),
 
@@ -495,12 +524,12 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-joined', { id: input.ticketId });
+      const channel = ably.channels.get("tickets");
+      await channel.publish("ticket-joined", { id: input.ticketId });
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-joined', { id: input.ticketId });
+      await innerChannel.publish("ticket-joined", { id: input.ticketId });
     }),
 
   leaveTicketGroup: protectedProcedure
@@ -533,12 +562,12 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-left', { id: input.ticketId });
+      const channel = ably.channels.get("tickets");
+      await channel.publish("ticket-left", { id: input.ticketId });
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-left', { id: input.ticketId });
+      await innerChannel.publish("ticket-left", { id: input.ticketId });
     }),
 
   sendChatMessage: protectedProcedure
@@ -550,8 +579,13 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (!input.visibleToStudents && ctx.session.user.role === UserRole.STUDENT) {
-        throw new TRPCClientError('You are not authorized to send this message');
+      if (
+        !input.visibleToStudents &&
+        ctx.session.user.role === UserRole.STUDENT
+      ) {
+        throw new TRPCClientError(
+          "You are not authorized to send this message",
+        );
       }
 
       const chatMessage = await ctx.prisma.chatMessage.create({
@@ -579,7 +613,7 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get(`ticket-${input.ticketId}`);
-      await channel.publish('chat-message', chatMessageWithUserName);
+      await channel.publish("chat-message", chatMessageWithUserName);
       return chatMessage;
     }),
 
@@ -598,7 +632,9 @@ export const ticketRouter = router({
           status: {
             in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ABSENT],
           },
-          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
+          ...(input.personalQueueName
+            ? { personalQueueName: input.personalQueueName }
+            : { personalQueueName: null }),
         },
       });
 
@@ -606,9 +642,16 @@ export const ticketRouter = router({
       await ctx.prisma.ticket.updateMany({
         where: {
           status: {
-            in: [TicketStatus.OPEN, TicketStatus.PENDING, TicketStatus.ASSIGNED, TicketStatus.ABSENT],
+            in: [
+              TicketStatus.OPEN,
+              TicketStatus.PENDING,
+              TicketStatus.ASSIGNED,
+              TicketStatus.ABSENT,
+            ],
           },
-          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
+          ...(input.personalQueueName
+            ? { personalQueueName: input.personalQueueName }
+            : { personalQueueName: null }),
         },
         data: {
           status: TicketStatus.CLOSED,
@@ -617,12 +660,12 @@ export const ticketRouter = router({
 
       // Push to Ably
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('all-tickets-closed', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("all-tickets-closed", undefined);
 
       for (const ticket of tickets) {
         const channel = ably.channels.get(`ticket-${ticket.id}`);
-        await channel.publish('ticket-closed', undefined);
+        await channel.publish("ticket-closed", undefined);
       }
     }),
 
@@ -640,12 +683,12 @@ export const ticketRouter = router({
       });
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
-      const channel = ably.channels.get('tickets');
-      await channel.publish('ticket-toggle-public', undefined);
+      const channel = ably.channels.get("tickets");
+      await channel.publish("ticket-toggle-public", undefined);
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish('ticket-toggle-public', undefined);
+      await innerChannel.publish("ticket-toggle-public", undefined);
     }),
 
   getTicket: protectedProcedure
@@ -665,7 +708,8 @@ export const ticketRouter = router({
         return null;
       }
 
-      const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames([ticket], ctx);
+      const ticketsWithNames: TicketWithNames[] =
+        await convertTicketToTicketWithNames([ticket], ctx);
 
       return ticketsWithNames[0];
     }),
@@ -683,11 +727,14 @@ export const ticketRouter = router({
           status: input.status,
           // If personal queue name is provided, only return tickets that are in that queue.
           // Otherwise, return all tickets with the given status where the queue is not personal.
-          ...(input.personalQueueName ? { personalQueueName: input.personalQueueName } : { personalQueueName: null }),
+          ...(input.personalQueueName
+            ? { personalQueueName: input.personalQueueName }
+            : { personalQueueName: null }),
         },
       });
 
-      const ticketsWithNames: TicketWithNames[] = await convertTicketToTicketWithNames(tickets, ctx);
+      const ticketsWithNames: TicketWithNames[] =
+        await convertTicketToTicketWithNames(tickets, ctx);
 
       return ticketsWithNames;
     }),
@@ -704,7 +751,7 @@ export const ticketRouter = router({
       const tickets = await ctx.prisma.ticket.findMany({
         skip: 50 * (input.page - 1),
         take: 50,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
 
       return convertTicketToTicketWithNames(tickets, ctx);
@@ -718,7 +765,11 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      return await getUserTicketsFromId(input.userId, input.shouldSortByCreatedAt, ctx);
+      return await getUserTicketsFromId(
+        input.userId,
+        input.shouldSortByCreatedAt,
+        ctx,
+      );
     }),
 
   getTicketsWithUserEmail: protectedProcedure
@@ -742,7 +793,11 @@ export const ticketRouter = router({
         return null;
       }
 
-      return await getUserTicketsFromId(user.id, input.shouldSortByCreatedAt, ctx);
+      return await getUserTicketsFromId(
+        user.id,
+        input.shouldSortByCreatedAt,
+        ctx,
+      );
     }),
 
   getUsersInTicketGroup: protectedProcedure
@@ -844,23 +899,33 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
 };
 
 /** Given a user ID, return the helped and created tickets */
-const getUserTicketsFromId = async (userId: string, shouldSortByCreatedAt: boolean | undefined, ctx: any) => {
+const getUserTicketsFromId = async (
+  userId: string,
+  shouldSortByCreatedAt: boolean | undefined,
+  ctx: any,
+) => {
   const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
     where: {
       helpedByUserId: userId,
     },
-    ...(shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+    ...(shouldSortByCreatedAt && { orderBy: { createdAt: "desc" } }),
   });
 
   const createdTicketsNoName = await ctx.prisma.ticket.findMany({
     where: {
       createdByUserId: userId,
     },
-    ...(shouldSortByCreatedAt && { orderBy: { createdAt: 'desc' } }),
+    ...(shouldSortByCreatedAt && { orderBy: { createdAt: "desc" } }),
   });
 
-  const createdTickets = await convertTicketToTicketWithNames(createdTicketsNoName, ctx);
-  const helpedTickets = await convertTicketToTicketWithNames(helpedTicketsNoName, ctx);
+  const createdTickets = await convertTicketToTicketWithNames(
+    createdTicketsNoName,
+    ctx,
+  );
+  const helpedTickets = await convertTicketToTicketWithNames(
+    helpedTicketsNoName,
+    ctx,
+  );
 
   return {
     helpedTickets,

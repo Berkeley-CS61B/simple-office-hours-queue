@@ -1,45 +1,59 @@
-import { useState } from 'react';
-import { Button, Flex, Input, Radio, RadioGroup, Spinner, Stack, Text, useToast } from '@chakra-ui/react';
-import ImportUsers from './ImportUsers';
+import {
+  Button,
+  Flex,
+  Input,
+  Radio,
+  RadioGroup,
+  Spinner,
+  Stack,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from "../../utils/constants";
+import { trpc } from "../../utils/trpc";
 import {
   ImportUsersMethodPossiblities,
   ImportUsersMethodPossiblitiesType,
   sanitizeEmailDomain,
-} from '../../utils/utils';
-import { trpc } from '../../utils/trpc';
-import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from '../../utils/constants';
+} from "../../utils/utils";
+import ImportUsers from "./ImportUsers";
 
 /** Lets staff choose if they want to import everyone, or just staff */
 const ImportUsersMethod = () => {
-  const [signInMethod, setSignInMethod] = useState<ImportUsersMethodPossiblitiesType | undefined>();
-  const [emailDomain, setEmailDomain] = useState<string>('');
+  const [signInMethod, setSignInMethod] = useState<
+    ImportUsersMethodPossiblitiesType | undefined
+  >();
+  const [emailDomain, setEmailDomain] = useState<string>("");
   const isValidDomain = EMAIL_DOMAIN_REGEX_OR_EMPTY.test(emailDomain);
 
-  const setImportUsersMethodMutation = trpc.admin.setImportUsersMethod.useMutation();
+  const setImportUsersMethodMutation =
+    trpc.admin.setImportUsersMethod.useMutation();
   const setEmailDomainMutation = trpc.admin.setEmailDomain.useMutation();
-  const isImportStaffAndStudents = signInMethod === ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
+  const isImportStaffAndStudents =
+    signInMethod === ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS;
   const context = trpc.useContext();
   const toast = useToast();
 
   trpc.admin.getEmailDomain.useQuery(undefined, {
     refetchOnWindowFocus: false,
-    onSuccess: domain => {
+    onSuccess: (domain) => {
       setEmailDomain(domain);
     },
   });
 
   trpc.admin.getImportUsersMethod.useQuery(undefined, {
     refetchOnWindowFocus: false,
-    onSuccess: method => {
+    onSuccess: (method) => {
       setSignInMethod(method);
     },
-    onError: err => {
+    onError: (err) => {
       toast({
-        title: 'Error',
+        title: "Error",
         description: err.message,
-        status: 'error',
+        status: "error",
         duration: 5000,
-        position: 'top-right',
+        position: "top-right",
         isClosable: true,
       });
     },
@@ -52,11 +66,11 @@ const ImportUsersMethod = () => {
   const handleDomainSubmit = () => {
     if (!isValidDomain) {
       toast({
-        title: 'Error',
-        description: 'Invalid email domain',
-        status: 'error',
+        title: "Error",
+        description: "Invalid email domain",
+        status: "error",
         duration: 5000,
-        position: 'top-right',
+        position: "top-right",
         isClosable: true,
       });
       return;
@@ -66,39 +80,41 @@ const ImportUsersMethod = () => {
       .mutateAsync({ domain: emailDomain })
       .then(() => {
         toast({
-          title: 'Success',
-          description: 'Email domain updated',
-          status: 'success',
+          title: "Success",
+          description: "Email domain updated",
+          status: "success",
           duration: 5000,
-          position: 'top-right',
+          position: "top-right",
           isClosable: true,
         });
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error',
+          title: "Error",
           description: err.message,
-          status: 'error',
+          status: "error",
           duration: 5000,
-          position: 'top-right',
+          position: "top-right",
           isClosable: true,
         });
       });
   };
 
-  const handleChangeUserImportMethod = (val: ImportUsersMethodPossiblitiesType) => {
+  const handleChangeUserImportMethod = (
+    val: ImportUsersMethodPossiblitiesType,
+  ) => {
     setSignInMethod(val);
     setImportUsersMethodMutation
       .mutateAsync({
         method: val,
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error',
+          title: "Error",
           description: err.message,
-          status: 'error',
+          status: "error",
           duration: 5000,
-          position: 'top-right',
+          position: "top-right",
           isClosable: true,
         });
         context.admin.getImportUsersMethod.invalidate();
@@ -110,36 +126,59 @@ const ImportUsersMethod = () => {
   }
 
   return (
-    <Flex direction='column' mt={2}>
-      <Text fontSize='xl' mb={1}>
+    <Flex direction="column" mt={2}>
+      <Text fontSize="xl" mb={1}>
         Sign in method
       </Text>
 
       <RadioGroup onChange={handleChangeUserImportMethod} value={signInMethod}>
-        <Stack spacing={5} direction='row'>
-          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS}>
+        <Stack spacing={5} direction="row">
+          <Radio
+            value={ImportUsersMethodPossiblities.IMPORT_STAFF_AND_STUDENTS}
+          >
             Import staff/interns and students
           </Radio>
-          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF}>Only import staff/interns</Radio>
+          <Radio value={ImportUsersMethodPossiblities.IMPORT_STAFF}>
+            Only import staff/interns
+          </Radio>
         </Stack>
       </RadioGroup>
 
-      <Flex mb={3} mt={3} flexDirection='column' hidden={isImportStaffAndStudents}>
-        <Text mb={1}>Only allow students from from email domain (Leave blank for all domains)</Text>
-        <Input placeholder='@berkeley.edu' value={emailDomain} onChange={handleDomainChange} maxLength={25} />
-        <Button mt={2} colorScheme='telegram' onClick={handleDomainSubmit} disabled={!isValidDomain}>
+      <Flex
+        mb={3}
+        mt={3}
+        flexDirection="column"
+        hidden={isImportStaffAndStudents}
+      >
+        <Text mb={1}>
+          Only allow students from from email domain (Leave blank for all
+          domains)
+        </Text>
+        <Input
+          placeholder="@berkeley.edu"
+          value={emailDomain}
+          onChange={handleDomainChange}
+          maxLength={25}
+        />
+        <Button
+          mt={2}
+          colorScheme="telegram"
+          onClick={handleDomainSubmit}
+          disabled={!isValidDomain}
+        >
           Confirm
         </Button>
       </Flex>
 
       <Flex mt={2}>
         <Text>
-          The CSV should have 2 columns. One for email and one for role ({isImportStaffAndStudents ? 'STUDENT OR ' : ''}
+          The CSV should have 2 columns. One for email and one for role (
+          {isImportStaffAndStudents ? "STUDENT OR " : ""}
           STAFF or INTERN)
         </Text>
       </Flex>
 
-      <Text mb={2} fontSize='sm' hidden={isImportStaffAndStudents}>
+      <Text mb={2} fontSize="sm" hidden={isImportStaffAndStudents}>
         Please still specify STAFF or INTERN role when importing.
       </Text>
       <ImportUsers />

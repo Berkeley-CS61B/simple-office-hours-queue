@@ -135,4 +135,10 @@ This project is built using the [T3 stack](https://github.com/t3-oss/create-t3-a
 
 If you'd like to contribute, please make a pull request. If you have any questions, feel free to open an issue.
 
+To run the Biome formatter/linter:
+
+```bash
+npm run fmt
+```
+
 [![Powered by Vercel](https://images.ctfassets.net/e5382hct74si/78Olo8EZRdUlcDUFQvnzG7/fa4cdb6dc04c40fceac194134788a0e2/1618983297-powered-by-vercel.svg)](https://vercel.com?utm_source=cs61b&utm_campaign=oss)

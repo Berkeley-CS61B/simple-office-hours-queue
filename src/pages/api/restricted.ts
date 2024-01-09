@@ -5,7 +5,7 @@ import { getServerAuthSession } from "../../server/common/get-server-auth-sessio
 
 const restricted = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerAuthSession({ req, res });
-  
+
   if (session) {
     res.send({
       content:

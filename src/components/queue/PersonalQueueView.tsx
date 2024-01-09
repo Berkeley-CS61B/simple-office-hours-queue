@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { SettingsIcon } from '@chakra-ui/icons';
-import { Flex, Text, Box, Spinner, useToast } from '@chakra-ui/react';
-import { UserRole } from '@prisma/client';
-import { useSession } from 'next-auth/react';
-import Router, { useRouter } from 'next/router';
-import QueueLayout from '../../components/queue/QueueLayout';
-import { trpc } from '../../utils/trpc';
-import EditPersonalQueueModal from '../../components/modals/EditPersonalQueueModal';
+import { SettingsIcon } from "@chakra-ui/icons";
+import { Box, Flex, Spinner, Text, useToast } from "@chakra-ui/react";
+import { UserRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import Router, { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import EditPersonalQueueModal from "../../components/modals/EditPersonalQueueModal";
+import QueueLayout from "../../components/queue/QueueLayout";
+import { trpc } from "../../utils/trpc";
 
 /**
  * Component that renders the Personal queue page. It ensures that
@@ -18,11 +18,14 @@ const PersonalQueueView = () => {
   const toast = useToast();
   const queueName = router.query.name as string;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [changedQueueName, setChangedQueueName] = useState<string | undefined>();
+  const [changedQueueName, setChangedQueueName] = useState<
+    string | undefined
+  >();
   const [isSwitchToggled, setIsSwitchToggled] = useState(false);
 
   const editQueueNameMutation = trpc.queue.editQueueName.useMutation();
-  const allowStaffToOpenMutation = trpc.queue.editAllowStaffToOpen.useMutation();
+  const allowStaffToOpenMutation =
+    trpc.queue.editAllowStaffToOpen.useMutation();
 
   useEffect(() => {
     if (queueName) {
@@ -35,29 +38,29 @@ const PersonalQueueView = () => {
     {
       enabled: queueName !== undefined && session?.user !== undefined,
       refetchOnWindowFocus: false,
-      onSuccess: data => {
+      onSuccess: (data) => {
         if (!data) {
           toast({
-            title: 'Queue does not exist',
+            title: "Queue does not exist",
             description: `Queue "${queueName}" does not exist.`,
-            status: 'error',
-            position: 'top-right',
+            status: "error",
+            position: "top-right",
             duration: 3000,
             isClosable: true,
           });
 
           if (session?.user?.role === UserRole.STAFF) {
-            Router.push('/create-queue');
+            Router.push("/create-queue");
           } else {
-            Router.push('/');
+            Router.push("/");
           }
-		  return;
+          return;
         }
-		setIsSwitchToggled(data.allowStaffToOpen)
+        setIsSwitchToggled(data.allowStaffToOpen);
       },
     },
   );
-  
+
   const handleAllowStaffToOpen = async () => {
     if (!queue) return;
 
@@ -67,20 +70,22 @@ const PersonalQueueView = () => {
       .mutateAsync({ queueName: queue.name, allowStaffToOpen: newVal })
       .then(() => {
         toast({
-          title: 'Queue settings changed',
-          description: `Other staff members can ${newVal ? '' : 'not'} open/close this queue`,
-          status: 'success',
-          position: 'top-right',
+          title: "Queue settings changed",
+          description: `Other staff members can ${
+            newVal ? "" : "not"
+          } open/close this queue`,
+          status: "success",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error changing queue settings',
+          title: "Error changing queue settings",
           description: err.message,
-          status: 'error',
-          position: 'top-right',
+          status: "error",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
@@ -90,26 +95,30 @@ const PersonalQueueView = () => {
 
   const handleEditQueueName = async () => {
     setIsModalOpen(false);
-    const isValid = /^[a-zA-Z0-9-_]{3,25}$/.test(changedQueueName ?? '');
+    const isValid = /^[a-zA-Z0-9-_]{3,25}$/.test(changedQueueName ?? "");
     if (!isValid) {
       toast({
-        title: 'Invalid queue name',
+        title: "Invalid queue name",
         description:
-          'Queue name must be between 3 and 25 characters long and contain only alphanumeric characters, dashes, and underscores.',
-        status: 'error',
-        position: 'top-right',
+          "Queue name must be between 3 and 25 characters long and contain only alphanumeric characters, dashes, and underscores.",
+        status: "error",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
       return;
     }
 
-    if (!queue || !changedQueueName || queue.name.toLowerCase() === changedQueueName.toLowerCase()) {
+    if (
+      !queue ||
+      !changedQueueName ||
+      queue.name.toLowerCase() === changedQueueName.toLowerCase()
+    ) {
       toast({
-        title: 'Queue name unchanged',
+        title: "Queue name unchanged",
         description: `Queue name is already "${changedQueueName}"`,
-        status: 'error',
-        position: 'top-right',
+        status: "error",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -120,22 +129,22 @@ const PersonalQueueView = () => {
       .mutateAsync({ queueName: queue.name, newName: changedQueueName })
       .then(() => {
         toast({
-          title: 'Queue name changed',
+          title: "Queue name changed",
           description: `Queue name changed to "${changedQueueName}"`,
-          status: 'success',
-          position: 'top-right',
+          status: "success",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
         Router.push(`/queue/${changedQueueName}`);
         return;
       })
-      .catch(err => {
+      .catch((err) => {
         toast({
-          title: 'Error changing queue name',
+          title: "Error changing queue name",
           description: err.message,
-          status: 'error',
-          position: 'top-right',
+          status: "error",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
@@ -148,11 +157,16 @@ const PersonalQueueView = () => {
 
   return (
     <>
-      <Flex p={4} justifyContent='space-between'>
-        <Text fontSize='2xl'>Queue name: {queue.name}</Text>
+      <Flex p={4} justifyContent="space-between">
+        <Text fontSize="2xl">Queue name: {queue.name}</Text>
         {queue.ownerId === session?.user?.id && (
           <Box>
-            <SettingsIcon boxSize={5} className='hover-cursor' mt={2.5} onClick={() => setIsModalOpen(true)} />
+            <SettingsIcon
+              boxSize={5}
+              className="hover-cursor"
+              mt={2.5}
+              onClick={() => setIsModalOpen(true)}
+            />
           </Box>
         )}
       </Flex>

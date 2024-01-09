@@ -1,10 +1,10 @@
 // src/server/trpc/router/_app.ts
-import { router } from '../trpc';
-import { adminRouter } from './admin';
-import { queueRouter } from './queue';
-import { statsRouter } from './stats';
-import { ticketRouter } from './ticket';
-import { userRouter } from './user';
+import { router } from "../trpc";
+import { adminRouter } from "./admin";
+import { queueRouter } from "./queue";
+import { statsRouter } from "./stats";
+import { ticketRouter } from "./ticket";
+import { userRouter } from "./user";
 
 export const appRouter = router({
   admin: adminRouter,

@@ -1,9 +1,4 @@
-import { useEffect, useState } from 'react';
-import { PersonalQueue, SiteSettings, SiteSettingsValues, UserRole } from '@prisma/client';
-import TicketQueue from './TicketQueue';
-import CreateTicket from './CreateTicket';
-import Broadcast from './Broadcast';
-import OpenOrCloseQueue from './OpenOrCloseQueue';
+import { useChannel } from "@ably-labs/react-hooks";
 import {
   Accordion,
   AccordionButton,
@@ -12,11 +7,21 @@ import {
   AccordionPanel,
   Flex,
   Spinner,
-} from '@chakra-ui/react';
-import { useChannel } from '@ably-labs/react-hooks';
-import useSiteSettings from '../../utils/hooks/useSiteSettings';
-import { trpc } from '../../utils/trpc';
-import { useSession } from 'next-auth/react';
+} from "@chakra-ui/react";
+import {
+  PersonalQueue,
+  SiteSettings,
+  SiteSettingsValues,
+  UserRole,
+} from "@prisma/client";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import useSiteSettings from "../../utils/hooks/useSiteSettings";
+import { trpc } from "../../utils/trpc";
+import Broadcast from "./Broadcast";
+import CreateTicket from "./CreateTicket";
+import OpenOrCloseQueue from "./OpenOrCloseQueue";
+import TicketQueue from "./TicketQueue";
 
 interface QueueLayoutProps {
   personalQueue?: PersonalQueue;
@@ -39,12 +44,12 @@ const QueueLayout = (props: QueueLayoutProps) => {
   // If the user was added as STAFF, change their role
   useEffect(() => {
     (async () => {
-      const roleVerified = sessionStorage.getItem('roleVerified');
-      if (!roleVerified || roleVerified === 'false') {
-        await changeUserRoleMutation.mutateAsync().then(res => {
-          sessionStorage.setItem('roleVerified', 'true');
+      const roleVerified = sessionStorage.getItem("roleVerified");
+      if (!roleVerified || roleVerified === "false") {
+        await changeUserRoleMutation.mutateAsync().then((res) => {
+          sessionStorage.setItem("roleVerified", "true");
           if (res) {
-            alert('Your role has been updated. Press OK to continue.');
+            alert("Your role has been updated. Press OK to continue.");
             window.location.reload();
           }
         });
@@ -57,20 +62,28 @@ const QueueLayout = (props: QueueLayoutProps) => {
       if (personalQueue) {
         setIsQueueOpen(personalQueue.isOpen);
       } else {
-        setIsQueueOpen(siteSettings.get(SiteSettings.IS_QUEUE_OPEN) === SiteSettingsValues.TRUE);
+        setIsQueueOpen(
+          siteSettings.get(SiteSettings.IS_QUEUE_OPEN) ===
+            SiteSettingsValues.TRUE,
+        );
       }
-      setIsPendingStageEnabled(siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) === SiteSettingsValues.TRUE);
+      setIsPendingStageEnabled(
+        siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) ===
+          SiteSettingsValues.TRUE,
+      );
     }
   }, [siteSettings]);
 
   // Listens for queue open/close events
-  useChannel('settings', ablyMsg => {
-    const queueName = ablyMsg.name.split('-').slice(3).join('-');
+  useChannel("settings", (ablyMsg) => {
+    const queueName = ablyMsg.name.split("-").slice(3).join("-");
     const shouldUpdateQueue =
       // On main queue
-      (ablyMsg.name === 'queue-open-close' && !personalQueue) ||
+      (ablyMsg.name === "queue-open-close" && !personalQueue) ||
       // On personal queue
-      (ablyMsg.name.startsWith('queue-open-close-') && personalQueue && personalQueue.name === queueName);
+      (ablyMsg.name.startsWith("queue-open-close-") &&
+        personalQueue &&
+        personalQueue.name === queueName);
 
     if (shouldUpdateQueue) {
       setIsQueueOpen(ablyMsg.data === SiteSettingsValues.TRUE);
@@ -84,10 +97,15 @@ const QueueLayout = (props: QueueLayoutProps) => {
   return (
     <>
       {userRole === UserRole.STAFF && (
-        <Flex flexDirection='column'>
+        <Flex flexDirection="column">
           {!personalQueue && <Broadcast />}
-          {(!personalQueue || personalQueue.ownerId === userId || personalQueue.allowStaffToOpen) && (
-            <OpenOrCloseQueue isQueueOpen={isQueueOpen} personalQueue={personalQueue} />
+          {(!personalQueue ||
+            personalQueue.ownerId === userId ||
+            personalQueue.allowStaffToOpen) && (
+            <OpenOrCloseQueue
+              isQueueOpen={isQueueOpen}
+              personalQueue={personalQueue}
+            />
           )}
           <Accordion allowToggle m={4}>
             <AccordionItem>
@@ -96,7 +114,10 @@ const QueueLayout = (props: QueueLayoutProps) => {
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel>
-                <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
+                <CreateTicket
+                  personalQueue={personalQueue}
+                  siteSettings={siteSettings ?? new Map()}
+                />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
@@ -104,7 +125,10 @@ const QueueLayout = (props: QueueLayoutProps) => {
       )}
 
       {userRole === UserRole.STUDENT && isQueueOpen && (
-        <CreateTicket personalQueue={personalQueue} siteSettings={siteSettings ?? new Map()} />
+        <CreateTicket
+          personalQueue={personalQueue}
+          siteSettings={siteSettings ?? new Map()}
+        />
       )}
 
       <TicketQueue

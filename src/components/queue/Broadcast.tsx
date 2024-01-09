@@ -1,32 +1,38 @@
-import { useState } from 'react';
-import { useChannel } from '@ably-labs/react-hooks';
-import { Flex, Input, Button, useToast, useColorModeValue } from '@chakra-ui/react';
-import BroadcastConfirmationModal from '../modals/BroadcastConfirmationModal';
+import { useChannel } from "@ably-labs/react-hooks";
+import {
+  Button,
+  Flex,
+  Input,
+  useColorModeValue,
+  useToast,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import BroadcastConfirmationModal from "../modals/BroadcastConfirmationModal";
 
 /**
  * Broadcast component that allows staff to broadcast messages everyone
  */
 const Broadcast = () => {
-  const [channel] = useChannel('broadcast', () => {});
-  const [broadcastMsg, setBroadcastMsg] = useState<string>('');
+  const [channel] = useChannel("broadcast", () => {});
+  const [broadcastMsg, setBroadcastMsg] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const toast = useToast();
 
   const broadcast = () => {
     setIsModalOpen(false);
     channel.publish({
-      name: 'broadcast',
+      name: "broadcast",
       data: broadcastMsg,
     });
-    setBroadcastMsg('');
+    setBroadcastMsg("");
   };
 
   const handleModalOpen = () => {
-    if (broadcastMsg.trim() === '') {
+    if (broadcastMsg.trim() === "") {
       toast({
-        title: 'Please enter a message to broadcast',
-        position: 'top-right',
-        status: 'error',
+        title: "Please enter a message to broadcast",
+        position: "top-right",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -36,13 +42,13 @@ const Broadcast = () => {
   };
 
   return (
-    <Flex borderColor={useColorModeValue('', 'whiteAlpha.500')}>
+    <Flex borderColor={useColorModeValue("", "whiteAlpha.500")}>
       <Input
         m={4}
-        placeholder='Broadcast Message'
+        placeholder="Broadcast Message"
         value={broadcastMsg}
-        onChange={e => setBroadcastMsg(e.target.value)}
-        _placeholder={{ color: useColorModeValue('gray.500', 'white') }}
+        onChange={(e) => setBroadcastMsg(e.target.value)}
+        _placeholder={{ color: useColorModeValue("gray.500", "white") }}
       />
       <Button m={4} onClick={handleModalOpen}>
         Broadcast
