@@ -16,7 +16,7 @@ import {
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { DARK_MODE_COLOR } from "../../utils/constants";
 import { trpc } from "../../utils/trpc";
 

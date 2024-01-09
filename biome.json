@@ -3,6 +3,12 @@
   "organizeImports": {
     "enabled": true
   },
+  "files": {
+    "ignore": [
+      "src/components/activity/StatsView.tsx",
+      "src/components/activity/StatsGraph.tsx"
+    ]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -11,6 +17,12 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
+      "nursery": {
+        "noUnusedImports": "error"
+      },
       "recommended": true,
       "style": {
         "noNonNullAssertion": "off"

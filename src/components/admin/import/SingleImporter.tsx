@@ -24,7 +24,8 @@ const SingleImporter = ({ handleAddUsers }: SingleImporterProps) => {
         position: "top-right",
       });
       return;
-    } else if (role === undefined || role === "") {
+    }
+    if (role === undefined || role === "") {
       toast({
         title: "Missing role",
         description: "Please select a role",
@@ -33,28 +34,27 @@ const SingleImporter = ({ handleAddUsers }: SingleImporterProps) => {
         position: "top-right",
       });
       return;
-    } else {
-      const user: ImportedUser = { email: email, role: role as UserRole };
-      await handleAddUsers([user])
-        .then(() =>
-          toast({
-            title: "User added",
-            description: `${email} added with role ${role}`,
-            status: "success",
-            isClosable: true,
-            position: "top-right",
-          }),
-        )
-        .catch(() =>
-          toast({
-            title: "Error adding user",
-            description: `${email} error adding with role ${role}`,
-            status: "error",
-            isClosable: true,
-            position: "top-right",
-          }),
-        );
     }
+    const user: ImportedUser = { email: email, role: role as UserRole };
+    await handleAddUsers([user])
+      .then(() =>
+        toast({
+          title: "User added",
+          description: `${email} added with role ${role}`,
+          status: "success",
+          isClosable: true,
+          position: "top-right",
+        }),
+      )
+      .catch(() =>
+        toast({
+          title: "Error adding user",
+          description: `${email} error adding with role ${role}`,
+          status: "error",
+          isClosable: true,
+          position: "top-right",
+        }),
+      );
   };
 
   const userRoles = Object.values(UserRole).map((role: UserRole) => ({

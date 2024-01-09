@@ -33,7 +33,7 @@ const PublicTicketsExistModal = (props: PublicTicketsExistModalProps) => {
     if (publicTicketsExistModalClosed !== "true") {
       setIsModalOpen(userRole === UserRole.STUDENT && publicTickets.length > 0);
     }
-  }, [publicTickets]);
+  }, [publicTickets, userRole]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);

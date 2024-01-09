@@ -40,7 +40,7 @@ const isStaff = t.middleware(({ ctx, next }) => {
   if (
     !ctx.session ||
     !ctx.session.user ||
-    ctx.session?.user?.role != UserRole.STAFF
+    ctx.session?.user?.role !== UserRole.STAFF
   ) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }

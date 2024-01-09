@@ -22,7 +22,7 @@ const TicketView = () => {
   const { data: ticket } = trpc.ticket.getTicket.useQuery(
     { id },
     {
-      enabled: id !== undefined && !isNaN(id),
+      enabled: id !== undefined && !Number.isNaN(id),
       refetchOnWindowFocus: false,
       onSuccess: (data) => {
         if (data) {
@@ -64,7 +64,7 @@ const TicketView = () => {
       });
       Router.push("/");
     }
-  }, [userRole, isInvalidTicket, authorized]);
+  }, [userRole, isInvalidTicket, authorized, toast]);
 
   return (
     <>

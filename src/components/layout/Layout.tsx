@@ -3,7 +3,6 @@ import { Flex, useToast } from "@chakra-ui/react";
 import { UserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
-import Image from "next/image";
 import Router from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 import { clientEnv } from "../../env/schema.mjs";

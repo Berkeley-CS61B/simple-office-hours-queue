@@ -134,7 +134,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           } as absent`;
         }
         if (messageShouldBeUpdate.includes(message)) {
-          update = `updated`;
+          update = "updated";
         }
         if (!shouldNotNotifyStudent.includes(message)) {
           showNotification(
@@ -163,7 +163,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const TooltipName = ({
     createdByName,
     createdByEmail,
-  }: { createdByName: string; createdByEmail: string }) => {
+  }: {
+    createdByName: string;
+    createdByEmail: string;
+  }) => {
     return (
       <Tooltip placement="top" isDisabled={!canSeeName} label={createdByEmail}>
         {createdByName}

@@ -31,7 +31,7 @@ export const userRouter = router({
     });
 
     // Delete the user from the 'ConfirmedUser' table since they are now in 'User'
-    if (!!curUserRole) {
+    if (curUserRole) {
       await ctx.prisma.confirmedUser.delete({
         where: {
           email: ctx.session.user.email!,

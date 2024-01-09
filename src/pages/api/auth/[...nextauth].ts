@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
       });
 
       // Allow login if user is confirmed
-      if (!!userIsConfirmed) {
+      if (userIsConfirmed) {
         return true;
       }
 

@@ -19,9 +19,11 @@ const useSiteSettings = () => {
 
     onSuccess: (data) => {
       const map = new Map<SiteSettings, SiteSettingsValues>();
-      data.forEach((setting) => {
+
+      for (const setting of data) {
         map.set(setting.setting, setting.value);
-      });
+      }
+
       setSiteSettings(map);
     },
   });

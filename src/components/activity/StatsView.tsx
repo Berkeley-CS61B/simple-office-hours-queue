@@ -1,6 +1,5 @@
 import { Flex, Grid, GridItem, Input, Spinner, Text } from "@chakra-ui/react";
 import { Select } from "chakra-react-select";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { TicketStats } from "../../server/trpc/router/stats";
 import { trpc } from "../../utils/trpc";
