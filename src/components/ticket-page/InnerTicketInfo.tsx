@@ -12,6 +12,8 @@ import TicketButtons from './TicketButtons';
 import Countdown from './Countdown';
 import EditTicketModal from '../modals/EditTicketModal';
 
+export type ConfettiMode = "down" | "up" | null;
+
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
   userRole: UserRole;
@@ -24,7 +26,7 @@ interface InnerTicketInfoProps {
 const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole, userId } = props;
 
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiMode, setConfettiMode] = useState<ConfettiMode>(null);
   const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
   const [showEditTicketModal, setShowEditTicketModal] = useState(false);
 
@@ -229,7 +231,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isGetUsersLoading={isGetUsersLoading}
         userRole={userRole}
         isCurrentUserInGroup={isCurrentUserInGroup}
-        setShowConfetti={setShowConfetti}
+        setConfettiMode={setConfettiMode}
       />
       <Flex
         hidden={!isAbsent}
@@ -260,9 +262,14 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
       <Confetti
         recycle={false}
-        numberOfPieces={200}
-        run={showConfetti}
-        onConfettiComplete={() => setShowConfetti(false)}
+        numberOfPieces={confettiMode ? 200 : 0}
+        confettiSource={confettiMode === "up" ? { x: 0, y: window.innerHeight, w: window.innerWidth, h: 0 } : undefined}
+        gravity={confettiMode === "up" ? -0.1 : undefined}
+        initialVelocityY={confettiMode === "up" ? -10 : undefined}
+        onConfettiComplete={(confetti) => {
+          setConfettiMode(null);
+          confetti?.reset();
+        }}
       />
 
       <EditTicketModal

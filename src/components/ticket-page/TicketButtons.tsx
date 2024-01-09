@@ -5,6 +5,7 @@ import { TicketWithNames } from '../../server/trpc/router/ticket';
 import { trpc } from '../../utils/trpc';
 import useSiteSettings from '../../utils/hooks/useSiteSettings';
 import { SiteSettings, SiteSettingsValues } from '@prisma/client';
+import { ConfettiMode } from './InnerTicketInfo';
 
 interface TicketCardProps {
   ticket: TicketWithNames;
@@ -12,7 +13,7 @@ interface TicketCardProps {
   userRole: UserRole;
   isGetUsersLoading: boolean;
   isCurrentUserInGroup: boolean;
-  setShowConfetti: (showConfetti: boolean) => void;
+  setConfettiMode: (confettiMode: ConfettiMode) => void;
 }
 
 export const BUTTONS_DISABLED_WAIT_TIME = 3000;
@@ -23,7 +24,7 @@ export const BUTTONS_DISABLED_WAIT_MSG = 'Please wait 3 seconds before clicking 
  * because InnerTicketInfo was getting too big.
  */
 const TicketButtons = (props: TicketCardProps) => {
-  const { ticket, userId, userRole, isCurrentUserInGroup, isGetUsersLoading, setShowConfetti } = props;
+  const { ticket, userId, userRole, isCurrentUserInGroup, isGetUsersLoading, setConfettiMode } = props;
 
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
@@ -67,13 +68,14 @@ const TicketButtons = (props: TicketCardProps) => {
   const handleResolveTicket = async () => {
     onClickWrapper(async () => {
       await resolveTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-      setShowConfetti(true);
+      setConfettiMode("down");
     })();
   };
 
   const handleRequeueTicket = async () => {
     onClickWrapper(async () => {
       await requeueTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+      setConfettiMode("up");
     })();
   };
 
