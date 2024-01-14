@@ -1,5 +1,6 @@
 import {
   Button,
+  Divider,
   Flex,
   Input,
   Radio,
@@ -154,33 +155,26 @@ const ImportUsersMethod = () => {
           Only allow students from from email domain (Leave blank for all
           domains)
         </Text>
-        <Input
-          placeholder="@berkeley.edu"
-          value={emailDomain}
-          onChange={handleDomainChange}
-          maxLength={25}
-        />
-        <Button
-          mt={2}
-          colorScheme="telegram"
-          onClick={handleDomainSubmit}
-          disabled={!isValidDomain}
-        >
-          Confirm
-        </Button>
+        <Flex direction="row">
+          <Input
+            placeholder="@berkeley.edu"
+            value={emailDomain}
+            onChange={handleDomainChange}
+            maxLength={25}
+            mr={1}
+          />
+          <Button
+            colorScheme="telegram"
+            onClick={handleDomainSubmit}
+            disabled={!isValidDomain}
+          >
+            Confirm
+          </Button>
+        </Flex>
       </Flex>
 
-      <Flex mt={2}>
-        <Text>
-          The CSV should have 2 columns. One for email and one for role (
-          {isImportStaffAndStudents ? "STUDENT OR " : ""}
-          STAFF or INTERN)
-        </Text>
-      </Flex>
+      <Divider mt={2} mb={2} />
 
-      <Text mb={2} fontSize="sm" hidden={isImportStaffAndStudents}>
-        Please still specify STAFF or INTERN role when importing.
-      </Text>
       <ImportUsers />
     </Flex>
   );

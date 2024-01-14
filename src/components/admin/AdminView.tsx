@@ -28,6 +28,7 @@ const AdminView = () => {
   const setIsPendingStageEnabledMutation =
     trpc.admin.setIsPendingStageEnabled.useMutation();
 
+  // When the site settings are loaded, set the state to the current values
   useEffect(() => {
     if (siteSettings) {
       setIsPendingStageEnabled(
@@ -85,7 +86,7 @@ const AdminView = () => {
       <AdminList assignmentsOrLocationsProps={locations} isAssignment={false} />
       <Flex direction="column" mt={10} mb={3}>
         <Text fontSize="3xl" fontWeight="semibold">
-          General Settings
+          Settings
         </Text>
         <Flex>
           <Text fontSize="xl">Pending Stage</Text>

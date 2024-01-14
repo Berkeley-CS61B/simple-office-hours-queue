@@ -1,4 +1,4 @@
-import { Radio, RadioGroup, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, Radio, RadioGroup, Stack, Text } from "@chakra-ui/react";
 import { UserRole } from "@prisma/client";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
@@ -42,11 +42,24 @@ const ImportUsers = () => {
           </Radio>
         </Stack>
       </RadioGroup>
-      {importType === ImportNumberPossibilities.BATCH_IMPORT ? (
-        <BatchImporter handleAddUsers={handleAddUsers} />
-      ) : (
-        <SingleImporter handleAddUsers={handleAddUsers} />
-      )}
+
+      <Flex
+        mt={2}
+        hidden={importType === ImportNumberPossibilities.SINGLE_IMPORT}
+      >
+        <Text>
+          The CSV should have 2 columns. One for email and one for role (
+          {Object.values(UserRole).join(" or ")})
+        </Text>
+      </Flex>
+
+      <Box mt={2} mb={6}>
+        {importType === ImportNumberPossibilities.BATCH_IMPORT ? (
+          <BatchImporter handleAddUsers={handleAddUsers} />
+        ) : (
+          <SingleImporter handleAddUsers={handleAddUsers} />
+        )}
+      </Box>
     </>
   );
 };
