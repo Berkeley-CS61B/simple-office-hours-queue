@@ -73,6 +73,7 @@ const AdminCard = (props: AdminCardProps) => {
   const [isPriority, setIsPriority] = useState(
     isAssignment ? (assignmentOrLocation as Assignment).isPriority : false,
   );
+  const [isLabOnly, setIsLabOnly] = useState(isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly);
   const context = trpc.useContext();
   const toast = useToast();
 
@@ -82,6 +83,7 @@ const AdminCard = (props: AdminCardProps) => {
       name: newName,
       isActive: assignmentOrLocation.isActive,
       isHidden: assignmentOrLocation.isHidden,
+      isLabOnly: isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly,
     });
   };
 
@@ -105,6 +107,7 @@ const AdminCard = (props: AdminCardProps) => {
         name: assignmentOrLocation.name,
         isActive: newActive,
         isHidden: newActive ? false : isHidden,
+        isLabOnly: isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -130,6 +133,7 @@ const AdminCard = (props: AdminCardProps) => {
         name: assignmentOrLocation.name,
         isActive: assignmentOrLocation.isActive,
         isHidden: !isHidden,
+        isLabOnly: isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -145,6 +149,33 @@ const AdminCard = (props: AdminCardProps) => {
           position: "top-right",
         });
       });
+  };
+
+  const handleLabOnlyChange = async () => {
+    const newLabOnly = !isLabOnly;
+    setIsLabOnly(newLabOnly);
+    await editMutation
+        .mutateAsync({
+          id: assignmentOrLocation.id,
+          name: assignmentOrLocation.name,
+          isActive: isActive,
+          isHidden: isHidden,
+          isLabOnly: newLabOnly,
+        })
+        .then(() => {
+          context.admin.getAllLocations.invalidate();
+          context.admin.getAllAssignments.invalidate();
+        })
+        .catch(err => {
+          toast({
+            title: 'Error',
+            description: err.message,
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+            position: 'top-right',
+          });
+        });
   };
 
   if (!isActive && isHidden && !isHiddenVisible) {
@@ -183,6 +214,11 @@ const AdminCard = (props: AdminCardProps) => {
           ml={3}
           isChecked={isActive}
         />
+        {isAssignment ? null : <><Text fontSize='large' mt={1.5} ml={5}>
+          Accept Lab Tickets Only?
+        </Text>
+          <Switch onChange={handleLabOnlyChange} mt={2.5} ml={3} isChecked={isLabOnly} /></>
+        }
       </Flex>
       <Checkbox
         hidden={!isActive || !isAssignment}

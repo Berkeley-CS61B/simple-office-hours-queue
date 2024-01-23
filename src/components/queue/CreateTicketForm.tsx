@@ -4,7 +4,7 @@ import {
   Button,
   Flex,
   FormControl,
-  FormLabel,
+  FormLabel, HStack,
   Input,
   Radio,
   RadioGroup,
@@ -67,6 +67,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   );
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
+  const [notLabOnlyLocationOptions, setNotLabOnlyLocationOptions] = useState<Location[]>([]);
   const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
   const [isPublic, setIsPublic] = useState<boolean>(
     existingTicket?.isPublic ?? false,
@@ -150,6 +151,24 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       );
     },
   });
+
+  trpc.admin.getActiveNotLabOnlyLocations.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      setNotLabOnlyLocationOptions(
+          data.map(
+              (location) =>
+                  ({
+                    label: location.name,
+                    value: location.name,
+                    id: location.id,
+                  }) as Location,
+          ),
+      );
+    },
+  });
+
+
 
   const handleTicketTypeChange = (newVal: TicketType) => {
     setTicketType(newVal);
@@ -289,7 +308,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={1000}
             />
           </FormControl>
-          <FormControl mt={6} isRequired>
+          <FormControl mt={6} isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Assignment</FormLabel>
             <Select
               value={assignment}
@@ -297,15 +316,37 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               options={assignmentOptions}
             />
           </FormControl>
-          <FormControl mt={6} isRequired>
-            <FormLabel>Location</FormLabel>
-            <Select
-              value={location}
-              onChange={(val) => setLocation(val ?? undefined)}
-              options={locationOptions}
-            />
+
+          <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
+            <HStack>
+              <FormLabel>
+                Location
+                <Tooltip
+                    hasArrow
+                    label="Lab rooms may be restricted to lab assignments only."
+                    bg="gray.300"
+                    color="black"
+                >
+                  <InfoIcon ml={2} mb={1} />
+                </Tooltip>
+              </FormLabel>
+              {/*<FormLabel>Location*/}
+              {/*<Tooltip*/}
+              {/*    hasArrow*/}
+              {/*    label='Lab rooms may be restricted to lab-related assignments only.'*/}
+              {/*    bg='gray.300'*/}
+              {/*    color='black'*/}
+              {/*>              <InfoIcon ml={2} mb={1} />*/}
+              {/*</Tooltip>*/}
+              {/*</FormLabel>*/}
+              <Select
+                value={location}
+                onChange={(val) => setLocation(val ?? undefined)}
+                options={assignment === undefined || (assignment?.label as string).toLowerCase().includes("lab") ? locationOptions : notLabOnlyLocationOptions}
+              />
+            </HStack>
           </FormControl>
-          <FormControl mt={6} isRequired={isPublic}>
+          <FormControl mt={6} isRequired={isPublic} isDisabled={location === undefined}>
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}
@@ -328,7 +369,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               Public
               <Tooltip
                 hasArrow
-                label="Public tickets can be joined by other students. This is great for group work 
+                label="Public tickets can be joined by other students. This is great for group work
                or conceptual questions! If your ticket is public, we are more likely to 
                help you for a longer time."
                 bg="gray.300"
