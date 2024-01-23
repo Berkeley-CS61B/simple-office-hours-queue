@@ -16,6 +16,7 @@ import {
   Radio,
   Flex,
   Text,
+  HStack,
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 import { PersonalQueue, TicketType } from '@prisma/client';
@@ -52,6 +53,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [locationDescription, setLocationDescription] = useState<string>(existingTicket?.locationDescription ?? '');
   const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
   const [locationOptions, setLocationOptions] = useState<Location[]>([]);
+  const [notLabOnlyLocationOptions, setNotLabOnlyLocationOptions] = useState<Location[]>([]);
   const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
   const [isPublic, setIsPublic] = useState<boolean>(existingTicket?.isPublic ?? false);
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
@@ -102,8 +104,18 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     refetchOnWindowFocus: false,
     onSuccess: data => {
       setLocationOptions(
-        data.map(location => ({ label: location.name, value: location.name, id: location.id } as Location)),
+        data.map(location => ({ label: location.name, value: location.name, id: location.id} as Location)),
       );
+    },
+  });
+
+  trpc.admin.getActiveNotLabOnlyLocations.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      setNotLabOnlyLocationOptions(
+          data.map(location => ({ label: location.name, value: location.name, id: location.id} as Location)),
+      );
+      console.log(notLabOnlyLocationOptions);
     },
   });
 
@@ -231,15 +243,30 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={1000}
             />
           </FormControl>
-          <FormControl mt={6} isRequired>
+
+          <FormControl mt={6} isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Assignment</FormLabel>
             <Select value={assignment} onChange={val => setAssignment(val ?? undefined)} options={assignmentOptions} />
           </FormControl>
-          <FormControl mt={6} isRequired>
+
+          <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
+            <HStack>
             <FormLabel>Location</FormLabel>
-            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={locationOptions} />
-          </FormControl>
-          <FormControl mt={6} isRequired={isPublic}>
+            <Tooltip
+                hasArrow
+                label='Lab rooms may be restricted to lab-related assignments only.'
+                bg='gray.300'
+                color='black'
+            >
+              <InfoIcon ml={2} mb={1} />
+            </Tooltip>
+            <Select value={location} onChange={val => setLocation(val ?? undefined)} options={ assignment === undefined || (assignment?.label as string).toLowerCase().includes("lab") ? locationOptions : notLabOnlyLocationOptions} />
+            </HStack>
+            </FormControl>
+
+
+
+          <FormControl mt={6} isRequired={isPublic} isDisabled={location === undefined}>
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}

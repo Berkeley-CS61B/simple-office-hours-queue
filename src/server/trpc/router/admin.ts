@@ -62,6 +62,7 @@ export const adminRouter = router({
         name: z.string(),
         isActive: z.boolean(),
         isHidden: z.boolean(),
+        isLabOnly: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -73,6 +74,7 @@ export const adminRouter = router({
           name: input.name,
           isActive: input.isActive,
           isHidden: input.isHidden,
+          isLabOnly: input.isLabOnly,
         },
       });
     }),
@@ -276,6 +278,15 @@ export const adminRouter = router({
     return ctx.prisma.location.findMany({
       where: {
         isActive: true,
+      },
+    });
+  }),
+
+  getActiveNotLabOnlyLocations: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.location.findMany({
+      where: {
+        isActive: true,
+        isLabOnly: false,
       },
     });
   }),

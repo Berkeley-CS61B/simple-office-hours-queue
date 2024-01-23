@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import {
   Flex,
   Text,
@@ -20,6 +20,7 @@ import { UseTRPCMutationResult } from '@trpc/react/shared';
 import { DARK_GRAY_COLOR } from '../../utils/constants';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { trpc } from '../../utils/trpc';
+import {assign} from "next/dist/shared/lib/router/utils/querystring";
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
@@ -50,18 +51,30 @@ const AdminCard = (props: AdminCardProps) => {
   const { assignmentOrLocation, editMutation, isHiddenVisible, isAssignment } = props;
   const boxColor = useColorModeValue('gray.100', DARK_GRAY_COLOR);
   const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
+  const [isLabOnly, setIsLabOnly] = useState(isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
   const [isPriority, setIsPriority] = useState(isAssignment ? (assignmentOrLocation as Assignment).isPriority : false);
   const context = trpc.useContext();
   const toast = useToast();
 
   const handleNameChange = async (newName: string) => {
-    await editMutation.mutateAsync({
-      id: assignmentOrLocation.id,
-      name: newName,
-      isActive: assignmentOrLocation.isActive,
-      isHidden: assignmentOrLocation.isHidden,
-    });
+    if (isAssignment) {
+      await editMutation.mutateAsync({
+        id: assignmentOrLocation.id,
+        name: newName,
+        isActive: assignmentOrLocation.isActive,
+        isHidden: assignmentOrLocation.isHidden,
+      });
+    } else {
+      await editMutation.mutateAsync({
+        id: assignmentOrLocation.id,
+        name: newName,
+        isActive: assignmentOrLocation.isActive,
+        isHidden: assignmentOrLocation.isHidden,
+        isLabOnly: (assignmentOrLocation as Location).isLabOnly,
+      });
+    }
+
   };
 
   const handlePriorityChange = async (newPriority: boolean) => {
@@ -84,6 +97,7 @@ const AdminCard = (props: AdminCardProps) => {
         name: assignmentOrLocation.name,
         isActive: newActive,
         isHidden: newActive ? false : isHidden,
+        isLabOnly: isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -101,6 +115,35 @@ const AdminCard = (props: AdminCardProps) => {
       });
   };
 
+  const handleLabOnlyChange = async () => {
+    const newLabOnly = !isLabOnly;
+    setIsLabOnly(newLabOnly);
+    await editMutation
+        .mutateAsync({
+          id: assignmentOrLocation.id,
+          name: assignmentOrLocation.name,
+          isActive: isActive,
+          isHidden: isHidden,
+          isLabOnly: newLabOnly,
+        })
+        .then(() => {
+          context.admin.getAllLocations.invalidate();
+          context.admin.getAllAssignments.invalidate();
+        })
+        .catch(err => {
+          toast({
+            title: 'Error',
+            description: err.message,
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+            position: 'top-right',
+          });
+        });
+  };
+
+  useEffect(() => console.log(isLabOnly), [isLabOnly]);
+
   const handleHidden = async () => {
     setIsHidden(!isHidden);
     await editMutation
@@ -108,7 +151,8 @@ const AdminCard = (props: AdminCardProps) => {
         id: assignmentOrLocation.id,
         name: assignmentOrLocation.name,
         isActive: assignmentOrLocation.isActive,
-        isHidden: !isHidden,
+        isHidden: isActive ? false : isHidden,
+        isLabOnly: isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -150,7 +194,12 @@ const AdminCard = (props: AdminCardProps) => {
           Active?
         </Text>
         <Switch onChange={handleActiveChange} mt={2.5} ml={3} isChecked={isActive} />
-      </Flex>
+        {isAssignment ? null : <><Text fontSize='large' mt={1.5} ml={5}>
+          Lab Only?
+        </Text>
+          <Switch onChange={handleLabOnlyChange} mt={2.5} ml={3} isChecked={isLabOnly} /></>
+      }
+        </Flex>
       <Checkbox
         hidden={!isActive || !isAssignment}
         onChange={() => handlePriorityChange(!isPriority)}

@@ -130,6 +130,9 @@ model Assignment {
   isHidden   Boolean  @default(false)
   isPriority Boolean  @default(false)
   Ticket     Ticket[]
+  locations  Location[]
+
+  //@relation(fields: [], references: [], onDelete: Cascade) // multiple locations per assignment, like multiple posts per user
 
   @@index(id)
 }
@@ -142,6 +145,8 @@ model Location {
   isActive  Boolean  @default(true)
   isHidden  Boolean  @default(false)
   Ticket    Ticket[]
+  assignments Assignment[]
+  isLabOnly Boolean @default(false)
 
   @@index(id)
 }
