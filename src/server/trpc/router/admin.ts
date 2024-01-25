@@ -246,6 +246,45 @@ export const adminRouter = router({
       });
     }),
 
+  setCooldownTime: protectedStaffProcedure
+    .input(
+      z.object({
+        cooldownTime: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.cooldownTime < 0) {
+        throw new TRPCClientError("Cooldown time cannot be negative");
+      }
+
+      await ctx.prisma.variableSettings.upsert({
+        where: {
+          setting: VariableSiteSettings.COOLDOWN_TIME,
+        },
+        update: {
+          value: input.cooldownTime.toString(),
+        },
+        create: {
+          setting: VariableSiteSettings.COOLDOWN_TIME,
+          value: input.cooldownTime.toString(),
+        },
+      });
+    }),
+
+  getCoolDownTime: protectedProcedure.query(async ({ ctx }) => {
+    const setting = await ctx.prisma.variableSettings.upsert({
+      where: {
+        setting: VariableSiteSettings.COOLDOWN_TIME,
+      },
+      update: {},
+      create: {
+        setting: VariableSiteSettings.COOLDOWN_TIME,
+        value: "0",
+      },
+    });
+    return parseInt(setting.value);
+  }),
+
   getEmailDomain: protectedStaffProcedure.query(async ({ ctx }) => {
     const setting = await ctx.prisma.variableSettings.upsert({
       where: {

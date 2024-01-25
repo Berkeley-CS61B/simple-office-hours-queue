@@ -151,6 +151,10 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     },
   });
 
+  const cooldownPeriod = trpc.admin.getCoolDownTime.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  }).data;
+
   const handleTicketTypeChange = (newVal: TicketType) => {
     setTicketType(newVal);
     if (newVal === TicketType.DEBUGGING) {
@@ -223,13 +227,15 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       })
       .then((ticket) => {
         if (!ticket) {
+          const coolDownText = cooldownPeriod
+            ? `You must wait ${cooldownPeriod} minutes since your last ticket was resolved.`
+            : "";
           toast({
             title: "Error",
-            description:
-              "Could not create ticket. You may already have a ticket open. If not, refresh and try again.",
+            description: `Could not create ticket. You may already have a ticket open. If not, refresh and try again. ${coolDownText}`,
             status: "error",
             position: "top-right",
-            duration: 5000,
+            duration: 10000,
             isClosable: true,
           });
           return;
