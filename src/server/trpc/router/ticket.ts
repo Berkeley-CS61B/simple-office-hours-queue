@@ -1,5 +1,5 @@
 import {
-  Assignment,
+  Assignment, Category,
   ChatMessage,
   Location,
   SiteSettings,
@@ -891,6 +891,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         helpedByName: helpedBy?.preferredName ?? helpedBy?.name,
         createdByName: createdBy?.preferredName ?? createdBy.name,
         createdByEmail: createdBy.email,
+        assignmentCategory: assignment?.category,
       };
     }),
   );
@@ -945,4 +946,5 @@ export interface TicketWithNames extends Ticket {
   createdByEmail: string | null;
   assignmentName: string;
   locationName: string;
+  assignmentCategory: Category;
 }

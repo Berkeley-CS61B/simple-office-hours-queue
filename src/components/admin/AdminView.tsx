@@ -1,6 +1,6 @@
 import { Divider, Flex, Spinner, Switch, Text } from "@chakra-ui/react";
 import {
-  Assignment,
+  Assignment, Category,
   Location,
   SiteSettings,
   SiteSettingsValues,
@@ -20,6 +20,7 @@ const AdminView = () => {
     useState<boolean>();
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
+  // const [categories, setCategories] = useState<Category[]>();
 
   const { siteSettings } = useSiteSettings();
 
@@ -55,6 +56,13 @@ const AdminView = () => {
       setLocations(data);
     },
   });
+
+  // trpc.admin.getAllCategories.useQuery(undefined, {
+  //   refetchOnWindowFocus: false,
+  //   onSuccess: (data) => {
+  //     setCategories(data);
+  //   },
+  // });
 
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {

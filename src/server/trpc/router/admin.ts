@@ -1,4 +1,5 @@
 import {
+  Category,
   SiteSettings,
   SiteSettingsValues,
   VariableSiteSettings,
@@ -13,12 +14,23 @@ import {
 } from "../../../utils/utils";
 import { protectedProcedure, protectedStaffProcedure, router } from "../trpc";
 
+//assignment: {
+//             connect: {
+//               id: input.assignmentId,
+//             },
+//           },
+//           location: {
+//             connect: {
+//               id: input.locationId,
+//             },
+
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
     .input(
       z.object({
         name: z.string(),
         isPriority: z.boolean(),
+        category: z.nativeEnum(Category)
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -26,16 +38,20 @@ export const adminRouter = router({
         data: {
           name: input.name,
           isPriority: input.isPriority,
+          category: input.category,
         },
       });
     }),
 
   createLocation: protectedStaffProcedure
-    .input(z.object({ name: z.string() }))
+    .input(z.object({ name: z.string(), categories: z.array(z.nativeEnum(Category)) }))
     .mutation(async ({ input, ctx }) => {
       return ctx.prisma.location.create({
         data: {
           name: input.name,
+          categories: {
+            create: input.categories.map((category) => ({category: category})) //[{category: Category.ADMIN}, {category: Category.LAB}]
+          }
         },
       });
     }),
@@ -48,6 +64,7 @@ export const adminRouter = router({
         isActive: z.boolean(),
         isHidden: z.boolean(),
         isPriority: z.boolean().optional(),
+        category: z.nativeEnum(Category),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -57,6 +74,7 @@ export const adminRouter = router({
         },
         data: {
           name: input.name,
+          category: input.category,
           isActive: input.isActive,
           isHidden: input.isHidden,
           ...(input.isPriority !== undefined && {
@@ -73,7 +91,8 @@ export const adminRouter = router({
         name: z.string(),
         isActive: z.boolean(),
         isHidden: z.boolean(),
-        isLabOnly: z.boolean()
+        isLabOnly: z.boolean().optional(),
+        categories: z.array(z.nativeEnum(Category)),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -86,6 +105,15 @@ export const adminRouter = router({
           isActive: input.isActive,
           isHidden: input.isHidden,
           isLabOnly: input.isLabOnly,
+          categories: {
+            // updateMany: {
+            //   data: {
+            //     category:
+            //   }
+            // }
+            deleteMany: {},
+            create: input.categories.map((category) => ({category: category})) //[{category: Category.ADMIN}, {category: Category.LAB}]
+          }
         },
       });
     }),
@@ -290,16 +318,46 @@ export const adminRouter = router({
   getAllLocations: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany();
   }),
+  //
+  // getAllCategories: protectedStaffProcedure.query(async ({ ctx }) => {
+  //   return ctx.prisma.category.findMany();
+  // }),
 
-  getActiveAssignments: protectedProcedure.query(async ({ ctx }) => {
+  getActiveAssignments: protectedProcedure.input(z.object(
+      {
+        category: z.nativeEnum(Category).optional(),
+      }
+  )).query(async ({ input, ctx }) => {
     return ctx.prisma.assignment.findMany({
       where: {
         isActive: true,
+        category: input.category,
       },
     });
   }),
 
-  getActiveLocations: protectedProcedure.query(async ({ ctx }) => {
+  getActiveLocations: protectedProcedure.input(z.object(
+      {
+      category: z.nativeEnum(Category).optional(),
+    }
+  )).query(async ({ input, ctx }) => {
+    return ctx.prisma.location.findMany({
+      where: {
+        isActive: true,
+        categories: {
+          some: {
+            category: {
+              equals: input.category
+            }
+          }
+        }
+      },
+    });
+  }),
+
+  getActiveFilteredLocations: protectedProcedure.input(z.object({
+
+  })).query(async ({ ctx }) => {
     return ctx.prisma.location.findMany({
       where: {
         isActive: true,
@@ -307,7 +365,7 @@ export const adminRouter = router({
     });
   }),
 
-  getActiveNotLabOnlyLocations: protectedProcedure.query(async ({ ctx }) => {
+  getActiveNotLabOnlyLocations: protectedProcedure.query(async ({ ctx , input}) => {
     return ctx.prisma.location.findMany({
       where: {
         isActive: true,
@@ -315,6 +373,17 @@ export const adminRouter = router({
       },
     });
   }),
+
+  getCategoriesForLocation: protectedProcedure.input(z.object({locationId: z.number().optional()})).query(async ({ ctx , input}) => {
+    return ctx.prisma.locationCategory.findMany({
+      where: {
+        locationId: input.locationId,
+      },
+    });
+  }),
+
+
+
 
 
   // This is used inside of the useSiteSettings custom hook

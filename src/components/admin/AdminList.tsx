@@ -8,10 +8,11 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import { Assignment, Location } from "@prisma/client";
+import {Assignment, Category, Location, UserRole} from "@prisma/client";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
+import {Select} from "chakra-react-select";
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
@@ -29,25 +30,46 @@ const AdminList = (props: AdminListProps) => {
   const [createText, setCreateText] = useState<string>("");
   const [isHiddenVisible, setIsHiddenVisible] = useState<boolean>(false);
   const [isPriorityChecked, setIsPriorityChecked] = useState<boolean>(false);
+  const [assignmentCategory, setAssignmentCategory] = useState<Category>();
+  const [locationCategories, setLocationCategories] = useState<Category[]>();
+
   const toast = useToast();
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
   const editAssignmentMutation = trpc.admin.editAssignment.useMutation();
   const createLocationMutation = trpc.admin.createLocation.useMutation();
   const editLocationMutation = trpc.admin.editLocation.useMutation();
+
   const numVisible = assignmentsOrLocations.filter((a) => !a?.isHidden).length;
 
   const handleCreateAssignment = async () => {
-    const data = await createAssignmentMutation.mutateAsync({
-      name: createText,
-      isPriority: isPriorityChecked,
-    });
-    setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+    if (assignmentCategory !== undefined) {
+      const data = await createAssignmentMutation
+          .mutateAsync({
+        name: createText,
+        isPriority: isPriorityChecked,
+        category: assignmentCategory,
+      }).then().catch(err => toast({
+        title: 'Error',
+        description: err.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right',
+      })
+    );
+      setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+    }
   };
 
   const handleCreateLocation = async () => {
-    const data = await createLocationMutation.mutateAsync({ name: createText });
-    setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+    if (locationCategories !== undefined) {
+      const data = await createLocationMutation.mutateAsync({
+        name: createText ,
+        categories: locationCategories
+      });
+      setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+    }
   };
 
   const handleCreate = () => {
@@ -76,6 +98,11 @@ const AdminList = (props: AdminListProps) => {
     setIsPriorityChecked((prev) => !prev);
   };
 
+  const categories = Object.values(Category).map((category: Category) => ({
+    label: category,
+    value: category,
+  }));
+
   return (
     <>
       <Flex direction="column" w="100%" mb={3}>
@@ -90,6 +117,10 @@ const AdminList = (props: AdminListProps) => {
               value={createText}
               placeholder={isAssignment ? "Gitlet" : "Woz"}
             />
+            {isAssignment ?
+                <Select options={categories} onChange={(newValue) => setAssignmentCategory(newValue?.value)}/>
+                :
+                <Select isMulti options={categories} onChange={(newValue) => {setLocationCategories(newValue.map((item) => item.value))}}/>}
             <Flex flexDirection="row">
               <Checkbox
                 hidden={!isAssignment}

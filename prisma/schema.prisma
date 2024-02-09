@@ -122,33 +122,56 @@ model Session {
 }
 
 model Assignment {
-  id         Int      @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   name       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-  isActive   Boolean  @default(true)
-  isHidden   Boolean  @default(false)
-  isPriority Boolean  @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+  isActive   Boolean    @default(true)
+  isHidden   Boolean    @default(false)
+  isPriority Boolean    @default(false)
   Ticket     Ticket[]
   locations  Location[]
+  // category   Category   @relation(fields: [categoryId], references: [id])
+  category   Category
+  // categoryId Int
+  @@index(id)
+  // @@index([categoryId])
+}
 
-  //@relation(fields: [], references: [], onDelete: Cascade) // multiple locations per assignment, like multiple posts per user
+// model Category {
+//   id          Int                @id @default(autoincrement())
+//   type        AssignmentCategory
+//   createdAt   DateTime           @default(now())
+//   updatedAt   DateTime           @default(now()) @updatedAt
+//   assignments Assignment[]
+//   locations   Location[]
+//
+//   @@index(id)
+// }
+
+model Location {
+  id          Int                @id @default(autoincrement())
+  name        String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now()) @updatedAt
+  isActive    Boolean            @default(true)
+  isHidden    Boolean            @default(false)
+  Ticket      Ticket[]
+  assignments Assignment[]
+  isLabOnly   Boolean            @default(false)
+  categories  LocationCategory[]
 
   @@index(id)
 }
 
-model Location {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isActive  Boolean  @default(true)
-  isHidden  Boolean  @default(false)
-  Ticket    Ticket[]
-  assignments Assignment[]
-  isLabOnly Boolean @default(false)
+model LocationCategory {
+  id         Int      @id @default(autoincrement())
+  location   Location @relation(fields: [locationId], references: [id])
+  category   Category
+  locationId Int
 
   @@index(id)
+  @@index([locationId])
 }
 
 model PersonalQueue {
@@ -225,4 +248,13 @@ enum SiteSettingsValues {
 
 enum VariableSiteSettings {
   EMAIL_DOMAIN
+}
+
+enum Category {
+  LAB
+  PROJECT
+  HOMEWORK
+  SETUP
+  ADMIN
+  OTHER
 }

@@ -14,8 +14,8 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import { PersonalQueue, TicketType } from "@prisma/client";
-import { Select } from "chakra-react-select";
+import {PersonalQueue, TicketType, Category} from "@prisma/client";
+import {Select, SingleValue} from "chakra-react-select";
 import Router from "next/router";
 import { useEffect, useState } from "react";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
@@ -31,6 +31,7 @@ interface Assignment {
   id: number;
   label: string;
   value: string;
+  category?: Category | undefined;
 }
 
 interface Location {
@@ -79,6 +80,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           id: existingTicket.assignmentId,
           label: existingTicket.assignmentName,
           value: existingTicket.assignmentName,
+          category: existingTicket.assignmentCategory,
+
         }
       : undefined,
   );
@@ -119,8 +122,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setExistingTicket,
   ]);
 
+
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
-  trpc.admin.getActiveAssignments.useQuery(undefined, {
+
+
+  trpc.admin.getActiveAssignments.useQuery({}, {
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       setAssignmentOptions(
@@ -130,13 +136,14 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               label: assignment.name,
               value: assignment.name,
               id: assignment.id,
+              category: assignment.category,
             }) as Assignment,
         ),
       );
     },
   });
 
-  trpc.admin.getActiveLocations.useQuery(undefined, {
+  const {refetch} = trpc.admin.getActiveLocations.useQuery({ category: assignment?.category }, {
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       setLocationOptions(
@@ -151,6 +158,31 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       );
     },
   });
+
+  // useEffect(() => {
+  //   if (shouldRefetchLocations) {
+  //     trpc.admin.getActiveLocations.useQuery({}, {
+  //
+  //       refetchOnWindowFocus: false,
+  //       onSuccess: (data) => {
+  //         setLocationOptions(
+  //             data.map(
+  //                 (location) =>
+  //                     ({
+  //                       label: location.name,
+  //                       value: location.name,
+  //                       id: location.id,
+  //                     }) as Location,
+  //             ),
+  //         );
+  //       },
+  //     });
+  //     setShouldRefetchLocations(false); // Reset after refetch
+  //      // Ensure cleanup
+  //   }
+  // }, [shouldRefetchLocations]);
+
+
 
   trpc.admin.getActiveNotLabOnlyLocations.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -167,6 +199,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       );
     },
   });
+
+
+
 
 
 
@@ -190,6 +225,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     }
     setIsPublic(!isPublic);
   };
+
+  const handleAssignmentChange = (newVal: SingleValue<Assignment>) => {
+    setAssignment(newVal ?? undefined);
+    refetch();
+  }
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -312,7 +352,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             <FormLabel>Assignment</FormLabel>
             <Select
               value={assignment}
-              onChange={(val) => setAssignment(val ?? undefined)}
+              onChange={handleAssignmentChange}
               options={assignmentOptions}
             />
           </FormControl>
@@ -342,7 +382,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               <Select
                 value={location}
                 onChange={(val) => setLocation(val ?? undefined)}
-                options={assignment === undefined || (assignment?.label as string).toLowerCase().includes("lab") ? locationOptions : notLabOnlyLocationOptions}
+                options={locationOptions}
               />
             </HStack>
           </FormControl>
