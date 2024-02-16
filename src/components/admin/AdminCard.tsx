@@ -263,14 +263,14 @@ const AdminCard = (props: AdminCardProps) => {
       flexDirection="row"
       p={2}
       backgroundColor={boxColor}
-      justifyContent="space-between"
+      // justifyContent="space-between"
     >
         <>
       <Flex>
         <Editable
           onSubmit={handleNameChange}
           textAlign="center"
-          fontWeight="semibold"
+          fontWeight="semibold"Acc
           display="flex"
           defaultValue={assignmentOrLocation.name}
           fontSize="xl"
@@ -289,11 +289,7 @@ const AdminCard = (props: AdminCardProps) => {
           ml={3}
           isChecked={isActive}
         />
-        {isAssignment ? null : <><Text fontSize='large' mt={1.5} ml={5}>
-          Accept Lab Tickets Only?
-        </Text>
-          <Switch onChange={handleLabOnlyChange} mt={2.5} ml={3} isChecked={isLabOnly} /></>
-        }
+
       </Flex>
       <Checkbox
         hidden={!isActive || !isAssignment}

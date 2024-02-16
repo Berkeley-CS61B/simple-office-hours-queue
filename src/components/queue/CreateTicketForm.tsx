@@ -363,7 +363,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 Location
                 <Tooltip
                     hasArrow
-                    label="Lab rooms may be restricted to lab assignments only."
+                    label={assignment === undefined ? "" : `${assignment.category ? uppercaseFirstLetter(assignment.category) : ""} tickets are limited to ${locationOptions.map((locationOption) => locationOption.value).join(", ")}.`}
                     bg="gray.300"
                     color="black"
                 >
