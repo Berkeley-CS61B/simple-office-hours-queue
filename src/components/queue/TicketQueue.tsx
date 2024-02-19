@@ -25,6 +25,7 @@ interface TicketQueueProps {
   userRole: UserRole;
   userId: string;
   isPendingStageEnabled: boolean;
+  arePublicTicketsEnabled: boolean;
   isQueueOpen: boolean;
   personalQueue?: PersonalQueue;
 }
@@ -39,6 +40,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   const {
     userRole,
     isPendingStageEnabled,
+    arePublicTicketsEnabled,
     isQueueOpen,
     userId,
     personalQueue,
@@ -164,7 +166,7 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const setTabs = (): TabType[] => {
     const tabs: TabType[] = [TicketStatus.OPEN, TicketStatus.ASSIGNED];
-    if (userRole === UserRole.STUDENT) {
+    if (userRole === UserRole.STUDENT && arePublicTicketsEnabled) {
       tabs.unshift("Public");
     } else {
       if (isPendingStageEnabled) {
