@@ -3,6 +3,7 @@ import {
   Button,
   Checkbox,
   Flex,
+  FormControl,
   Input,
   Text,
   Tooltip,
@@ -13,6 +14,7 @@ import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
 import {Select} from "chakra-react-select";
+import {uppercaseFirstLetter} from "../../utils/utils";
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
@@ -43,7 +45,7 @@ const AdminList = (props: AdminListProps) => {
   const numVisible = assignmentsOrLocations.filter((a) => !a?.isHidden).length;
 
   const handleCreateAssignment = async () => {
-    if (assignmentCategory !== undefined) {
+    // if (assignmentCategory !== undefined) {
       const data = await createAssignmentMutation
           .mutateAsync({
         name: createText,
@@ -59,8 +61,8 @@ const AdminList = (props: AdminListProps) => {
       })
     );
       setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
-    }
-  };
+    };
+  // };
 
   const handleCreateLocation = async () => {
     if (locationCategories !== undefined) {
@@ -99,7 +101,7 @@ const AdminList = (props: AdminListProps) => {
   };
 
   const categories = Object.values(Category).map((category: Category) => ({
-    label: category,
+    label: uppercaseFirstLetter(category),
     value: category,
   }));
 
@@ -117,11 +119,13 @@ const AdminList = (props: AdminListProps) => {
               value={createText}
               placeholder={isAssignment ? "Gitlet" : "Woz"}
             />
+            <FormControl ml={2} w="50%">
             {isAssignment ?
                 <Select options={categories} onChange={(newValue) => setAssignmentCategory(newValue?.value)}/>
                 :
-                <Select isMulti options={categories} onChange={(newValue) => {setLocationCategories(newValue.map((item) => item.value))}}/>}
-            <Flex flexDirection="row">
+                <Select isMulti options={categories.filter((category) => category.value !== Category.NONE )} onChange={(newValue) => {setLocationCategories(newValue.map((item) => item.value))}}/>}
+            </FormControl>
+              <Flex flexDirection="row">
               <Checkbox
                 hidden={!isAssignment}
                 onChange={handlePriorityChange}

@@ -30,7 +30,7 @@ export const adminRouter = router({
       z.object({
         name: z.string(),
         isPriority: z.boolean(),
-        category: z.nativeEnum(Category)
+        category: z.nativeEnum(Category).optional()
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -341,6 +341,14 @@ export const adminRouter = router({
       category: z.nativeEnum(Category).optional(),
     }
   )).query(async ({ input, ctx }) => {
+    if (input.category === Category.NONE) {
+      return ctx.prisma.location.findMany({
+        where: {
+          isActive: true,
+        }
+      })
+    }
+
     return ctx.prisma.location.findMany({
       where: {
         isActive: true,

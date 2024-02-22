@@ -132,7 +132,7 @@ model Assignment {
   Ticket     Ticket[]
   locations  Location[]
   // category   Category   @relation(fields: [categoryId], references: [id])
-  category   Category
+  category   Category  @default(NONE)
   // categoryId Int
   @@index(id)
   // @@index([categoryId])
@@ -257,4 +257,5 @@ enum Category {
   SETUP
   ADMIN
   OTHER
+  NONE
 }
