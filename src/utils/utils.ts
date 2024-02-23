@@ -2,7 +2,10 @@ import { SiteSettings, SiteSettingsValues } from "@prisma/client";
 import { TicketStats } from "../server/trpc/router/stats";
 import { TicketWithNames } from "../server/trpc/router/ticket";
 
-export const uppercaseFirstLetter = (str: string) => {
+export const uppercaseFirstLetter = (str: string | undefined) => {
+  if (str === undefined) {
+    return "";
+  }
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 

@@ -22,7 +22,6 @@ import {FaEye, FaEyeSlash} from "react-icons/fa";
 import {DARK_GRAY_COLOR} from "../../utils/constants";
 import {trpc} from "../../utils/trpc";
 import {MultiValue, Select, SingleValue} from "chakra-react-select";
-import {assign} from "next/dist/shared/lib/router/utils/querystring";
 import {uppercaseFirstLetter} from "../../utils/utils";
 
 
@@ -79,8 +78,6 @@ const AdminCard = (props: AdminCardProps) => {
     const [isPriority, setIsPriority] = useState(
         isAssignment ? (assignmentOrLocation as Assignment).isPriority : false,
     );
-
-    const [isLabOnly, setIsLabOnly] = useState(isAssignment ? undefined : (assignmentOrLocation as Location).isLabOnly);
     const [assignmentCategory, setAssignmentCategory] = useState(isAssignment ? (assignmentOrLocation as Assignment).category : undefined);
     const [locationCategories, setLocationCategories] = useState<Category[]>();
 
@@ -169,33 +166,6 @@ const AdminCard = (props: AdminCardProps) => {
                     duration: 3000,
                     isClosable: true,
                     position: "top-right",
-                });
-            });
-    };
-
-    const handleLabOnlyChange = async () => {
-        const newLabOnly = !isLabOnly;
-        setIsLabOnly(newLabOnly);
-        await editMutation
-            .mutateAsync({
-                id: assignmentOrLocation.id,
-                name: assignmentOrLocation.name,
-                isActive: isActive,
-                isHidden: isHidden,
-                isLabOnly: newLabOnly,
-            })
-            .then(() => {
-                context.admin.getAllLocations.invalidate();
-                context.admin.getAllAssignments.invalidate();
-            })
-            .catch(err => {
-                toast({
-                    title: 'Error',
-                    description: err.message,
-                    status: 'error',
-                    duration: 3000,
-                    isClosable: true,
-                    position: 'top-right',
                 });
             });
     };

@@ -9,7 +9,7 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import {Assignment, Category, Location, UserRole} from "@prisma/client";
+import {Assignment, Category, Location} from "@prisma/client";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";

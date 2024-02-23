@@ -68,7 +68,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     );
     const [assignmentOptions, setAssignmentOptions] = useState<Assignment[]>([]);
     const [locationOptions, setLocationOptions] = useState<Location[]>([]);
-    const [notLabOnlyLocationOptions, setNotLabOnlyLocationOptions] = useState<Location[]>([]);
     const [isPublicModalOpen, setIsPublicModalOpen] = useState<boolean>(false);
     const [isPublic, setIsPublic] = useState<boolean>(
         existingTicket?.isPublic ?? false,
@@ -158,47 +157,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             );
         },
     });
-
-    // useEffect(() => {
-    //   if (shouldRefetchLocations) {
-    //     trpc.admin.getActiveLocations.useQuery({}, {
-    //
-    //       refetchOnWindowFocus: false,
-    //       onSuccess: (data) => {
-    //         setLocationOptions(
-    //             data.map(
-    //                 (location) =>
-    //                     ({
-    //                       label: location.name,
-    //                       value: location.name,
-    //                       id: location.id,
-    //                     }) as Location,
-    //             ),
-    //         );
-    //       },
-    //     });
-    //     setShouldRefetchLocations(false); // Reset after refetch
-    //      // Ensure cleanup
-    //   }
-    // }, [shouldRefetchLocations]);
-
-
-    trpc.admin.getActiveNotLabOnlyLocations.useQuery(undefined, {
-        refetchOnWindowFocus: false,
-        onSuccess: (data) => {
-            setNotLabOnlyLocationOptions(
-                data.map(
-                    (location) =>
-                        ({
-                            label: location.name,
-                            value: location.name,
-                            id: location.id,
-                        }) as Location,
-                ),
-            );
-        },
-    });
-
 
     const handleTicketTypeChange = (newVal: TicketType) => {
         setTicketType(newVal);
@@ -369,26 +327,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                                 </Tooltip> :
                                 <></>
                             }
-
-                            {/*<FormLabel>*/}
-                            {/*    Location*/}
-                            {/*    <Tooltip visible={assignment !== undefined && assignment.category !== Category.NONE}*/}
-                            {/*             hasArrow*/}
-                            {/*             label={`${assignment?.category ? uppercaseFirstLetter(assignment.category) : ""} tickets are limited to ${locationOptions.map((locationOption) => locationOption.value).join(", ")}.` : ""}*/}
-                            {/*             bg="gray.300"*/}
-                            {/*             color="black">*/}
-                            {/*        <InfoIcon ml={2} mb={1}/>*/}
-                            {/*    </Tooltip>*/}
-                            {/*</FormLabel>*/}
-                            {/*<FormLabel>Location*/}
-                            {/*<Tooltip*/}
-                            {/*    hasArrow*/}
-                            {/*    label='Lab rooms may be restricted to lab-related assignments only.'*/}
-                            {/*    bg='gray.300'*/}
-                            {/*    color='black'*/}
-                            {/*>              <InfoIcon ml={2} mb={1} />*/}
-                            {/*</Tooltip>*/}
-                            {/*</FormLabel>*/}
                             <FormControl width="30%">
                             <Select
                                 value={location}

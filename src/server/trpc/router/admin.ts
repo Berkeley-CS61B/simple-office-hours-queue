@@ -14,16 +14,6 @@ import {
 } from "../../../utils/utils";
 import { protectedProcedure, protectedStaffProcedure, router } from "../trpc";
 
-//assignment: {
-//             connect: {
-//               id: input.assignmentId,
-//             },
-//           },
-//           location: {
-//             connect: {
-//               id: input.locationId,
-//             },
-
 export const adminRouter = router({
   createAssignment: protectedStaffProcedure
     .input(
@@ -318,10 +308,6 @@ export const adminRouter = router({
   getAllLocations: protectedStaffProcedure.query(async ({ ctx }) => {
     return ctx.prisma.location.findMany();
   }),
-  //
-  // getAllCategories: protectedStaffProcedure.query(async ({ ctx }) => {
-  //   return ctx.prisma.category.findMany();
-  // }),
 
   getActiveAssignments: protectedProcedure.input(z.object(
       {
@@ -363,25 +349,6 @@ export const adminRouter = router({
     });
   }),
 
-  getActiveFilteredLocations: protectedProcedure.input(z.object({
-
-  })).query(async ({ ctx }) => {
-    return ctx.prisma.location.findMany({
-      where: {
-        isActive: true,
-      },
-    });
-  }),
-
-  getActiveNotLabOnlyLocations: protectedProcedure.query(async ({ ctx , input}) => {
-    return ctx.prisma.location.findMany({
-      where: {
-        isActive: true,
-        isLabOnly: false,
-      },
-    });
-  }),
-
   getCategoriesForLocation: protectedProcedure.input(z.object({locationId: z.number().optional()})).query(async ({ ctx , input}) => {
     return ctx.prisma.locationCategory.findMany({
       where: {
@@ -389,10 +356,6 @@ export const adminRouter = router({
       },
     });
   }),
-
-
-
-
 
   // This is used inside of the useSiteSettings custom hook
   getSettings: protectedProcedure.query(async ({ ctx }) => {
