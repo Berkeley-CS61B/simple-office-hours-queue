@@ -151,9 +151,12 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     },
   });
 
-  const cooldownPeriod = trpc.admin.getCoolDownTime.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  }).data;
+  const { data: cooldownPeriod } = trpc.admin.getCoolDownTime.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const handleTicketTypeChange = (newVal: TicketType) => {
     setTicketType(newVal);
@@ -266,6 +269,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       borderWidth={1}
       borderRadius={8}
       boxShadow="lg"
+      mt={5}
     >
       <Box my={4} textAlign="left">
         <form onSubmit={onSubmit}>
