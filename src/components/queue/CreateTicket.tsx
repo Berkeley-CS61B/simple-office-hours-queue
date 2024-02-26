@@ -6,6 +6,8 @@ import {
 } from "@prisma/client";
 import { useRef } from "react";
 import { MutableRefObject } from "react";
+import { trpc } from "../../utils/trpc";
+import Countdown from "../ticket-page/Countdown";
 import CreateTicketForm from "./CreateTicketForm";
 
 interface CreateTicketProps {
@@ -20,9 +22,11 @@ const CreateTicket = (props: CreateTicketProps) => {
   const { siteSettings, personalQueue } = props;
   const endOfForm = useRef() as MutableRefObject<HTMLSpanElement>;
 
+  const { data: userCooldown } = trpc.ticket.getUserCooldownTime.useQuery();
+
   return (
     <Flex width="full" align="left" flexDir="column" p={4}>
-      <Text fontSize="2xl" mb={5}>
+      <Text fontSize="2xl">
         Welcome back. Create a ticket to get started or{" "}
         <span
           style={{ cursor: "pointer", textDecoration: "underline" }}
@@ -32,6 +36,14 @@ const CreateTicket = (props: CreateTicketProps) => {
           view the queue
         </span>
       </Text>
+      {userCooldown && (
+        <Flex>
+          <Text mt="0.5" fontSize="lg">
+            Cooldown until you can make another ticket:&nbsp;
+          </Text>
+          <Countdown initialTimeInMs={userCooldown} />
+        </Flex>
+      )}
       <CreateTicketForm
         personalQueue={personalQueue}
         arePublicTicketsEnabled={

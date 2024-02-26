@@ -38,7 +38,8 @@ const QueueLayout = (props: QueueLayoutProps) => {
 
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>();
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
-  const [arePublicTicketsEnabled, setArePublicTicketsEnabled] = useState<boolean>();
+  const [arePublicTicketsEnabled, setArePublicTicketsEnabled] =
+    useState<boolean>();
   const changeUserRoleMutation = trpc.user.updateUserRole.useMutation();
   const { siteSettings } = useSiteSettings();
 
@@ -95,7 +96,11 @@ const QueueLayout = (props: QueueLayoutProps) => {
     }
   });
 
-  if (isQueueOpen === undefined || isPendingStageEnabled === undefined || arePublicTicketsEnabled === undefined) {
+  if (
+    isQueueOpen === undefined ||
+    isPendingStageEnabled === undefined ||
+    arePublicTicketsEnabled === undefined
+  ) {
     return <Spinner />;
   }
 

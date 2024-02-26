@@ -736,6 +736,42 @@ export const ticketRouter = router({
       return ticketsWithNames[0];
     }),
 
+  getUserCooldownTime: protectedProcedure.query(async ({ ctx }) => {
+    // If there is a cooldown timer and the user is a student, return how long the student
+    // has to wait before making another ticket. The wait time is returned in milliseconds and is
+    // calculated by (lastTicketResolvedAt + cooldownTime) - Date.now()
+    if (ctx.session.user.role !== UserRole.STUDENT) {
+      return null;
+    }
+
+    const cooldownTimeResult = await ctx.prisma.variableSettings.findUnique({
+      where: { setting: VariableSiteSettings.COOLDOWN_TIME },
+    });
+
+    const cooldownTime = parseInt(cooldownTimeResult?.value ?? "0");
+
+    if (!cooldownTime) {
+      return null;
+    }
+
+    const lastTicket = await ctx.prisma.ticket.findFirst({
+      where: {
+        createdByUserId: ctx.session.user.id,
+        resolvedAt: {
+          gte: new Date(Date.now() - cooldownTime * 60 * 1000),
+        },
+      },
+    });
+
+    if (!lastTicket || !lastTicket.resolvedAt) {
+      return null;
+    }
+
+    return (
+      lastTicket.resolvedAt.getTime() + cooldownTime * 60 * 1000 - Date.now()
+    );
+  }),
+
   getTicketsWithStatus: protectedProcedure
     .input(
       z.object({

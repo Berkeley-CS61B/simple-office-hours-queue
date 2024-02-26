@@ -55,6 +55,7 @@ const CoolDownTimer = () => {
           max={180}
           width="100%"
           onChange={(val) => setCooldownTime(parseInt(val))}
+          mr={1}
         >
           <NumberInputField />
           <NumberInputStepper>
