@@ -31,7 +31,7 @@ interface Assignment {
     id: number;
     label: string;
     value: string;
-    category?: Category | undefined;
+    categoryId?: number | undefined;
 }
 
 interface Location {
@@ -79,8 +79,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 id: existingTicket.assignmentId,
                 label: existingTicket.assignmentName,
                 value: existingTicket.assignmentName,
-                category: existingTicket.assignmentCategory,
-
+                categoryId: existingTicket.assignmentCategoryId,
             }
             : undefined,
     );
@@ -93,6 +92,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             }
             : undefined,
     );
+    const [allCategories, setAllCategories] = useState<Category[]>();
+
     const toast = useToast();
 
     // When a property of the ticket changes, update the existing ticket if it exists
@@ -135,14 +136,14 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                             label: assignment.name,
                             value: assignment.name,
                             id: assignment.id,
-                            category: assignment.category,
+                            categoryId: assignment.categoryId,
                         }) as Assignment,
                 ),
             );
         },
     });
 
-    const {refetch} = trpc.admin.getActiveLocations.useQuery({category: assignment?.category}, {
+    const {refetch} = trpc.admin.getActiveLocations.useQuery({categoryId: assignment?.categoryId}, {
         refetchOnWindowFocus: false,
         onSuccess: (data) => {
             setLocationOptions(
@@ -157,6 +158,13 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             );
         },
     });
+
+    trpc.admin.getAllCategories.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: (data) => {
+            setAllCategories(data);
+        },
+    })
 
     const handleTicketTypeChange = (newVal: TicketType) => {
         setTicketType(newVal);
@@ -315,11 +323,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                             <FormLabel>
                                 Location
                             </FormLabel>
-                            {assignment !== undefined && assignment.category !== Category.NONE
+                            {assignment !== undefined && allCategories !== undefined && allCategories.length > 0
                                 ?
                                 <Tooltip
                                     hasArrow
-                                    label={`${assignment?.category ? uppercaseFirstLetter(assignment.category) : ""} tickets are limited to ${joinArrayAsString(locationOptions.map((locationOption) => locationOption.value))}.`}
+                                    label={`${allCategories.find((category) => category.id === assignment.categoryId)?.name ?? ""} tickets are limited to ${joinArrayAsString(locationOptions.map((locationOption) => locationOption.value))}.`}
                                     bg="gray.300"
                                     color="black"
                                 >

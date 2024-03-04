@@ -78,8 +78,9 @@ const AdminCard = (props: AdminCardProps) => {
     const [isPriority, setIsPriority] = useState(
         isAssignment ? (assignmentOrLocation as Assignment).isPriority : false,
     );
-    const [assignmentCategory, setAssignmentCategory] = useState(isAssignment ? (assignmentOrLocation as Assignment).category : undefined);
-    const [locationCategories, setLocationCategories] = useState<Category[]>();
+    const [assignmentCategoryId, setAssignmentCategoryId] = useState(isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined);
+    const [locationCategoryIds, setLocationCategoryIds] = useState<number[]>();
+    const [allCategories, setAllCategories] = useState<Category[]>();
 
     const context = trpc.useContext();
     const toast = useToast();
@@ -87,7 +88,17 @@ const AdminCard = (props: AdminCardProps) => {
     trpc.admin.getCategoriesForLocation.useQuery({locationId: (isAssignment ? undefined : (assignmentOrLocation as Location).id)}, {
         refetchOnWindowFocus: false,
         onSuccess: (data) => {
-            setLocationCategories(data.map((result) => result.category));
+            setLocationCategoryIds(data?.categories.map((category) => category.id));
+            // setLocationCategories(data.map((result) => result.category));
+        },
+        enabled: !isAssignment,
+
+    })
+
+    trpc.admin.getAllCategories.useQuery(undefined, {
+        refetchOnWindowFocus: false,
+        onSuccess: (data) => {
+            setAllCategories(data);
         },
     })
 
@@ -97,8 +108,8 @@ const AdminCard = (props: AdminCardProps) => {
             name: newName,
             isActive: assignmentOrLocation.isActive,
             isHidden: assignmentOrLocation.isHidden,
-            category: isAssignment ? (assignmentOrLocation as Assignment).category : undefined,
-            categories: isAssignment ? undefined : categories,
+            categoryId: isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined,
+            categoryIds: isAssignment ? undefined : locationCategoryIds,
         });
     };
 
@@ -110,8 +121,8 @@ const AdminCard = (props: AdminCardProps) => {
             isActive: assignmentOrLocation.isActive,
             isHidden: assignmentOrLocation.isHidden,
             isPriority: newPriority,
-            category: isAssignment ? (assignmentOrLocation as Assignment).category : undefined,
-            categories: isAssignment ? undefined : categories,
+            categoryId: isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined,
+            categoryIds: isAssignment ? undefined : locationCategoryIds,
         });
     };
 
@@ -124,8 +135,8 @@ const AdminCard = (props: AdminCardProps) => {
                 name: assignmentOrLocation.name,
                 isActive: newActive,
                 isHidden: newActive ? false : isHidden,
-                category: isAssignment ? (assignmentOrLocation as Assignment).category : undefined,
-                categories: isAssignment ? undefined : categories,
+                categoryId: isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined,
+                categoryIds: isAssignment ? undefined : locationCategoryIds,
             })
             .then(() => {
                 context.admin.getAllLocations.invalidate();
@@ -151,8 +162,8 @@ const AdminCard = (props: AdminCardProps) => {
                 name: assignmentOrLocation.name,
                 isActive: assignmentOrLocation.isActive,
                 isHidden: !isHidden,
-                category: isAssignment ? (assignmentOrLocation as Assignment).category : undefined,
-                categories: isAssignment ? undefined : categories,
+                categoryId: isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined,
+                categoryIds: isAssignment ? undefined : locationCategoryIds,
             })
             .then(() => {
                 context.admin.getAllLocations.invalidate();
@@ -170,15 +181,15 @@ const AdminCard = (props: AdminCardProps) => {
             });
     };
 
-    const handleAssignmentCategoryChange = async (category: Category | undefined) => {
-        setAssignmentCategory(category);
+    const handleAssignmentCategoryChange = async (categoryId: number) => {
+        setAssignmentCategoryId(categoryId);
         await editMutation
             .mutateAsync({
                 id: assignmentOrLocation.id,
                 name: assignmentOrLocation.name,
                 isActive: isActive,
                 isHidden: isHidden,
-                category: category,
+                categoryId: categoryId,
             })
             .then(() => {
                 context.admin.getAllLocations.invalidate();
@@ -196,15 +207,15 @@ const AdminCard = (props: AdminCardProps) => {
             });
     };
 
-    const handleLocationCategoriesChange = async (categories: Category[]) => {
-        setLocationCategories(categories);
+    const handleLocationCategoriesChange = async (categoryIds: number[]) => {
+        setLocationCategoryIds(categoryIds);
         await editMutation
             .mutateAsync({
                 id: assignmentOrLocation.id,
                 name: assignmentOrLocation.name,
                 isActive: isActive,
                 isHidden: isHidden,
-                categories: categories,
+                categoryIds: categoryIds,
             })
             .then(() => {
                 context.admin.getAllLocations.invalidate();
@@ -221,11 +232,6 @@ const AdminCard = (props: AdminCardProps) => {
                 });
             });
     };
-
-    const categories = Object.values(Category).map((category: Category) => ({
-        label: uppercaseFirstLetter(category.toString()),
-        value: category,
-    }));
 
     if (!isActive && isHidden && !isHiddenVisible) {
         return null;
@@ -264,23 +270,22 @@ const AdminCard = (props: AdminCardProps) => {
                         ml={3}
                         isChecked={isActive}
                     />
-
+                    {/*uppercaseFirstLetter(allCategories?.find((category) => category.id === assignmentCategoryId).name)*/}
                     <FormControl w={isAssignment ? "30%" : "50%"} ml={2}>
                         {isAssignment ?
-                            <Select options={categories} value={assignmentCategory !== undefined ? {label: uppercaseFirstLetter(assignmentCategory.toString()), value: assignmentCategory} : {label: "", value: ""}}
-                                    onChange={(newValue: SingleValue<{
-                                        label: string | undefined,
-                                        value: Category | undefined
-                                    }>) => handleAssignmentCategoryChange(newValue?.value)}/>
+                            <Select
+                                options={allCategories?.map((category) => ({label: category.name, value: category.id}))}
+                                value={assignmentCategoryId !== undefined
+                                    ? {label: allCategories?.find((category) => category.id === assignmentCategoryId)?.name, value: assignmentCategoryId}
+                                    : {label: "", value: -1}}
+                                onChange={(newValue: SingleValue<{ label: string | undefined, value: number }>) => handleAssignmentCategoryChange(newValue?.value ?? -1)}/>
                             : <Select
                                 isMulti
-                                options={categories.filter((category) => category.value !== Category.NONE )}
-                                value={locationCategories?.map((locationCategory: Category) => {
-                                    return {value: locationCategory, label: uppercaseFirstLetter(locationCategory.toString())}
-                                })}
+                                options={allCategories?.map((category) => ({label: category.name, value: category.id}))}
+                                value={allCategories?.filter((category) => locationCategoryIds?.includes(category.id))?.map((category) => ({value: category.id, label: category.name}))}
                                 onChange={(newValue: MultiValue<{
                                     label: string,
-                                    value: Category
+                                    value: number
                                 }>) => handleLocationCategoriesChange(newValue.map((item) => item.value))}/>
                         }
                     </FormControl>
