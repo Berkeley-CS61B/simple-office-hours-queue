@@ -345,15 +345,23 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               allCategories.length > 0 ? (
                 <Tooltip
                   hasArrow
-                  label={`${
-                    allCategories.find(
-                      (category) => category.id === assignment.categoryId,
-                    )?.name ?? ""
-                  } tickets are limited to ${joinArrayAsString(
-                    locationOptions.map(
-                      (locationOption) => locationOption.value,
-                    ),
-                  )}.`}
+                  label={
+                    locationOptions.length === 0
+                      ? `There are no rooms that can take ${
+                          allCategories.find(
+                            (category) => category.id === assignment.categoryId,
+                          )?.name ?? ""
+                        } tickets.`
+                      : `${
+                          allCategories.find(
+                            (category) => category.id === assignment.categoryId,
+                          )?.name ?? ""
+                        } tickets are limited to ${joinArrayAsString(
+                          locationOptions.map(
+                            (locationOption) => locationOption.value,
+                          ),
+                        )}.`
+                  }
                   bg="gray.300"
                   color="black"
                 >
