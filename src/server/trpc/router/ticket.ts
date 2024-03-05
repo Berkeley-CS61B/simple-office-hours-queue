@@ -1,5 +1,5 @@
 import {
-  Assignment, Category,
+  Assignment,
   ChatMessage,
   Location,
   SiteSettings,

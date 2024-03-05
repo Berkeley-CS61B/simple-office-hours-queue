@@ -1,10 +1,19 @@
-import {Box, Button, Checkbox, Flex, FormControl, Input, Text, Tooltip, useToast,} from "@chakra-ui/react";
-import {Assignment, Category, Location} from "@prisma/client";
-import {useState} from "react";
-import {trpc} from "../../utils/trpc";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Flex,
+  FormControl,
+  Input,
+  Text,
+  Tooltip,
+  useToast,
+} from "@chakra-ui/react";
+import { Assignment, Category, Location } from "@prisma/client";
+import { CreatableSelect } from "chakra-react-select";
+import { useState } from "react";
+import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
-import {CreatableSelect} from "chakra-react-select";
-import {GetResult} from "@prisma/client/runtime/library";
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
@@ -30,7 +39,6 @@ const AdminList = (props: AdminListProps) => {
   const [locationCategoryIds, setLocationCategoryIds] = useState<number[]>();
   const [allCategories, setAllCategories] = useState<Category[]>();
 
-
   const toast = useToast();
 
   const createAssignmentMutation = trpc.admin.createAssignment.useMutation();
@@ -41,67 +49,75 @@ const AdminList = (props: AdminListProps) => {
 
   const numVisible = assignmentsOrLocations.filter((a) => !a?.isHidden).length;
 
-  const {refetch} = trpc.admin.getAllCategories.useQuery(undefined, {
+  const { refetch } = trpc.admin.getAllCategories.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       setAllCategories(data);
     },
-  })
+  });
 
   const handleCreateAssignment = async () => {
     // if (assignmentCategory !== undefined) {
-      const data = await createAssignmentMutation
-          .mutateAsync({
+    const data = await createAssignmentMutation
+      .mutateAsync({
         name: createText,
         isPriority: isPriorityChecked,
         categoryId: assignmentCategoryId,
-      }).then().catch(err => toast({
-        title: 'Error',
-        description: err.message,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-        position: 'top-right',
       })
-    );
-      setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
-    };
+      .then()
+      .catch((err) =>
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        }),
+      );
+    setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+  };
   // };
 
   const handleCreateCategory = async (categoryName: string) => {
     await createCategoryMutation
-        .mutateAsync({
-          name: categoryName,
-        }).then(() => refetch()).catch(err => toast({
-              title: 'Error',
-              description: err.message,
-              status: 'error',
-              duration: 3000,
-              isClosable: true,
-              position: 'top-right',
-            })
-        );
-  }
+      .mutateAsync({
+        name: categoryName,
+      })
+      .then(() => refetch())
+      .catch((err) =>
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        }),
+      );
+  };
 
   const handleCreateLocation = async () => {
     if (locationCategoryIds !== undefined) {
-      const data = await createLocationMutation.mutateAsync({
-        name: createText ,
-        categoryIds: locationCategoryIds,
-      }).then().catch(err => toast({
-            title: 'Error',
+      const data = await createLocationMutation
+        .mutateAsync({
+          name: createText,
+          categoryIds: locationCategoryIds,
+        })
+        .then()
+        .catch((err) =>
+          toast({
+            title: "Error",
             description: err.message,
-            status: 'error',
+            status: "error",
             duration: 3000,
             isClosable: true,
-            position: 'top-right',
-          })
-      );
+            position: "top-right",
+          }),
+        );
       setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
     }
   };
-
-
 
   const handleCreate = () => {
     if (createText.length === 0) {
@@ -144,29 +160,39 @@ const AdminList = (props: AdminListProps) => {
               placeholder={isAssignment ? "Gitlet" : "Woz"}
             />
             <FormControl ml={2} w="50%">
-            {isAssignment ?
+              {isAssignment ? (
                 <CreatableSelect
-                    options={allCategories?.map((category) => ({label: category.name, value: category.id}))}
-                    onChange={(newValue) => setAssignmentCategoryId(newValue?.value)}
-                    onCreateOption={(categoryName) => {
-                      handleCreateCategory(categoryName)
-                          // .then(data => {setAssignmentCategoryId(data?.id);})
-                    }}
-                    // value={{value: assignmentCategoryId, label: allCategories?.find((category) => category.id === assignmentCategoryId)?.name}}
-
+                  options={allCategories?.map((category) => ({
+                    label: category.name,
+                    value: category.id,
+                  }))}
+                  onChange={(newValue) =>
+                    setAssignmentCategoryId(newValue?.value)
+                  }
+                  onCreateOption={(categoryName) => {
+                    handleCreateCategory(categoryName);
+                    // .then(data => {setAssignmentCategoryId(data?.id);})
+                  }}
+                  // value={{value: assignmentCategoryId, label: allCategories?.find((category) => category.id === assignmentCategoryId)?.name}}
                 />
-                :
+              ) : (
                 <CreatableSelect
-                    isMulti
-                    options={allCategories?.map((category) => ({label: category.name, value: category.id}))}
-                    onChange={(newValue) => {setLocationCategoryIds(newValue.map((item) => item.value))}}
-                    onCreateOption={(categoryName) => {
-                      handleCreateCategory(categoryName);
-                          // .then(data => {setAssignmentCategoryId(data?.id);})
-                    }}
-                />}
+                  isMulti
+                  options={allCategories?.map((category) => ({
+                    label: category.name,
+                    value: category.id,
+                  }))}
+                  onChange={(newValue) => {
+                    setLocationCategoryIds(newValue.map((item) => item.value));
+                  }}
+                  onCreateOption={(categoryName) => {
+                    handleCreateCategory(categoryName);
+                    // .then(data => {setAssignmentCategoryId(data?.id);})
+                  }}
+                />
+              )}
             </FormControl>
-              <Flex flexDirection="row">
+            <Flex flexDirection="row">
               <Checkbox
                 hidden={!isAssignment}
                 onChange={handlePriorityChange}
