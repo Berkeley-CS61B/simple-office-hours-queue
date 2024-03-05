@@ -130,24 +130,23 @@ model Assignment {
   isHidden   Boolean    @default(false)
   isPriority Boolean    @default(false)
   Ticket     Ticket[]
-  locations  Location[]
-  // category   Category   @relation(fields: [categoryId], references: [id])
-  category   Category  @default(NONE)
-  // categoryId Int
+  category   Category   @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
   @@index(id)
-  // @@index([categoryId])
+  @@index(categoryId)
 }
 
-// model Category {
-//   id          Int                @id @default(autoincrement())
-//   type        AssignmentCategory
-//   createdAt   DateTime           @default(now())
-//   updatedAt   DateTime           @default(now()) @updatedAt
-//   assignments Assignment[]
-//   locations   Location[]
-//
-//   @@index(id)
-// }
+model Category {
+  id               Int                @id @default(autoincrement())
+  name String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @default(now()) @updatedAt
+  assignments      Assignment[]
+  locations        Location[]
+
+  @@index(id)
+}
 
 model Location {
   id          Int                @id @default(autoincrement())
@@ -157,22 +156,21 @@ model Location {
   isActive    Boolean            @default(true)
   isHidden    Boolean            @default(false)
   Ticket      Ticket[]
-  assignments Assignment[]
-  isLabOnly   Boolean            @default(false)
-  categories  LocationCategory[]
+  categories  Category[]
 
   @@index(id)
 }
 
-model LocationCategory {
-  id         Int      @id @default(autoincrement())
-  location   Location @relation(fields: [locationId], references: [id])
-  category   Category
-  locationId Int
-
-  @@index(id)
-  @@index([locationId])
-}
+// model LocationCategory {
+//   id         Int      @id @default(autoincrement())
+//   location   Location @relation(fields: [locationId], references: [id])
+//   category   Category @relation(fields: [categoryId], references: [id])
+//   locationId Int
+//   categoryId Int
+//
+//   @@index(id)
+//   @@index([locationId])
+// }
 
 model PersonalQueue {
   name             String   @id
@@ -250,12 +248,12 @@ enum VariableSiteSettings {
   EMAIL_DOMAIN
 }
 
-enum Category {
-  LAB
-  PROJECT
-  HOMEWORK
-  SETUP
-  ADMIN
-  OTHER
-  NONE
-}
+// enum Category {
+//   LAB
+//   PROJECT
+//   HOMEWORK
+//   SETUP
+//   ADMIN
+//   OTHER
+//   NONE
+// }
