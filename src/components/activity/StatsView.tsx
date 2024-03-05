@@ -145,7 +145,7 @@ const StatsView = () => {
     isFetching: isFetchingPersonalStats,
     fetchNextPage: fetchNextPersonalStatsPage,
     hasNextPage: personalStatsHasNextPage,
-  } = trpc.stats.getInfiniteTicketStats.useInfiniteQuery(
+  } = trpc.stats.getInfiniteTicketStatsHelpedByUser.useInfiniteQuery(
     { limit: 10000 },
     {
       refetchOnWindowFocus: false,

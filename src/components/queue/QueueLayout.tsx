@@ -38,6 +38,8 @@ const QueueLayout = (props: QueueLayoutProps) => {
 
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>();
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
+  const [arePublicTicketsEnabled, setArePublicTicketsEnabled] =
+    useState<boolean>();
   const changeUserRoleMutation = trpc.user.updateUserRole.useMutation();
   const { siteSettings } = useSiteSettings();
 
@@ -71,6 +73,10 @@ const QueueLayout = (props: QueueLayoutProps) => {
         siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) ===
           SiteSettingsValues.TRUE,
       );
+      setArePublicTicketsEnabled(
+        siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) ===
+          SiteSettingsValues.TRUE,
+      );
     }
   }, [siteSettings]);
 
@@ -90,7 +96,11 @@ const QueueLayout = (props: QueueLayoutProps) => {
     }
   });
 
-  if (isQueueOpen === undefined || isPendingStageEnabled === undefined) {
+  if (
+    isQueueOpen === undefined ||
+    isPendingStageEnabled === undefined ||
+    arePublicTicketsEnabled === undefined
+  ) {
     return <Spinner />;
   }
 
@@ -135,6 +145,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
         userId={userId}
         userRole={userRole}
         isPendingStageEnabled={isPendingStageEnabled}
+        arePublicTicketsEnabled={arePublicTicketsEnabled}
         isQueueOpen={isQueueOpen}
         personalQueue={personalQueue}
       />

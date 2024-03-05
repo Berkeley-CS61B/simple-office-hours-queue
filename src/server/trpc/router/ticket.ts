@@ -9,6 +9,7 @@ import {
   TicketType,
   User,
   UserRole,
+  VariableSiteSettings,
 } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
 import Ably from "ably/promises";
@@ -119,6 +120,27 @@ export const ticketRouter = router({
 
       // If a ticket is made with a priority assigment, it's a priority ticket
       const isPriority = assignment?.isPriority;
+
+      // Check if the user has made a ticket within the cooldown period
+      const cooldownTimeResult = await ctx.prisma.variableSettings.findUnique({
+        where: { setting: VariableSiteSettings.COOLDOWN_TIME },
+      });
+
+      // in minutes
+      const cooldownTime = parseInt(cooldownTimeResult?.value ?? "0");
+
+      const lastTicket = await ctx.prisma.ticket.findFirst({
+        where: {
+          createdByUserId: ctx.session.user.id,
+          resolvedAt: {
+            gte: new Date(Date.now() - cooldownTime * 60 * 1000),
+          },
+        },
+      });
+
+      if (lastTicket && ctx.session.user.role !== UserRole.STAFF) {
+        return;
+      }
 
       const ticket = await ctx.prisma.ticket.create({
         data: {
@@ -713,6 +735,42 @@ export const ticketRouter = router({
 
       return ticketsWithNames[0];
     }),
+
+  getUserCooldownTime: protectedProcedure.query(async ({ ctx }) => {
+    // If there is a cooldown timer and the user is a student, return how long the student
+    // has to wait before making another ticket. The wait time is returned in milliseconds and is
+    // calculated by (lastTicketResolvedAt + cooldownTime) - Date.now()
+    if (ctx.session.user.role !== UserRole.STUDENT) {
+      return null;
+    }
+
+    const cooldownTimeResult = await ctx.prisma.variableSettings.findUnique({
+      where: { setting: VariableSiteSettings.COOLDOWN_TIME },
+    });
+
+    const cooldownTime = parseInt(cooldownTimeResult?.value ?? "0");
+
+    if (!cooldownTime) {
+      return null;
+    }
+
+    const lastTicket = await ctx.prisma.ticket.findFirst({
+      where: {
+        createdByUserId: ctx.session.user.id,
+        resolvedAt: {
+          gte: new Date(Date.now() - cooldownTime * 60 * 1000),
+        },
+      },
+    });
+
+    if (!lastTicket || !lastTicket.resolvedAt) {
+      return null;
+    }
+
+    return (
+      lastTicket.resolvedAt.getTime() + cooldownTime * 60 * 1000 - Date.now()
+    );
+  }),
 
   getTicketsWithStatus: protectedProcedure
     .input(

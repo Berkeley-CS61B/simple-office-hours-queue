@@ -246,6 +246,7 @@ enum SiteSettingsValues {
 
 enum VariableSiteSettings {
   EMAIL_DOMAIN
+  COOLDOWN_TIME // In minutes
 }
 
 // enum Category {

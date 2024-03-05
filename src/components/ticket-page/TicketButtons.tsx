@@ -292,7 +292,7 @@ const TicketButtons = (props: TicketCardProps) => {
         m={4}
         mt={[1, 1, 1, 4]}
         onClick={handleCloseTicket}
-        hidden={isResolved || isClosed || ((isStaff || isIntern) && isAssigned)}
+        hidden={isResolved || isClosed || isAssigned}
         colorScheme="red"
       >
         Delete

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import useSiteSettings from "../../utils/hooks/useSiteSettings";
 import { trpc } from "../../utils/trpc";
 import AdminList from "./AdminList";
+import CoolDownTimer from "./CooldownTimer";
 import ImportUsersMethod from "./ImportUsersMethod";
 
 /**
@@ -108,7 +109,9 @@ const AdminView = () => {
         </Flex>
       </Flex>
 
-      <Divider />
+      <CoolDownTimer />
+
+      <Divider mt={2} />
 
       <ImportUsersMethod />
     </Flex>
