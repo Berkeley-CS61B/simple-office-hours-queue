@@ -14,6 +14,7 @@ import { CreatableSelect } from "chakra-react-select";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
+import {GetResult} from "@prisma/client/runtime/library";
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
@@ -75,7 +76,9 @@ const AdminList = (props: AdminListProps) => {
           position: "top-right",
         }),
       );
-    setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+
+
+    setAssignmentsOrLocations((prev) => [...(prev ?? []), data as Assignment]);
   };
   // };
 
@@ -115,7 +118,7 @@ const AdminList = (props: AdminListProps) => {
             position: "top-right",
           }),
         );
-      setAssignmentsOrLocations((prev) => [...(prev ?? []), data]);
+      setAssignmentsOrLocations((prev) => [...(prev ?? []), data as Location]);
     }
   };
 
