@@ -45,7 +45,6 @@ export const adminRouter = router({
           categories: {
             connect: input.categoryIds.map((id) => ({ id })),
           },
-          // create: input.category.map((categories) => ({category: category})) //[{category: Category.ADMIN}, {category: Category.LAB}]
         },
       });
     }),
@@ -62,15 +61,6 @@ export const adminRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const existingAssignment = await ctx.prisma.assignment.findUnique({
-        where: { id: input.id },
-        select: { category: { select: { id: true } } }, // Fetch existing category ID
-      });
-
-      // const connect = existingAssignment?.category.id
-      //     ? {disconnect: {id: existingAssignment.category.id}, connect: {id: input.categoryId}}
-      //     : {connect: {id: input.categoryId}};
-
       return ctx.prisma.assignment.update({
         where: {
           id: input.id,
@@ -110,7 +100,7 @@ export const adminRouter = router({
     .mutation(async ({ input, ctx }) => {
       const existingLocation = await ctx.prisma.location.findUnique({
         where: { id: input.id },
-        select: { categories: { select: { id: true } } }, // Fetch existing category ID
+        select: { categories: { select: { id: true } } },
       });
 
       const categoriesToDisconnect = existingLocation

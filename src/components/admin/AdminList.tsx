@@ -14,16 +14,11 @@ import { CreatableSelect } from "chakra-react-select";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
-import {GetResult} from "@prisma/client/runtime/library";
 
 interface AdminListProps {
   assignmentsOrLocationsProps: Assignment[] | Location[];
   isAssignment: boolean;
 }
-
-// interface Category {
-//   id: number;
-// }
 
 /**
  * Component for displaying a list of assignments/location
@@ -58,7 +53,6 @@ const AdminList = (props: AdminListProps) => {
   });
 
   const handleCreateAssignment = async () => {
-    // if (assignmentCategory !== undefined) {
     const data = await createAssignmentMutation
       .mutateAsync({
         name: createText,
@@ -76,11 +70,8 @@ const AdminList = (props: AdminListProps) => {
           position: "top-right",
         }),
       );
-
-
     setAssignmentsOrLocations((prev) => [...(prev ?? []), data as Assignment]);
   };
-  // };
 
   const handleCreateCategory = async (categoryName: string) => {
     await createCategoryMutation
@@ -174,9 +165,7 @@ const AdminList = (props: AdminListProps) => {
                   }
                   onCreateOption={(categoryName) => {
                     handleCreateCategory(categoryName);
-                    // .then(data => {setAssignmentCategoryId(data?.id);})
                   }}
-                  // value={{value: assignmentCategoryId, label: allCategories?.find((category) => category.id === assignmentCategoryId)?.name}}
                 />
               ) : (
                 <CreatableSelect
@@ -190,7 +179,6 @@ const AdminList = (props: AdminListProps) => {
                   }}
                   onCreateOption={(categoryName) => {
                     handleCreateCategory(categoryName);
-                    // .then(data => {setAssignmentCategoryId(data?.id);})
                   }}
                 />
               )}

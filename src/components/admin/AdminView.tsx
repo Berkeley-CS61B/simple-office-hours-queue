@@ -21,7 +21,6 @@ const AdminView = () => {
     useState<boolean>();
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
-  // const [categories, setCategories] = useState<Category[]>();
 
   const { siteSettings } = useSiteSettings();
 

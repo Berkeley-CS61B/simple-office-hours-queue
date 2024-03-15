@@ -95,7 +95,6 @@ const AdminCard = (props: AdminCardProps) => {
       refetchOnWindowFocus: false,
       onSuccess: (data) => {
         setLocationCategoryIds(data?.categories.map((category) => category.id));
-        // setLocationCategories(data.map((result) => result.category));
       },
       enabled: !isAssignment,
     },

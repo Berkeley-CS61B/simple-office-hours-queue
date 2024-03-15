@@ -161,17 +161,6 @@ model Location {
   @@index(id)
 }
 
-// model LocationCategory {
-//   id         Int      @id @default(autoincrement())
-//   location   Location @relation(fields: [locationId], references: [id])
-//   category   Category @relation(fields: [categoryId], references: [id])
-//   locationId Int
-//   categoryId Int
-//
-//   @@index(id)
-//   @@index([locationId])
-// }
-
 model PersonalQueue {
   name             String   @id
   createdAt        DateTime @default(now())
@@ -248,13 +237,3 @@ enum VariableSiteSettings {
   EMAIL_DOMAIN
   COOLDOWN_TIME // In minutes
 }
-
-// enum Category {
-//   LAB
-//   PROJECT
-//   HOMEWORK
-//   SETUP
-//   ADMIN
-//   OTHER
-//   NONE
-// }
