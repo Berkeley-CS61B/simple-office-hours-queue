@@ -204,6 +204,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   };
 
   const handleAssignmentChange = (newVal: SingleValue<Assignment>) => {
+    setLocation(undefined); // todo look at this
     setAssignment(newVal ?? undefined);
     refetch();
   };
@@ -290,6 +291,27 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setIsButtonLoading(false);
   };
 
+  const getCategoryTooltipText = (
+    categories: Category[],
+    assignment: Assignment,
+  ) => {
+    const category = categories.find(
+      (category) => category.id === assignment.categoryId,
+    );
+    if (category === undefined) {
+      return "This assignment can be taken in any room.";
+    }
+
+    if (locationOptions.length === 0) {
+      return `There are no rooms that can take ${category.name} tickets.`;
+    }
+
+    return `${category.name} tickets are limited to 
+    ${joinArrayAsString(
+      locationOptions.map((locationOption) => locationOption.value),
+    )}.`;
+  };
+
   return (
     <Box
       p={8}
@@ -339,44 +361,25 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
 
           <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
             <HStack>
-              <FormLabel>Location</FormLabel>
-              {assignment !== undefined &&
-              allCategories !== undefined &&
-              allCategories.length > 0 ? (
+              <FormLabel margin={0}>Location</FormLabel>
+              {allCategories !== undefined && assignment !== undefined && (
                 <Tooltip
+                  hidden={allCategories.length === 0}
                   hasArrow
-                  label={
-                    locationOptions.length === 0
-                      ? `There are no rooms that can take ${
-                          allCategories.find(
-                            (category) => category.id === assignment.categoryId,
-                          )?.name ?? ""
-                        } tickets.`
-                      : `${
-                          allCategories.find(
-                            (category) => category.id === assignment.categoryId,
-                          )?.name ?? ""
-                        } tickets are limited to ${joinArrayAsString(
-                          locationOptions.map(
-                            (locationOption) => locationOption.value,
-                          ),
-                        )}.`
-                  }
+                  label={getCategoryTooltipText(allCategories, assignment)}
                   bg="gray.300"
                   color="black"
                 >
                   <InfoIcon mr={1} mb={1} />
                 </Tooltip>
-              ) : (
-                <></>
               )}
-              <FormControl width="30%">
+              <Box width="30%">
                 <Select
                   value={location}
                   onChange={(val) => setLocation(val ?? undefined)}
                   options={locationOptions}
                 />
-              </FormControl>
+              </Box>
             </HStack>
           </FormControl>
           <FormControl

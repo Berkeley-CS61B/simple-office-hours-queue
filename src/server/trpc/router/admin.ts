@@ -415,7 +415,7 @@ export const adminRouter = router({
       });
     }),
 
-  getAllCategories: protectedStaffProcedure.query(async ({ ctx }) => {
+  getAllCategories: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.category.findMany();
   }),
 
