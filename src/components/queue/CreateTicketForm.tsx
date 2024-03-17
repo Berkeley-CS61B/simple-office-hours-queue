@@ -375,7 +375,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               )}
               <Box width="30%">
                 <Select
-                  value={location}
+                  value={location === undefined ? null : location}
                   onChange={(val) => setLocation(val ?? undefined)}
                   options={locationOptions}
                 />
