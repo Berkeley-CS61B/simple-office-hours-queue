@@ -2,8 +2,19 @@ import { SiteSettings, SiteSettingsValues } from "@prisma/client";
 import { TicketStats } from "../server/trpc/router/stats";
 import { TicketWithNames } from "../server/trpc/router/ticket";
 
-export const uppercaseFirstLetter = (str: string) => {
+export const uppercaseFirstLetter = (str: string | undefined) => {
+  if (str === undefined) {
+    return "";
+  }
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+// Taken from https://stackoverflow.com/questions/53879088/join-an-array-by-commas-and-and
+export const joinArrayAsString = (arr: string[]) => {
+  if (arr.length === 1) return arr[0];
+  const firsts = arr.slice(0, arr.length - 1);
+  const last = arr[arr.length - 1];
+  return `${firsts.join(", ")} and ${last}`;
 };
 
 // Maps settings to their default value
@@ -125,7 +136,6 @@ export type ImportUsersMethodPossiblitiesType =
   | "IMPORT_STAFF"
   | "IMPORT_STAFF_AND_STUDENTS";
 
-// I don't think there's a way to include this enum in the SiteSettingsValues enum
 export const ImportNumberPossibilities = {
   SINGLE_IMPORT: "SINGLE_IMPORT" as const,
   BATCH_IMPORT: "BATCH_IMPORT" as const,

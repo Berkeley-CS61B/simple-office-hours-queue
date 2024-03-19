@@ -19,6 +19,7 @@ export const adminRouter = router({
       z.object({
         name: z.string(),
         isPriority: z.boolean(),
+        categoryId: z.number().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -26,16 +27,24 @@ export const adminRouter = router({
         data: {
           name: input.name,
           isPriority: input.isPriority,
+          category: {
+            connect: {
+              id: input.categoryId,
+            },
+          },
         },
       });
     }),
 
   createLocation: protectedStaffProcedure
-    .input(z.object({ name: z.string() }))
+    .input(z.object({ name: z.string(), categoryIds: z.array(z.number()) }))
     .mutation(async ({ input, ctx }) => {
       return ctx.prisma.location.create({
         data: {
           name: input.name,
+          categories: {
+            connect: input.categoryIds.map((id) => ({ id })),
+          },
         },
       });
     }),
@@ -48,6 +57,7 @@ export const adminRouter = router({
         isActive: z.boolean(),
         isHidden: z.boolean(),
         isPriority: z.boolean().optional(),
+        categoryId: z.number(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -57,11 +67,22 @@ export const adminRouter = router({
         },
         data: {
           name: input.name,
+          category: { connect: { id: input.categoryId } },
           isActive: input.isActive,
           isHidden: input.isHidden,
           ...(input.isPriority !== undefined && {
             isPriority: input.isPriority,
           }),
+        },
+      });
+    }),
+
+  createCategory: protectedStaffProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.category.create({
+        data: {
+          name: input.name,
         },
       });
     }),
@@ -73,9 +94,21 @@ export const adminRouter = router({
         name: z.string(),
         isActive: z.boolean(),
         isHidden: z.boolean(),
+        categoryIds: z.array(z.number()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const existingLocation = await ctx.prisma.location.findUnique({
+        where: { id: input.id },
+        select: { categories: { select: { id: true } } },
+      });
+
+      const categoriesToDisconnect = existingLocation
+        ? existingLocation.categories
+            .map((category) => category.id)
+            .filter((id) => !input.categoryIds.includes(id))
+        : [];
+
       return ctx.prisma.location.update({
         where: {
           id: input.id,
@@ -84,6 +117,10 @@ export const adminRouter = router({
           name: input.name,
           isActive: input.isActive,
           isHidden: input.isHidden,
+          categories: {
+            disconnect: categoriesToDisconnect.map((id) => ({ id })),
+            connect: input.categoryIds.map((id) => ({ id })),
+          },
         },
       });
     }),
@@ -328,20 +365,58 @@ export const adminRouter = router({
     return ctx.prisma.location.findMany();
   }),
 
-  getActiveAssignments: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.assignment.findMany({
-      where: {
-        isActive: true,
-      },
-    });
-  }),
+  getActiveAssignments: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.number().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return ctx.prisma.assignment.findMany({
+        where: {
+          isActive: true,
+          categoryId: input.categoryId,
+        },
+      });
+    }),
 
-  getActiveLocations: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.location.findMany({
-      where: {
-        isActive: true,
-      },
-    });
+  getActiveLocations: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.number().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return ctx.prisma.location.findMany({
+        where: {
+          isActive: true,
+          categories: {
+            some: {
+              id: input.categoryId,
+            },
+          },
+        },
+      });
+    }),
+
+  getCategoriesForLocation: protectedProcedure
+    .input(
+      z.object({
+        locationId: z.number().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.location.findUnique({
+        where: { id: input.locationId },
+        include: {
+          categories: true,
+        },
+        // filter by locationId here
+      });
+    }),
+
+  getAllCategories: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.category.findMany();
   }),
 
   // This is used inside of the useSiteSettings custom hook

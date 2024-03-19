@@ -5,6 +5,7 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  HStack,
   Input,
   Radio,
   RadioGroup,
@@ -14,8 +15,8 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import { PersonalQueue, TicketType } from "@prisma/client";
-import { Select } from "chakra-react-select";
+import { Category, PersonalQueue, TicketType } from "@prisma/client";
+import { Select, SingleValue } from "chakra-react-select";
 import Router from "next/router";
 import { useEffect, useState } from "react";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
@@ -24,13 +25,18 @@ import {
   STARTER_DEBUGGING_TICKET_DESCRIPTION,
 } from "../../utils/constants";
 import { trpc } from "../../utils/trpc";
-import { getTicketUrl, uppercaseFirstLetter } from "../../utils/utils";
+import {
+  getTicketUrl,
+  joinArrayAsString,
+  uppercaseFirstLetter,
+} from "../../utils/utils";
 import ConfirmPublicToggleModal from "../modals/ConfirmPublicToggleModal";
 
 interface Assignment {
   id: number;
   label: string;
   value: string;
+  categoryId?: number | undefined;
 }
 
 interface Location {
@@ -78,6 +84,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           id: existingTicket.assignmentId,
           label: existingTicket.assignmentName,
           value: existingTicket.assignmentName,
+          categoryId: existingTicket.assignmentCategoryId,
         }
       : undefined,
   );
@@ -90,6 +97,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         }
       : undefined,
   );
+  const [allCategories, setAllCategories] = useState<Category[]>();
+
   const toast = useToast();
 
   // When a property of the ticket changes, update the existing ticket if it exists
@@ -119,35 +128,50 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   ]);
 
   const createTicketMutation = trpc.ticket.createTicket.useMutation();
-  trpc.admin.getActiveAssignments.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      setAssignmentOptions(
-        data.map(
-          (assignment) =>
-            ({
-              label: assignment.name,
-              value: assignment.name,
-              id: assignment.id,
-            }) as Assignment,
-        ),
-      );
-    },
-  });
 
-  trpc.admin.getActiveLocations.useQuery(undefined, {
+  trpc.admin.getActiveAssignments.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setAssignmentOptions(
+          data.map(
+            (assignment) =>
+              ({
+                label: assignment.name,
+                value: assignment.name,
+                id: assignment.id,
+                categoryId: assignment.categoryId,
+              }) as Assignment,
+          ),
+        );
+      },
+    },
+  );
+
+  const { refetch } = trpc.admin.getActiveLocations.useQuery(
+    { categoryId: assignment?.categoryId },
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setLocationOptions(
+          data.map(
+            (location) =>
+              ({
+                label: location.name,
+                value: location.name,
+                id: location.id,
+              }) as Location,
+          ),
+        );
+      },
+    },
+  );
+
+  trpc.admin.getAllCategories.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
-      setLocationOptions(
-        data.map(
-          (location) =>
-            ({
-              label: location.name,
-              value: location.name,
-              id: location.id,
-            }) as Location,
-        ),
-      );
+      setAllCategories(data);
     },
   });
 
@@ -177,6 +201,12 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       return;
     }
     setIsPublic(!isPublic);
+  };
+
+  const handleAssignmentChange = (newVal: SingleValue<Assignment>) => {
+    setLocation(undefined); // todo look at this
+    setAssignment(newVal ?? undefined);
+    refetch();
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -261,6 +291,27 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setIsButtonLoading(false);
   };
 
+  const getCategoryTooltipText = (
+    categories: Category[],
+    assignment: Assignment,
+  ) => {
+    const category = categories.find(
+      (category) => category.id === assignment.categoryId,
+    );
+    if (category === undefined) {
+      return "This assignment can be taken in any room.";
+    }
+
+    if (locationOptions.length === 0) {
+      return `There are no rooms that can take ${category.name} tickets.`;
+    }
+
+    return `${category.name} tickets are limited to 
+    ${joinArrayAsString(
+      locationOptions.map((locationOption) => locationOption.value),
+    )}.`;
+  };
+
   return (
     <Box
       p={8}
@@ -299,23 +350,43 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={1000}
             />
           </FormControl>
-          <FormControl mt={6} isRequired>
+          <FormControl mt={6} isRequired isDisabled={ticketType === undefined}>
             <FormLabel>Assignment</FormLabel>
             <Select
               value={assignment}
-              onChange={(val) => setAssignment(val ?? undefined)}
+              onChange={handleAssignmentChange}
               options={assignmentOptions}
             />
           </FormControl>
-          <FormControl mt={6} isRequired>
-            <FormLabel>Location</FormLabel>
-            <Select
-              value={location}
-              onChange={(val) => setLocation(val ?? undefined)}
-              options={locationOptions}
-            />
+
+          <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
+            <HStack>
+              <FormLabel margin={0}>Location</FormLabel>
+              {allCategories !== undefined && assignment !== undefined && (
+                <Tooltip
+                  hidden={allCategories.length === 0}
+                  hasArrow
+                  label={getCategoryTooltipText(allCategories, assignment)}
+                  bg="gray.300"
+                  color="black"
+                >
+                  <InfoIcon mr={1} mb={1} />
+                </Tooltip>
+              )}
+              <Box width="30%">
+                <Select
+                  value={location === undefined ? null : location}
+                  onChange={(val) => setLocation(val ?? undefined)}
+                  options={locationOptions}
+                />
+              </Box>
+            </HStack>
           </FormControl>
-          <FormControl mt={6} isRequired={isPublic}>
+          <FormControl
+            mt={6}
+            isRequired={isPublic}
+            isDisabled={location === undefined}
+          >
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}
@@ -338,7 +409,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               Public
               <Tooltip
                 hasArrow
-                label="Public tickets can be joined by other students. This is great for group work 
+                label="Public tickets can be joined by other students. This is great for group work
                or conceptual questions! If your ticket is public, we are more likely to 
                help you for a longer time."
                 bg="gray.300"

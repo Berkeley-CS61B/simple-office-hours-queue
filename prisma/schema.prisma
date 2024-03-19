@@ -130,18 +130,33 @@ model Assignment {
   isHidden   Boolean  @default(false)
   isPriority Boolean  @default(false)
   Ticket     Ticket[]
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int      @default(1)
+
+  @@index(id)
+  @@index(categoryId)
+}
+
+model Category {
+  id          Int          @id @default(autoincrement())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  assignments Assignment[]
+  locations   Location[]
 
   @@index(id)
 }
 
 model Location {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isActive  Boolean  @default(true)
-  isHidden  Boolean  @default(false)
-  Ticket    Ticket[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+  isActive   Boolean    @default(true)
+  isHidden   Boolean    @default(false)
+  Ticket     Ticket[]
+  categories Category[]
 
   @@index(id)
 }
