@@ -1,4 +1,4 @@
-export const COURSE_ID = "CS61B";
+export const COURSE_ID = process.env.NEXT_PUBLIC_COURSE_ID;
 
 export const EMAIL_REGEX =
   /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
