@@ -21,6 +21,7 @@ export const serverSchema = z.object({
  */
 export const clientSchema = z.object({
   NEXT_PUBLIC_ABLY_CLIENT_API_KEY: z.string(),
+  NEXT_PUBLIC_COURSE_ID: z.string()
 });
 
 /**
