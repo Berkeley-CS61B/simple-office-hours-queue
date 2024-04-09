@@ -32,4 +32,5 @@ export const clientSchema = z.object({
  */
 export const clientEnv = {
   NEXT_PUBLIC_ABLY_CLIENT_API_KEY: process.env.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
+  NEXT_PUBLIC_COURSE_ID: process.env.NEXT_PUBLIC_COURSE_ID,
 };
