@@ -23,7 +23,7 @@ const useNotification = () => {
     );
     // Play a sound when the notification is shown
     const audio = new Audio(
-      "http://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3",
+      "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3",
     );
     audio.play();
 
