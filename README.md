@@ -69,11 +69,11 @@ Note that if you are using an M1 Mac, you may need to change the docker image in
 
 
 
-For the production environment, the free tier of <a href="https://planetscale.com">Planetscale</a> is very nice.
+For the production environment, you can self-host a database or consider a hosted provider such as Planetscale, Aiven, AWS RDS, etc.
 
-1. Create a new database on <a target="_blank" href="https://planetscale.com">Planetscale</a>.
+1. Create a new database on your platform.
 
-2. Copy the database URL and paste it into the `DATABASE_URL` variable in the `.env` file. You can find this link by clicking on the database name and then clicking on the `Connect` button and select `Connect with Prisma`.
+2. Copy the database URL and paste it into the `DATABASE_URL` variable in the `.env` file.
 
 </details>
 
