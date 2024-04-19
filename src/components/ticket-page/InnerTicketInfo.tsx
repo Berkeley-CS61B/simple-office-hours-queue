@@ -46,7 +46,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { showNotification } = useNotification();
 
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
-  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const closeTicketsMutation = trpc.ticket.closeTickets.useMutation();
   const editTicketMutation = trpc.ticket.editTicket.useMutation();
 
   const isResolved = ticket.status === TicketStatus.RESOLVED;
@@ -155,7 +155,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const handleCloseTicket = async () => {
     if (!isClosed) {
-      await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+      await closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
     }
   };
 

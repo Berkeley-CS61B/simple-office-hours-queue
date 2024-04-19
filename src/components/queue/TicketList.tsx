@@ -33,7 +33,7 @@ const TicketList = (props: TicketListProps) => {
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
-  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const closeTicketsMutation = trpc.ticket.closeTickets.useMutation();
   const [parent]: [RefObject<HTMLDivElement>, (enabled: boolean) => void] =
     useAutoAnimate();
 
@@ -94,11 +94,10 @@ const TicketList = (props: TicketListProps) => {
     });
   };
 
-
   const handleCloseTickets = async (tickets: TicketWithNames[]) => {
-    for (const ticket of tickets) {
-      await closeTicketMutation.mutateAsync({ticketId: ticket.id})
-    }
+    await closeTicketsMutation.mutateAsync({
+      ticketIds: tickets.map((ticket) => ticket.id),
+    });
   };
 
   const handleAllText = () => {
@@ -215,9 +214,7 @@ const TicketList = (props: TicketListProps) => {
             alignSelf="flex-end"
             onClick={() => setIsCloseModalOpen(true)}
           >
-            {`Close all ${
-              displayedTickets.length
-            } displayed`}
+            {`Close all ${displayedTickets.length} displayed`}
           </Button>
         </Flex>
         <Box ref={parent}>
@@ -234,10 +231,11 @@ const TicketList = (props: TicketListProps) => {
         <HandleAllConfirmationModal
           isModalOpen={isCloseModalOpen}
           setIsModalOpen={setIsCloseModalOpen}
-          handleConfirm={() => {handleCloseTickets(displayedTickets)}}
+          handleConfirm={() => {
+            handleCloseTickets(displayedTickets);
+          }}
           handleAllText="close all"
-        >
-        </HandleAllConfirmationModal>
+        ></HandleAllConfirmationModal>
         <HandleAllConfirmationModal
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
