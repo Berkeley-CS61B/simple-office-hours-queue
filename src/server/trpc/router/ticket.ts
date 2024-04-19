@@ -431,31 +431,33 @@ export const ticketRouter = router({
       //   }
     }),
 
-  closeTicket: protectedProcedure
+  closeTickets: protectedProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketIds: z.array(z.number()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const ticket = await ctx.prisma.ticket.findUnique({
+      const tickets = await ctx.prisma.ticket.findMany({
         where: {
-          id: input.ticketId,
+          id: { in: input.ticketIds },
         },
       });
 
       // We only allow the creator of the ticket to close it
-      if (
-        ticket?.createdByUserId !== ctx.session?.user?.id &&
-        ctx.session?.user?.role !== UserRole.STAFF
-      ) {
-        throw new TRPCClientError(
-          "You are not authorized to close this ticket",
-        );
+      for (const ticket of tickets) {
+        if (
+          ticket?.createdByUserId !== ctx.session?.user?.id &&
+          ctx.session?.user?.role !== UserRole.STAFF
+        ) {
+          throw new TRPCClientError(
+            "You are not authorized to close this ticket",
+          );
+        }
       }
 
-      await ctx.prisma.ticket.update({
-        where: { id: input.ticketId },
+      await ctx.prisma.ticket.updateMany({
+        where: { id: { in: input.ticketIds } },
         data: { status: TicketStatus.CLOSED },
       });
 
@@ -464,8 +466,10 @@ export const ticketRouter = router({
       await channel.publish("ticket-closed", undefined);
 
       // Uses ticket inner page channel
-      const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish("ticket-closed", undefined);
+      for (const id of input.ticketIds) {
+        const innerChannel = ably.channels.get(`ticket-${id}`);
+        await innerChannel.publish("ticket-closed", undefined);
+      }
     }),
 
   requeueTickets: protectedNotStudentProcedure

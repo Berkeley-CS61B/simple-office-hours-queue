@@ -28,10 +28,12 @@ const TicketList = (props: TicketListProps) => {
   const [displayedTickets, setDisplayedTickets] =
     useState<TicketWithNames[]>(initialTickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [filterBy, setFilterBy] = useState("-");
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
+  const closeTicketsMutation = trpc.ticket.closeTickets.useMutation();
   const [parent]: [RefObject<HTMLDivElement>, (enabled: boolean) => void] =
     useAutoAnimate();
 
@@ -88,6 +90,12 @@ const TicketList = (props: TicketListProps) => {
 
   const handleResolveTickets = async (tickets: TicketWithNames[]) => {
     await resolveTicketsMutation.mutateAsync({
+      ticketIds: tickets.map((ticket) => ticket.id),
+    });
+  };
+
+  const handleCloseTickets = async (tickets: TicketWithNames[]) => {
+    await closeTicketsMutation.mutateAsync({
       ticketIds: tickets.map((ticket) => ticket.id),
     });
   };
@@ -194,6 +202,20 @@ const TicketList = (props: TicketListProps) => {
               displayedTickets.length
             } displayed`}
           </Button>
+          <Button
+            hidden={
+              userRole !== UserRole.STAFF ||
+              ticketStatus === "Priority" ||
+              ticketStatus === "Public" ||
+              ticketStatus === TicketStatus.ABSENT
+            }
+            mb={4}
+            ml={4}
+            alignSelf="flex-end"
+            onClick={() => setIsCloseModalOpen(true)}
+          >
+            {`Close all ${displayedTickets.length} displayed`}
+          </Button>
         </Flex>
         <Box ref={parent}>
           {displayedTickets.map((ticket, idx) => (
@@ -206,6 +228,14 @@ const TicketList = (props: TicketListProps) => {
             />
           ))}
         </Box>
+        <HandleAllConfirmationModal
+          isModalOpen={isCloseModalOpen}
+          setIsModalOpen={setIsCloseModalOpen}
+          handleConfirm={() => {
+            handleCloseTickets(displayedTickets);
+          }}
+          handleAllText="close all"
+        ></HandleAllConfirmationModal>
         <HandleAllConfirmationModal
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}

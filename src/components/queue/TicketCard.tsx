@@ -66,7 +66,7 @@ const TicketCard = (props: TicketCardProps) => {
   const joinTicketMutation = trpc.ticket.joinTicketGroup.useMutation();
   const leaveTicketMutation = trpc.ticket.leaveTicketGroup.useMutation();
   const markAsAbsentMutation = trpc.ticket.markAsAbsent.useMutation();
-  const closeTicketMutation = trpc.ticket.closeTicket.useMutation();
+  const closeTicketsMutation = trpc.ticket.closeTickets.useMutation();
   const markAsPriorityMutation = trpc.ticket.markAsPriority.useMutation();
   const requeueTicketsMutation = trpc.ticket.requeueTickets.useMutation();
 
@@ -182,12 +182,12 @@ const TicketCard = (props: TicketCardProps) => {
 
   const handleCloseTicket = async () => {
     await onClickWrapper(() =>
-      closeTicketMutation.mutateAsync({ ticketId: ticket.id }),
+      closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] }),
     )();
   };
 
   const deleteTicketThenRefresh = async () => {
-    await closeTicketMutation.mutateAsync({ ticketId: ticket.id });
+    await closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
     context.ticket.getTicketsWithStatus.invalidate({ status: ticket.status });
   };
 
