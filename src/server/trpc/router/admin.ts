@@ -365,6 +365,26 @@ export const adminRouter = router({
     return ctx.prisma.location.findMany();
   }),
 
+  getAssignmentByName: protectedStaffProcedure.input(z.object({
+    name: z.string(),
+  })).query(async ({input, ctx}) => {
+    return ctx.prisma.assignment.findUnique({
+      where: {
+        name: input.name,
+      }
+    });
+  }),
+
+  getLocationByName: protectedStaffProcedure.input(z.object({
+    name: z.string(),
+  })).query(async ({input, ctx}) => {
+    return ctx.prisma.location.findUnique({
+      where: {
+        name: input.name,
+      }
+    });
+  }),
+
   getActiveAssignments: protectedProcedure
     .input(
       z.object({
@@ -389,12 +409,22 @@ export const adminRouter = router({
     .query(async ({ input, ctx }) => {
       return ctx.prisma.location.findMany({
         where: {
-          isActive: true,
-          categories: {
-            some: {
-              id: input.categoryId,
+          OR: [
+            {
+              isActive: true,
+              categories: {
+                some: {
+                  id: input.categoryId,
+                },
+              },
             },
-          },
+            {
+              isActive: true,
+              categories: {
+                none: {},
+              },
+            },
+          ],
         },
       });
     }),
