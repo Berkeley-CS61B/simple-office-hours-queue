@@ -56,7 +56,6 @@ const AdminList = (props: AdminListProps) => {
   );
 
   const handleCreateAssignment = async () => {
-    // refetchAssignment();
     if (assignmentCategoryId === undefined) {
       const toastId = "no assignment category chosen";
       if (toast.isActive(toastId)) return;
@@ -71,7 +70,7 @@ const AdminList = (props: AdminListProps) => {
       });
       return;
     }
-    
+
     await createAssignmentMutation
       .mutateAsync({
         name: createText,
@@ -126,11 +125,7 @@ const AdminList = (props: AdminListProps) => {
           data as Location,
         ]);
       })
-      .catch((err: PrismaClientKnownRequestError) => {
-        const description =
-          err.code === "P2002"
-            ? `A location with name ${createText} already exists`
-            : err.message;
+      .catch((err) => {
         toast({
           title: "Error",
           description: err.code,
@@ -157,13 +152,21 @@ const AdminList = (props: AdminListProps) => {
       });
       return;
     }
-    if (assignmentsOrLocations.map(assignmentOrLocation => assignmentOrLocation.name).includes(createText)) {
-      const toastId = isAssignment ? "assignment-not-unique" : "location-not-unique";
+    if (
+      assignmentsOrLocations
+        .map((assignmentOrLocation) => assignmentOrLocation.name)
+        .includes(createText)
+    ) {
+      const toastId = isAssignment
+        ? "assignment-not-unique"
+        : "location-not-unique";
       if (toast.isActive(toastId)) return;
       toast({
         id: toastId,
         title: "Error",
-        description: `${isAssignment ? 'An assignment' : 'A location'} with name ${createText} already exists`,
+        description: `${
+          isAssignment ? "An assignment" : "A location"
+        } with name ${createText} already exists`,
         status: "error",
         duration: 5000,
         position: "top-right",
@@ -227,7 +230,7 @@ const AdminList = (props: AdminListProps) => {
             <FormControl ml={2} w="50%">
               {isAssignment ? (
                 <CreatableSelect
-                placeholder="Select category..."
+                  placeholder="Select category..."
                   options={allCategories?.map((category) => ({
                     label: category.name,
                     value: category.id,

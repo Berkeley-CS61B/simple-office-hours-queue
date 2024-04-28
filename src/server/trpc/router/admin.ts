@@ -365,25 +365,33 @@ export const adminRouter = router({
     return ctx.prisma.location.findMany();
   }),
 
-  getAssignmentByName: protectedStaffProcedure.input(z.object({
-    name: z.string(),
-  })).query(async ({input, ctx}) => {
-    return ctx.prisma.assignment.findUnique({
-      where: {
-        name: input.name,
-      }
-    });
-  }),
+  getAssignmentByName: protectedStaffProcedure
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return ctx.prisma.assignment.findUnique({
+        where: {
+          name: input.name,
+        },
+      });
+    }),
 
-  getLocationByName: protectedStaffProcedure.input(z.object({
-    name: z.string(),
-  })).query(async ({input, ctx}) => {
-    return ctx.prisma.location.findUnique({
-      where: {
-        name: input.name,
-      }
-    });
-  }),
+  getLocationByName: protectedStaffProcedure
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return ctx.prisma.location.findUnique({
+        where: {
+          name: input.name,
+        },
+      });
+    }),
 
   getActiveAssignments: protectedProcedure
     .input(
