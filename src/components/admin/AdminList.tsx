@@ -174,34 +174,6 @@ const AdminList = (props: AdminListProps) => {
       });
       return;
     }
-    // if (isAssignment && assignmentCategoryId === undefined) {
-    //   const toastId = "no assignment category chosen";
-    //   if (toast.isActive(toastId)) return;
-    //   toast({
-    //     id: toastId,
-    //     title: "Error",
-    //     description: "Category for assignment must be chosen",
-    //     status: "error",
-    //     duration: 5000,
-    //     position: "top-right",
-    //     isClosable: true,
-    //   });
-    //   return;
-    // }
-    // if (!isAssignment && locationCategoryIds?.length === 0 ) {
-    //   const toastId = "no location category chosen";
-    //   if (toast.isActive(toastId)) return;
-    //   toast({
-    //     id: toastId,
-    //     title: "Error",
-    //     description: "Location category or categories must be chosen",
-    //     status: "error",
-    //     duration: 5000,
-    //     position: "top-right",
-    //     isClosable: true,
-    //   });
-    //   return;
-    // }
     if (isAssignment) {
       handleCreateAssignment();
     } else {
@@ -245,7 +217,7 @@ const AdminList = (props: AdminListProps) => {
               ) : (
                 <CreatableSelect
                   isMulti
-                  placeholder="Select categories..."
+                  placeholder="Select category filters..."
                   options={allCategories?.map((category) => ({
                     label: category.name,
                     value: category.id,
