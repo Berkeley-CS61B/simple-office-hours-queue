@@ -389,12 +389,22 @@ export const adminRouter = router({
     .query(async ({ input, ctx }) => {
       return ctx.prisma.location.findMany({
         where: {
-          isActive: true,
-          categories: {
-            some: {
-              id: input.categoryId,
+          OR: [
+            {
+              isActive: true,
+              categories: {
+                some: {
+                  id: input.categoryId,
+                },
+              },
             },
-          },
+            {
+              isActive: true,
+              categories: {
+                none: {},
+              },
+            },
+          ],
         },
       });
     }),

@@ -235,7 +235,7 @@ const TicketList = (props: TicketListProps) => {
             handleCloseTickets(displayedTickets);
           }}
           handleAllText="close all"
-        ></HandleAllConfirmationModal>
+        />
         <HandleAllConfirmationModal
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}

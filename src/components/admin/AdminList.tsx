@@ -45,22 +45,45 @@ const AdminList = (props: AdminListProps) => {
 
   const numVisible = assignmentsOrLocations.filter((a) => !a?.isHidden).length;
 
-  const { refetch } = trpc.admin.getAllCategories.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      setAllCategories(data);
+  const { refetch: refetchCategories } = trpc.admin.getAllCategories.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setAllCategories(data);
+      },
     },
-  });
+  );
 
   const handleCreateAssignment = async () => {
-    const data = await createAssignmentMutation
+    if (assignmentCategoryId === undefined) {
+      const toastId = "no assignment category chosen";
+      if (toast.isActive(toastId)) return;
+      toast({
+        id: toastId,
+        title: "Error",
+        description: "Category for assignment must be chosen",
+        status: "error",
+        duration: 5000,
+        position: "top-right",
+        isClosable: true,
+      });
+      return;
+    }
+
+    await createAssignmentMutation
       .mutateAsync({
         name: createText,
         isPriority: isPriorityChecked,
         categoryId: assignmentCategoryId,
       })
-      .then()
-      .catch((err) =>
+      .then((data) => {
+        setAssignmentsOrLocations((prev) => [
+          ...(prev ?? []),
+          data as Assignment,
+        ]);
+      })
+      .catch((err) => {
         toast({
           title: "Error",
           description: err.message,
@@ -68,9 +91,8 @@ const AdminList = (props: AdminListProps) => {
           duration: 3000,
           isClosable: true,
           position: "top-right",
-        }),
-      );
-    setAssignmentsOrLocations((prev) => [...(prev ?? []), data as Assignment]);
+        });
+      });
   };
 
   const handleCreateCategory = async (categoryName: string) => {
@@ -78,7 +100,7 @@ const AdminList = (props: AdminListProps) => {
       .mutateAsync({
         name: categoryName,
       })
-      .then(() => refetch())
+      .then(() => refetchCategories())
       .catch((err) =>
         toast({
           title: "Error",
@@ -92,25 +114,27 @@ const AdminList = (props: AdminListProps) => {
   };
 
   const handleCreateLocation = async () => {
-    if (locationCategoryIds !== undefined) {
-      const data = await createLocationMutation
-        .mutateAsync({
-          name: createText,
-          categoryIds: locationCategoryIds,
-        })
-        .then()
-        .catch((err) =>
-          toast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-            position: "top-right",
-          }),
-        );
-      setAssignmentsOrLocations((prev) => [...(prev ?? []), data as Location]);
-    }
+    await createLocationMutation
+      .mutateAsync({
+        name: createText,
+        categoryIds: locationCategoryIds ?? [],
+      })
+      .then((data) => {
+        setAssignmentsOrLocations((prev) => [
+          ...(prev ?? []),
+          data as Location,
+        ]);
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.code,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
   };
 
   const handleCreate = () => {
@@ -121,6 +145,28 @@ const AdminList = (props: AdminListProps) => {
         id: toastId,
         title: "Error",
         description: "Name must be longer than 0 characters",
+        status: "error",
+        duration: 5000,
+        position: "top-right",
+        isClosable: true,
+      });
+      return;
+    }
+    if (
+      assignmentsOrLocations
+        .map((assignmentOrLocation) => assignmentOrLocation.name)
+        .includes(createText)
+    ) {
+      const toastId = isAssignment
+        ? "assignment-not-unique"
+        : "location-not-unique";
+      if (toast.isActive(toastId)) return;
+      toast({
+        id: toastId,
+        title: "Error",
+        description: `${
+          isAssignment ? "An assignment" : "A location"
+        } with name ${createText} already exists`,
         status: "error",
         duration: 5000,
         position: "top-right",
@@ -156,6 +202,7 @@ const AdminList = (props: AdminListProps) => {
             <FormControl ml={2} w="50%">
               {isAssignment ? (
                 <CreatableSelect
+                  placeholder="Select category..."
                   options={allCategories?.map((category) => ({
                     label: category.name,
                     value: category.id,
@@ -170,6 +217,7 @@ const AdminList = (props: AdminListProps) => {
               ) : (
                 <CreatableSelect
                   isMulti
+                  placeholder="Select category filters..."
                   options={allCategories?.map((category) => ({
                     label: category.name,
                     value: category.id,
