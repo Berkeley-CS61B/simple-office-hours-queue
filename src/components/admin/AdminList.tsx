@@ -245,7 +245,15 @@ const AdminList = (props: AdminListProps) => {
                 </Tooltip>
               </Checkbox>
             </Flex>
-            <Button colorScheme="green" onClick={handleCreate} ml={3}>
+            <Button
+              colorScheme="green"
+              onClick={handleCreate}
+              ml={3}
+              disabled={
+                createText.length === 0 ||
+                (isAssignment && assignmentCategoryId === undefined)
+              }
+            >
               Create
             </Button>
           </Flex>
