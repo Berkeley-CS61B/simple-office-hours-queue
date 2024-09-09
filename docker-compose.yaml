@@ -1,18 +1,16 @@
 version: '3'
 services:
-  mysql-db:
-    image: mysql:5.7
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
     restart: always
-    ports:
-      - '3306:3306'
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
     environment:
-      MYSQL_ROOT_PASSWORD: prisma
+      MARIADB_ROOT_PASSWORD: prisma
+    ports:
+      - "3306:3306"
     volumes:
-      - mysql:/var/lib/mysql
+      - db_data:/var/lib/mysql
+
 volumes:
-  mysql: ~
+  db_data:
 
