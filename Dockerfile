@@ -2,6 +2,7 @@
 FROM node:18-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+COPY prisma ./
 
 COPY package.json package-lock.json ./
 RUN npm ci --production
@@ -15,6 +16,11 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
+#FROM node:18-alpine as debug
+RUN npx prisma generate
+
+#FROM node:18-alpine as next
+#WORKDIR /app
 # Build the Next.js application
 RUN npm run build
 
@@ -35,15 +41,15 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 
 
-COPY prisma /app/prisma/
-RUN npx prisma generate
+#COPY prisma /app/prisma/
+#RUN npx prisma generate
 
 
 COPY . /app
 
-RUN chmod 777 /app/wait-for-it.sh
-RUN chmod 777 /app/start.sh
-RUN chmod 777 -R /app
+#RUN chmod 777 /app/wait-for-it.sh
+#RUN chmod 777 /app/start.sh
+RUN chmod 700 -R /app
 
 
 USER nextjs
@@ -51,4 +57,6 @@ USER nextjs
 EXPOSE 3000
 ENV PORT 3000
 
-CMD ["sh", "start.sh"]
+RUN npx prisma db push
+# RUN npx prisma db seed
+CMD ["npm", "start"]
