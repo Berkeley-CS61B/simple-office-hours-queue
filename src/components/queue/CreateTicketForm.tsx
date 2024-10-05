@@ -37,12 +37,14 @@ interface Assignment {
   label: string;
   value: string;
   categoryId?: number | undefined;
+  template: string;
 }
 
 interface Location {
   id: number;
   label: string;
   value: string;
+  online: boolean;
 }
 
 interface CreateTicketFormProps {
@@ -77,6 +79,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [isPublic, setIsPublic] = useState<boolean>(
     existingTicket?.isPublic ?? false,
   );
+  // const [template, setTemplate] = useState(existingTicket?.template ?? "");
+
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
   const [assignment, setAssignment] = useState<Assignment | undefined>(
     existingTicket
@@ -85,6 +89,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           label: existingTicket.assignmentName,
           value: existingTicket.assignmentName,
           categoryId: existingTicket.assignmentCategoryId,
+          template: existingTicket.template,
         }
       : undefined,
   );
@@ -94,6 +99,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           id: existingTicket.locationId,
           label: existingTicket.locationName,
           value: existingTicket.locationName,
+          online: existingTicket.isOnline,
         }
       : undefined,
   );
@@ -142,6 +148,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 value: assignment.name,
                 id: assignment.id,
                 categoryId: assignment.categoryId,
+                template: assignment.template,
               }) as Assignment,
           ),
         );
@@ -161,6 +168,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 label: location.name,
                 value: location.name,
                 id: location.id,
+                online: location.isOnline,
               }) as Location,
           ),
         );
@@ -185,15 +193,33 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const handleTicketTypeChange = (newVal: TicketType) => {
     setTicketType(newVal);
     if (newVal === TicketType.DEBUGGING) {
-      setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
+      // setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
       setIsPublic(false);
     } else {
-      setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
+      // setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
       if (arePublicTicketsEnabled) {
         setIsPublic(true);
       }
     }
+    changeDescription(assignment, newVal);
   };
+
+  const changeDescription = (assignment: Assignment, ticketType: TicketType) => {
+    if (assignment === undefined || assignment?.template === "") {
+      if (ticketType == TicketType.DEBUGGING) {
+        setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
+      } else {  
+        setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
+      }
+    } else {
+      // console.log(assignment);
+      setDescription(assignment.template);
+    }
+  } 
+
+  
+
+  
 
   const handleTogglePublic = () => {
     if (ticketType === TicketType.CONCEPTUAL && isPublic) {
@@ -207,6 +233,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setLocation(undefined); // todo look at this
     setAssignment(newVal ?? undefined);
     refetch();
+    changeDescription(newVal, ticketType);
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -325,7 +352,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       <Box my={4} textAlign="left">
         <form onSubmit={onSubmit}>
           <FormControl isRequired>
-            <Flex>
+            <Flex>  
               <FormLabel>Ticket Type</FormLabel>
               <RadioGroup onChange={handleTicketTypeChange} value={ticketType}>
                 {Object.keys(TicketType).map((type) => (
@@ -334,14 +361,22 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                   </Radio>
                 ))}
               </RadioGroup>
+              
             </Flex>
-          </FormControl>
-          <FormControl isRequired isDisabled={ticketType === undefined}>
-            <FormLabel>Description</FormLabel>
             <Text hidden={ticketType !== TicketType.CONCEPTUAL} mb={2}>
-              Please make sure staff does not have to look at your code to
-              answer your question.
+              For conceptual questions, staff will not look at code or help with debugging.
             </Text>
+          </FormControl>
+          <FormControl mt={2} isRequired isDisabled={ticketType === undefined}>
+            <FormLabel>Assignment</FormLabel>
+            <Select
+              value={assignment}
+              onChange={handleAssignmentChange}
+              options={assignmentOptions}
+            />
+          </FormControl>
+          <FormControl mt={2} isRequired isDisabled={ticketType === undefined || assignment === undefined}>
+            <FormLabel>Description</FormLabel>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -350,14 +385,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={1000}
             />
           </FormControl>
-          <FormControl mt={6} isRequired isDisabled={ticketType === undefined}>
-            <FormLabel>Assignment</FormLabel>
-            <Select
-              value={assignment}
-              onChange={handleAssignmentChange}
-              options={assignmentOptions}
-            />
-          </FormControl>
+          
 
           <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
             <HStack>
@@ -390,9 +418,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}
-              onChange={(e) => setLocationDescription(e.target.value)}
+              onChange={(e) => {console.log(location); setLocationDescription(e.target.value)}}
               type="text"
-              placeholder="Back right corner of the room"
+              placeholder={location?.online ? "Breakout Room 10" : "Back right corner of the room"}
               name="locationDescription"
               maxLength={140}
             />
