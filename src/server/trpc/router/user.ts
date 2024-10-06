@@ -70,4 +70,21 @@ export const userRouter = router({
         },
       });
     }),
+
+    setPreferredPronunciation: protectedProcedure
+    .input(
+      z.object({
+        preferredPronunciation: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.user.update({
+        where: {
+          email: ctx.session.user.email!,
+        },
+        data: {
+          preferredPronunciation: input.preferredPronunciation,
+        },
+      });
+    }),
 });

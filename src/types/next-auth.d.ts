@@ -10,11 +10,13 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       preferredName: string;
+      preferredPronunciation: string;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     role: UserRole;
     preferredName: string;
+    preferredPronunciation: string;
   }
 }

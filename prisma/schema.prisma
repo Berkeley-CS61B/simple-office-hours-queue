@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
   output = "../node_modules/.prisma/client"
 }
@@ -95,20 +95,21 @@ model Account {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  name           String?
-  preferredName  String?
-  email          String?        @unique
-  emailVerified  DateTime?
-  image          String?
-  role           UserRole       @default(STUDENT)
-  accounts       Account[]
-  sessions       Session[]
-  ticketsCreated Ticket[]       @relation("ticketsCreatedBy")
-  ticketsHelped  Ticket[]       @relation("ticketsHelpedBy")
-  ticketsJoined  Ticket[]       @relation("groupTickets")
-  ChatMessage    ChatMessage[]
-  PersonalQueue  PersonalQueue?
+  id                     String         @id @default(cuid())
+  name                   String?
+  preferredName          String?
+  email                  String?        @unique
+  emailVerified          DateTime?
+  image                  String?
+  role                   UserRole       @default(STUDENT)
+  accounts               Account[]
+  sessions               Session[]
+  ticketsCreated         Ticket[]       @relation("ticketsCreatedBy")
+  ticketsHelped          Ticket[]       @relation("ticketsHelpedBy")
+  ticketsJoined          Ticket[]       @relation("groupTickets")
+  ChatMessage            ChatMessage[]
+  PersonalQueue          PersonalQueue?
+  preferredPronunciation String?
 
   @@index(id)
 }
@@ -134,6 +135,7 @@ model Assignment {
   Ticket     Ticket[]
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int      @default(1)
+  template   String   @default("")
 
   @@index(id)
   @@index(categoryId)
@@ -159,6 +161,7 @@ model Location {
   isHidden   Boolean    @default(false)
   Ticket     Ticket[]
   categories Category[]
+  isOnline   Boolean    @default(false)
 
   @@index(id)
 }
@@ -238,4 +241,5 @@ enum SiteSettingsValues {
 enum VariableSiteSettings {
   EMAIL_DOMAIN
   COOLDOWN_TIME // In minutes
+  STUDENT_SUPPORT_LINK
 }

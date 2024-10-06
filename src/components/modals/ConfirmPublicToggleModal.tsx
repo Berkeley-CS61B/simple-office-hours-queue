@@ -28,7 +28,7 @@ const ConfirmPublicToggleModal = (props: ConfirmPublicToggleModalProps) => {
         <ModalHeader>Confirm Public Toggle</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          We recommend keeping your ticket public so that other students can
+          For conceptual questions, we recommend keeping your ticket public so that other students can
           join your ticket and TAs can help you for a longer time.
         </ModalBody>
         <ModalFooter>

@@ -100,7 +100,7 @@ const Layout = (props: LayoutProps) => {
         {isAblyConnected && <ReceiveBroadcast />}
       </Flex>
 
-      <Flex alignSelf="flex-end">
+      {/* <Flex alignSelf="flex-end">
         <footer>
           <a
             href="https://vercel.com?utm_source=cs61b&utm_campaign=oss"
@@ -114,7 +114,7 @@ const Layout = (props: LayoutProps) => {
             />
           </a>
         </footer>
-      </Flex>
+      </Flex> */}
     </Flex>
   );
 };

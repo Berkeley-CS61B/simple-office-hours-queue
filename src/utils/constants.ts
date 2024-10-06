@@ -20,4 +20,9 @@ export const STARTER_DEBUGGING_TICKET_DESCRIPTION =
 export const STARTER_CONCEPTUAL_TICKET_DESCRIPTION =
   "Conceptual question about [this concept]";
 
+  export const STARTER_TICKET_DESCRIPTIONS = {
+    "Debugging": STARTER_DEBUGGING_TICKET_DESCRIPTION,
+    "Conceptual": STARTER_CONCEPTUAL_TICKET_DESCRIPTION,
+  }
+
 export const SITE_BASE_TITLE = "Office Hours Queue";
