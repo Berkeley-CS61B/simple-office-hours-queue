@@ -16,6 +16,8 @@ import {
   useToast,
   Textarea,
   Button,
+  Tooltip,
+  
 } from "@chakra-ui/react";
 
 import { Assignment, Category, Location } from "@prisma/client";
@@ -355,7 +357,7 @@ const AdminCard = (props: AdminCardProps) => {
           </Editable>
 
           {/*uppercaseFirstLetter(allCategories?.find((category) => category.id === assignmentCategoryId).name)*/}
-          <FormControl w={isAssignment ? "30%" : "50%"} ml={2}>
+          <FormControl w={isAssignment ? "30%" : "50%"} ml={5}>
             {isAssignment ? (
               <Select
                 options={allCategories?.map((category) => ({
@@ -414,7 +416,7 @@ Online          </Text> */}
           {isAssignment ? (
             <>
               <Button
-                ml={2}
+                ml={5}
                 onClick={() => setIsTemplateModalOpen(!isTemplateModalOpen)}
               >
                 Edit Template
@@ -431,8 +433,8 @@ Online          </Text> */}
             <></>
           )}
           <Checkbox
-            ml={2}
-            hidden={!isActive || isAssignment}
+            ml={5}
+            hidden={isAssignment}
             onChange={() => handleOnlineChange(!isOnline)}
             colorScheme="telegram"
             size="lg"
@@ -440,21 +442,21 @@ Online          </Text> */}
           >
             Online
           </Checkbox>
-        </Flex>
-
-        <Flex>
           <Checkbox
-            hidden={!isActive || !isAssignment}
+            hidden={!isAssignment}
             onChange={() => handlePriorityChange(!isPriority)}
             colorScheme="telegram"
             size="lg"
-            ml={2}
+            ml={5}
             isChecked={isPriority}
-          >
-            Priority
-          </Checkbox>
+          >Priority</Checkbox>
+        </Flex>
+
+        <Flex>
           {!isActive && (
             <>
+            <Tooltip label={(isHidden ? "Show" : "Hide") + " this " + (isAssignment ? "assignment" : "location")}>
+            <Text as="span">
               {isHidden ? (
                 <FaEyeSlash
                   size="20px"
@@ -469,7 +471,8 @@ Online          </Text> */}
                   style={{ marginTop: "10px", marginLeft: "10px" }}
                   onClick={handleHidden}
                 />
-              )}
+              )}</Text>
+              </Tooltip>
             </>
           )}
           <Text fontSize="large" mt={1.5} ml={5}>

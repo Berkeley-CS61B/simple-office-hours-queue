@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Stack,
+  Tooltip,
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
@@ -72,7 +73,8 @@ const PronunciationPopoverForm = (props: PronunciationPopoverFormProps) => {
 
   return (
     <>
-      <Box mr={3}>{preferredPronunciation === "" ? "Pronunciation": preferredPronunciation}</Box>
+      
+      <Box mr={preferredPronunciation === "" ? 0 : 3}>{preferredPronunciation === "" ? "": preferredPronunciation}</Box>
       <Popover
         isOpen={isOpen}
         onOpen={onOpen}
@@ -80,9 +82,12 @@ const PronunciationPopoverForm = (props: PronunciationPopoverFormProps) => {
         placement="bottom"
         closeOnBlur={false}
       >
+        
         <PopoverTrigger>
-          <IconButton aria-label="edit-icon" size="sm" icon={<EditIcon />} />
+          {preferredPronunciation === "" ? <Button>Add Pronunciation</Button>: <Tooltip label="Edit Pronunciation"><IconButton aria-label="edit-icon" size="sm" icon={<EditIcon />} /></Tooltip>}
+          
         </PopoverTrigger>
+        
         <PopoverContent
           p={5}
           backgroundColor={useColorModeValue("white", DARK_MODE_COLOR)}

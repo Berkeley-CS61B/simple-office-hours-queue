@@ -197,7 +197,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           <Text fontSize="2xl">{createdByName}</Text>
         </Tooltip>
         {createdByPronunciation !== "" ? (
-          <Text fontSize="m">{`Pronunciation: ${createdByPronunciation}`}</Text>
+          <Text fontSize="m" as="i">{`Pronunciation: ${createdByPronunciation}`}</Text>
         ) : (
           <></>
         )}
