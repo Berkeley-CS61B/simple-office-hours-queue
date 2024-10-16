@@ -22,7 +22,7 @@ interface EditTemplateModalProps {
   assignmentName: string;
 }
 
-/** Used when a student toggles off "Public" when they have a conceptual question */
+/** Used when a staff wants to edit the template associated with an assignment or lab  */
 const EditTemplateModal = (props: EditTemplateModalProps) => {
   const { isModalOpen, setIsModalOpen, handleConfirm, template, assignmentName } = props;
 

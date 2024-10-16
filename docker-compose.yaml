@@ -4,8 +4,8 @@ services:
     image: mariadb:latest
     container_name: mariadb
     restart: always
-    #environment:
-      #MARIADB_ROOT_PASSWORD: prisma
+    environment:
+      MARIADB_ROOT_PASSWORD: prisma
     ports:
       - "3306:3306"
     volumes:

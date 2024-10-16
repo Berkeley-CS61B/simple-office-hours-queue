@@ -95,19 +95,8 @@ const AdminView = () => {
     });
   };
 
+  // TODO: validation of link 
   const handleStudentSupportLinkSubmit = () => {
-    // if (!isValidDomain) {
-    //   toast({
-    //     title: "Error",
-    //     description: "Invalid email domain",
-    //     status: "error",
-    //     duration: 5000,
-    //     position: "top-right",
-    //     isClosable: true,
-    //   });
-    //   return;
-    // }
-
     setStudentSupportLinkMutation
       .mutateAsync({ link: studentSupportLink })
       .then(() => {
@@ -181,7 +170,6 @@ const AdminView = () => {
           <Button
             colorScheme="telegram"
             onClick={handleStudentSupportLinkSubmit}
-            // disabled={!isValidDomain}
           >
             Confirm
           </Button>

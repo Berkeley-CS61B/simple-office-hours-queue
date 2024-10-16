@@ -16,8 +16,6 @@ import {
 import { signIn, signOut, useSession } from "next-auth/react";
 import { DARK_MODE_COLOR } from "../../utils/constants";
 import { uppercaseFirstLetter } from "../../utils/utils";
-// import NamePopoverForm from "./NamePopoverForm";
-// import PronunciationPopoverForm from "./PronunciationPopoverForm";
 import NameAndPronunciationPopoverForm from "./NameAndPronunciationPopoverForm";
 import { useEffect, useState } from "react"
 

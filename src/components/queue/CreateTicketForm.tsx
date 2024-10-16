@@ -79,8 +79,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const [isPublic, setIsPublic] = useState<boolean>(
     existingTicket?.isPublic ?? false,
   );
-  // const [template, setTemplate] = useState(existingTicket?.template ?? "");
-
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
   const [assignment, setAssignment] = useState<Assignment | undefined>(
     existingTicket
@@ -193,10 +191,8 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   const handleTicketTypeChange = (newVal: TicketType) => {
     setTicketType(newVal);
     if (newVal === TicketType.DEBUGGING) {
-      // setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
       setIsPublic(false);
     } else {
-      // setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
       if (arePublicTicketsEnabled) {
         setIsPublic(true);
       }
@@ -204,7 +200,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     changeDescription(assignment, newVal);
   };
 
-  const changeDescription = (assignment: Assignment, ticketType: TicketType) => {
+  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType) => {
     if (assignment === undefined || assignment?.template === "") {
       if (ticketType == TicketType.DEBUGGING) {
         setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
@@ -212,7 +208,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
       }
     } else {
-      // console.log(assignment);
       setDescription(assignment.template);
     }
   } 
@@ -418,8 +413,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             <FormLabel>Briefly describe where you are</FormLabel>
             <Input
               value={locationDescription}
-              onChange={(e) => {console.log(location); setLocationDescription(e.target.value)}}
+              onChange={e => {
+                setLocationDescription(e.target.value);
+              }}
               type="text"
+              // TODO: make the location options customizable per location
               placeholder={location?.online ? "Breakout Room 10" : "Back right corner of the room"}
               name="locationDescription"
               maxLength={140}

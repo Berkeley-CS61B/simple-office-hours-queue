@@ -14,10 +14,8 @@ import {
   useColorModeValue,
   useEditableControls,
   useToast,
-  Textarea,
   Button,
   Tooltip,
-  
 } from "@chakra-ui/react";
 
 import { Assignment, Category, Location } from "@prisma/client";
@@ -34,8 +32,7 @@ interface AdminCardProps {
   editMutation: UseTRPCMutationResult<any, any, any, any>;
   isHiddenVisible: boolean;
   isAssignment: boolean;
-  increaseNumVisible: () => void;
-  decreaseNumVisible: () => void;
+  changeNumVisible: (delta: number) => void;
 }
 
 const EditableControls = () => {
@@ -80,8 +77,7 @@ const AdminCard = (props: AdminCardProps) => {
     editMutation,
     isHiddenVisible,
     isAssignment,
-    increaseNumVisible,
-    decreaseNumVisible,
+    changeNumVisible,
   } = props;
   const boxColor = useColorModeValue("gray.100", DARK_GRAY_COLOR);
 
@@ -255,10 +251,10 @@ const AdminCard = (props: AdminCardProps) => {
   const handleHidden = async () => {
     if (!isHidden) {
       setIsHidden(true);
-      decreaseNumVisible();
+      changeNumVisible(-1);
     } else {
       setIsHidden(false);
-      increaseNumVisible();
+      changeNumVisible(1);
     }
     await editMutation
       .mutateAsync({
@@ -409,10 +405,6 @@ const AdminCard = (props: AdminCardProps) => {
               />
             )}
           </FormControl>
-
-          {/* <Text hidden={!isActive || isAssignment} fontSize="large" mt={1.5} ml={2}>
-Online          </Text> */}
-
           {isAssignment ? (
             <>
               <Button
@@ -449,29 +441,38 @@ Online          </Text> */}
             size="lg"
             ml={5}
             isChecked={isPriority}
-          >Priority</Checkbox>
+          >
+            Priority
+          </Checkbox>
         </Flex>
 
         <Flex>
           {!isActive && (
             <>
-            <Tooltip label={(isHidden ? "Show" : "Hide") + " this " + (isAssignment ? "assignment" : "location")}>
-            <Text as="span">
-              {isHidden ? (
-                <FaEyeSlash
-                  size="20px"
-                  className="hover-cursor"
-                  style={{ marginTop: "10px", marginLeft: "10px" }}
-                  onClick={handleHidden}
-                />
-              ) : (
-                <FaEye
-                  size="20px"
-                  className="hover-cursor"
-                  style={{ marginTop: "10px", marginLeft: "10px" }}
-                  onClick={handleHidden}
-                />
-              )}</Text>
+              <Tooltip
+                label={
+                  (isHidden ? "Show" : "Hide") +
+                  " this " +
+                  (isAssignment ? "assignment" : "location")
+                }
+              >
+                <Text as="span">
+                  {isHidden ? (
+                    <FaEyeSlash
+                      size="20px"
+                      className="hover-cursor"
+                      style={{ marginTop: "10px", marginLeft: "10px" }}
+                      onClick={handleHidden}
+                    />
+                  ) : (
+                    <FaEye
+                      size="20px"
+                      className="hover-cursor"
+                      style={{ marginTop: "10px", marginLeft: "10px" }}
+                      onClick={handleHidden}
+                    />
+                  )}
+                </Text>
               </Tooltip>
             </>
           )}

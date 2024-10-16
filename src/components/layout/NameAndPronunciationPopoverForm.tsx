@@ -34,7 +34,7 @@ interface NameAndPronunciationPopoverFormPropos {
 }
 
 /**
- * NamePopoverForm for editing user's preferred name
+ * NameAndPronunciationPopoverForm for editing user's preferred name and pronunciation
  * @source https://chakra-ui.com/docs/components/popover/usage
  */
 const NameAndPronunciationPopoverForm = (

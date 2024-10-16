@@ -1,5 +1,4 @@
 import { useChannel } from "@ably-labs/react-hooks";
-// import Link from "next/link";
 import {
   Box,
   Button,
@@ -102,12 +101,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     }, 60000);
     return () => clearInterval(interval);
   }, [context.ticket.getTicket, ticket.id, ticket.status]);
-
-  // useEffect(() => {
-  //    await ctx.prisma.variableSettings.findUnique({
-  //     where: { setting: VariableSiteSettings.COOLDOWN_TIME },
-  //   });
-  // })
 
   // Listens for updates on the ticket status
   useChannel(`ticket-${ticket.id}`, (ticketData) => {
@@ -313,7 +306,6 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         hidden={!isStaff && studentSupportLink !== "" && studentSupportLink !== undefined}
         flexDirection="column"
         justifyContent="center"
-        // backgroundColor="red.500"
         mt={3}
         ml={3}
         borderRadius={4}
