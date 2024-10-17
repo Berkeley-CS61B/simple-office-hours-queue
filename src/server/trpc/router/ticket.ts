@@ -953,6 +953,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         helpedByName: helpedBy?.preferredName ?? helpedBy?.name,
         createdByName: createdBy?.preferredName ?? createdBy.name,
         createdByEmail: createdBy.email,
+        createdByPronunciation: createdBy?.preferredPronunciation ?? "",
         assignmentCategoryId: assignment?.categoryId,
       };
     }),
@@ -1006,7 +1007,10 @@ export interface TicketWithNames extends Ticket {
   helpedByName: string | null | undefined;
   createdByName: string | null;
   createdByEmail: string | null;
+  createdByPronunciation: string | null;
   assignmentName: string;
   locationName: string;
   assignmentCategoryId: number;
+  isOnline: boolean;
+  template: string;
 }

@@ -9,7 +9,9 @@ import {
   Tag,
   Text,
   Tooltip,
+  Link
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { TicketStatus, User, UserRole } from "@prisma/client";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
@@ -61,6 +63,15 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isIntern = userRole === UserRole.INTERN;
   const helpOrJoin = isStaff || isIntern ? "Help" : "Join";
 
+  const [studentSupportLink, setStudentSupportLink] = useState("");
+
+  trpc.admin.getStudentSupportLink.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: (link) => {
+      setStudentSupportLink(link);
+    },
+  });
+
   const canSeeName =
     userId === ticket.createdByUserId ||
     isCurrentUserInGroup ||
@@ -76,7 +87,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         onSuccess: (users) => {
           setUsersInGroup(users);
         },
-      },
+      }
     );
 
   const context = trpc.useContext();
@@ -139,7 +150,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         if (!shouldNotNotifyStudent.includes(message)) {
           showNotification(
             `Ticket ${update}`,
-            `Your ticket has been ${update}`,
+            `Your ticket has been ${update}`
           );
         }
       }
@@ -163,14 +174,27 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const TooltipName = ({
     createdByName,
     createdByEmail,
+    createdByPronunciation,
   }: {
     createdByName: string;
     createdByEmail: string;
+    createdByPronunciation: string;
   }) => {
     return (
-      <Tooltip placement="top" isDisabled={!canSeeName} label={createdByEmail}>
-        {createdByName}
-      </Tooltip>
+      <>
+        <Tooltip
+          placement="top"
+          isDisabled={!canSeeName}
+          label={createdByEmail}
+        >
+          <Text fontSize="2xl">{createdByName}</Text>
+        </Tooltip>
+        {createdByPronunciation !== "" ? (
+          <Text fontSize="m" as="i">{`Pronunciation: ${createdByPronunciation}`}</Text>
+        ) : (
+          <></>
+        )}
+      </>
     );
   };
 
@@ -184,11 +208,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   return (
     <>
-      <Text fontSize="2xl">
+      <Text>
         {canSeeName ? (
           <TooltipName
             createdByName={ticket.createdByName ?? ""}
             createdByEmail={ticket.createdByEmail ?? ""}
+            createdByPronunciation={ticket.createdByPronunciation ?? ""}
           />
         ) : (
           <>{helpOrJoin} to see name</>
@@ -276,6 +301,21 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         isCurrentUserInGroup={isCurrentUserInGroup}
         setShowConfetti={setShowConfetti}
       />
+
+      <Flex
+        hidden={!isStaff && studentSupportLink !== "" && studentSupportLink !== undefined}
+        flexDirection="column"
+        justifyContent="center"
+        mt={3}
+        ml={3}
+        borderRadius={4}
+        p={2}
+      >
+        <Link href={studentSupportLink} isExternal>
+          Student Support
+          <ExternalLinkIcon mx="2px" />
+        </Link>
+      </Flex>
       <Flex
         hidden={!isAbsent}
         flexDirection="column"

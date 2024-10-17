@@ -16,23 +16,36 @@ import {
 import { signIn, signOut, useSession } from "next-auth/react";
 import { DARK_MODE_COLOR } from "../../utils/constants";
 import { uppercaseFirstLetter } from "../../utils/utils";
-import NamePopoverForm from "./NamePopoverForm";
+import NameAndPronunciationPopoverForm from "./NameAndPronunciationPopoverForm";
+import { useEffect, useState } from "react"
+
 
 const AvatarDropdown = () => {
   const { data: session, status } = useSession();
+
   const bgColor = useColorModeValue("white", DARK_MODE_COLOR);
   // This is defined here because the the menu overflow only happens when the popover is open
   const {
-    onOpen: onPopoverOpen,
-    onClose: onPopoverClose,
-    isOpen: isPopoverOpen,
+    onOpen: onNameAndPronunciationPopoverOpen,
+    onClose: onNameAndPronunciationPopoverClose,
+    isOpen: isNameAndPronunciationPopoverOpen,
   } = useDisclosure();
+
+
+  const [name, setName] = useState(session?.user?.preferredName ?? session?.user?.name);
+  const [pronunciation, setPronunciation] = useState(session?.user?.preferredPronunciation ?? "");
+  
+  useEffect(() => {
+    console.log(session?.user);
+    setName(session?.user?.preferredName ?? session?.user?.name);
+    setPronunciation(session?.user?.preferredPronunciation ?? "");
+  }, [session]);
 
   return (
     <Box mt={2}>
       {status === "loading" && <SkeletonCircle />}
       {status === "authenticated" && (
-        <Box className={!isPopoverOpen ? "first-div-overflow-hidden" : ""}>
+        <Box className={!isNameAndPronunciationPopoverOpen ? "first-div-overflow-hidden" : ""}>
           <Menu>
             <MenuButton
               as={Button}
@@ -51,15 +64,21 @@ const AvatarDropdown = () => {
               <br />
               <Center>
                 {session?.user?.name || session?.user?.preferredName ? (
-                  <NamePopoverForm
-                    name={session?.user.preferredName ?? session?.user?.name}
-                    isOpen={isPopoverOpen}
-                    onOpen={onPopoverOpen}
-                    onClose={onPopoverClose}
+                  <NameAndPronunciationPopoverForm
+                    name={name}
+                    setName={setName}
+                    pronunciation={pronunciation}
+                    setPronunciation={setPronunciation}
+                    isOpen={isNameAndPronunciationPopoverOpen}
+                    onOpen={onNameAndPronunciationPopoverOpen}
+                    onClose={onNameAndPronunciationPopoverClose}
                   />
                 ) : (
                   <Text fontSize="xl">{session?.user?.email}</Text>
                 )}
+              </Center>
+              <Center mt={2}>
+                
               </Center>
               <Text
                 textAlign="center"

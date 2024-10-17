@@ -43,7 +43,13 @@ const AdminList = (props: AdminListProps) => {
   const editLocationMutation = trpc.admin.editLocation.useMutation();
   const createCategoryMutation = trpc.admin.createCategory.useMutation();
 
-  const numVisible = assignmentsOrLocations.filter((a) => !a?.isHidden).length;
+  const [numVisible, setNumVisible] = useState(
+    assignmentsOrLocations.filter((a) => !a?.isHidden).length
+  );
+
+  const changeNumVisible = (delta: number) => {
+    setNumVisible(numVisible + delta);
+  };
 
   const { refetch: refetchCategories } = trpc.admin.getAllCategories.useQuery(
     undefined,
@@ -52,7 +58,7 @@ const AdminList = (props: AdminListProps) => {
       onSuccess: (data) => {
         setAllCategories(data);
       },
-    },
+    }
   );
 
   const handleCreateAssignment = async () => {
@@ -109,7 +115,7 @@ const AdminList = (props: AdminListProps) => {
           duration: 3000,
           isClosable: true,
           position: "top-right",
-        }),
+        })
       );
   };
 
@@ -192,7 +198,7 @@ const AdminList = (props: AdminListProps) => {
           {isAssignment ? "Assignments" : "Locations"}
         </Text>
         <Flex justifyContent="space-between">
-          <Flex w="50%">
+          <Flex w="70%">
             <Input
               width="50%"
               onChange={(e) => setCreateText(e.target.value)}
@@ -262,12 +268,20 @@ const AdminList = (props: AdminListProps) => {
           </Button>
         </Flex>
       </Flex>
-      {numVisible === 0 && (
+      {assignmentsOrLocations.length == 0 && (
         <Text>
-          No visible {isAssignment ? "assigments" : "locations"}! You can add or
-          unhide them above.
+          No {isAssignment ? "assigments" : "locations"} added yet! You can add
+          them above.
         </Text>
       )}
+      {assignmentsOrLocations.length >= 0 &&
+        numVisible === 0 &&
+        !isHiddenVisible && (
+          <Text>
+            No visible {isAssignment ? "assigments" : "locations"}! You can add
+            or unhide them above.
+          </Text>
+        )}
       {assignmentsOrLocations.map((al) => (
         <Box as="div" key={al.id}>
           <AdminCard
@@ -277,6 +291,7 @@ const AdminList = (props: AdminListProps) => {
             }
             isHiddenVisible={isHiddenVisible}
             isAssignment={isAssignment}
+            changeNumVisible={changeNumVisible}
           />
         </Box>
       ))}

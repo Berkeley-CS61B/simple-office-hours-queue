@@ -1,4 +1,13 @@
-import { Divider, Flex, Spinner, Switch, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Divider,
+  Flex,
+  Input,
+  Spinner,
+  Switch,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
 import {
   Assignment,
   Location,
@@ -19,6 +28,7 @@ const AdminView = () => {
   const [isPendingStageEnabled, setIsPendingStageEnabled] = useState<boolean>();
   const [arePublicTicketsEnabled, setArePublicTicketsEnabled] =
     useState<boolean>();
+  const [studentSupportLink, setStudentSupportLink] = useState("");
   const [assignments, setAssignments] = useState<Assignment[]>();
   const [locations, setLocations] = useState<Location[]>();
 
@@ -28,20 +38,31 @@ const AdminView = () => {
     trpc.admin.setArePublicTicketsEnabled.useMutation();
   const setIsPendingStageEnabledMutation =
     trpc.admin.setIsPendingStageEnabled.useMutation();
+  const setStudentSupportLinkMutation =
+    trpc.admin.setStudentSupportLink.useMutation();
+
+  const toast = useToast();
 
   // When the site settings are loaded, set the state to the current values
   useEffect(() => {
     if (siteSettings) {
       setIsPendingStageEnabled(
         siteSettings.get(SiteSettings.IS_PENDING_STAGE_ENABLED) ===
-          SiteSettingsValues.TRUE,
+          SiteSettingsValues.TRUE
       );
       setArePublicTicketsEnabled(
         siteSettings.get(SiteSettings.ARE_PUBLIC_TICKETS_ENABLED) ===
-          SiteSettingsValues.TRUE,
+          SiteSettingsValues.TRUE
       );
     }
   }, [siteSettings]);
+
+  trpc.admin.getStudentSupportLink.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: (link) => {
+      setStudentSupportLink(link); // Putting this in state to edit the list
+    },
+  });
 
   trpc.admin.getAllAssignments.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -72,6 +93,32 @@ const AdminView = () => {
     await setArePublicTicketsEnabledMutation.mutateAsync({
       shouldBeEnabled: valueToSet,
     });
+  };
+
+  // TODO: validation of link 
+  const handleStudentSupportLinkSubmit = () => {
+    setStudentSupportLinkMutation
+      .mutateAsync({ link: studentSupportLink })
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "Student support link updated",
+          status: "success",
+          duration: 5000,
+          position: "top-right",
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          position: "top-right",
+          isClosable: true,
+        });
+      });
   };
 
   if (assignments === undefined || locations === undefined) {
@@ -105,6 +152,27 @@ const AdminView = () => {
             isChecked={arePublicTicketsEnabled}
             onChange={handleTogglePublicTicketsEnabled}
           />
+        </Flex>
+      </Flex>
+      <Flex direction="column" mt={10} mb={3}>
+        <Text fontSize="xl">Student Support Link</Text>
+        <Text fontSize="md">
+          Put a link to a student support/student-of-concern form for staff to
+          access when helping a student out.
+        </Text>
+        <Flex flexDir="row">
+          <Input
+            placeholder={"https://forms.gle/"}
+            value={studentSupportLink}
+            onChange={(e) => setStudentSupportLink(e.target.value)}
+            mr={1}
+          />
+          <Button
+            colorScheme="telegram"
+            onClick={handleStudentSupportLinkSubmit}
+          >
+            Confirm
+          </Button>
         </Flex>
       </Flex>
 

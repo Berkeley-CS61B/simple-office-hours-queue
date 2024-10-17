@@ -14,6 +14,8 @@ import {
   useColorModeValue,
   useEditableControls,
   useToast,
+  Button,
+  Tooltip,
 } from "@chakra-ui/react";
 
 import { Assignment, Category, Location } from "@prisma/client";
@@ -23,12 +25,14 @@ import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { DARK_GRAY_COLOR } from "../../utils/constants";
 import { trpc } from "../../utils/trpc";
+import EditTemplateModal from "../modals/EditTemplateModal";
 
 interface AdminCardProps {
   assignmentOrLocation: Assignment | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
   isHiddenVisible: boolean;
   isAssignment: boolean;
+  changeNumVisible: (delta: number) => void;
 }
 
 const EditableControls = () => {
@@ -68,17 +72,31 @@ const EditableControls = () => {
  * Component which represents a single assignment or location
  */
 const AdminCard = (props: AdminCardProps) => {
-  const { assignmentOrLocation, editMutation, isHiddenVisible, isAssignment } =
-    props;
+  const {
+    assignmentOrLocation,
+    editMutation,
+    isHiddenVisible,
+    isAssignment,
+    changeNumVisible,
+  } = props;
   const boxColor = useColorModeValue("gray.100", DARK_GRAY_COLOR);
+
+  const [name, setName] = useState(assignmentOrLocation.name);
   const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
   const [isPriority, setIsPriority] = useState(
-    isAssignment ? (assignmentOrLocation as Assignment).isPriority : false,
+    isAssignment ? (assignmentOrLocation as Assignment).isPriority : false
+  );
+  const [isOnline, setIsOnline] = useState(
+    isAssignment ? false : (assignmentOrLocation as Location).isOnline
   );
   const [assignmentCategoryId, setAssignmentCategoryId] = useState(
-    isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined,
+    isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined
   );
+  const [template, setTemplate] = useState(
+    isAssignment ? (assignmentOrLocation as Assignment).template : undefined
+  );
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [locationCategoryIds, setLocationCategoryIds] = useState<number[]>();
   const [allCategories, setAllCategories] = useState<Category[]>();
 
@@ -97,7 +115,7 @@ const AdminCard = (props: AdminCardProps) => {
         setLocationCategoryIds(data?.categories.map((category) => category.id));
       },
       enabled: !isAssignment,
-    },
+    }
   );
 
   trpc.admin.getAllCategories.useQuery(undefined, {
@@ -107,32 +125,102 @@ const AdminCard = (props: AdminCardProps) => {
     },
   });
 
-  const handleNameChange = async (newName: string) => {
-    await editMutation.mutateAsync({
+  /* Helper method to ensure that we get all the fields of the assignment and locations. Alternative to this would be to edit the mutation in admin.ts to not require these many fields */
+  const baseUpdate = () => {
+    return {
       id: assignmentOrLocation.id,
-      name: newName,
-      isActive: assignmentOrLocation.isActive,
-      isHidden: assignmentOrLocation.isHidden,
-      categoryId: isAssignment
-        ? (assignmentOrLocation as Assignment).categoryId
-        : undefined,
+      name: name,
+      isActive: isActive,
+      isHidden: isHidden,
+      isPriority: isPriority,
+      categoryId: isAssignment ? assignmentCategoryId : undefined,
       categoryIds: isAssignment ? undefined : locationCategoryIds,
-    });
+      isOnline: isAssignment ? undefined : isOnline,
+      template: isAssignment ? template : undefined,
+    };
+  };
+
+  const handleNameChange = async (newName: string) => {
+    setName(newName);
+    await editMutation
+      .mutateAsync({ ...baseUpdate(), name: newName })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
   };
 
   const handlePriorityChange = async (newPriority: boolean) => {
     setIsPriority(newPriority);
-    await editMutation.mutateAsync({
-      id: assignmentOrLocation.id,
-      name: assignmentOrLocation.name,
-      isActive: assignmentOrLocation.isActive,
-      isHidden: assignmentOrLocation.isHidden,
-      isPriority: newPriority,
-      categoryId: isAssignment
-        ? (assignmentOrLocation as Assignment).categoryId
-        : undefined,
-      categoryIds: isAssignment ? undefined : locationCategoryIds,
-    });
+    await editMutation
+      .mutateAsync({
+        ...baseUpdate(),
+        isPriority: newPriority,
+      })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
+  };
+
+  const handleTemplateChange = async (newTemplate: string) => {
+    setTemplate(newTemplate);
+    await editMutation
+      .mutateAsync({ ...baseUpdate(), template: newTemplate })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
+  };
+
+  const handleOnlineChange = async (newOnline: boolean) => {
+    setIsOnline(newOnline);
+    await editMutation
+      .mutateAsync({ ...baseUpdate(), isOnline: newOnline })
+      .then(() => {
+        context.admin.getAllLocations.invalidate();
+        context.admin.getAllAssignments.invalidate();
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
   };
 
   const handleActiveChange = async () => {
@@ -140,14 +228,9 @@ const AdminCard = (props: AdminCardProps) => {
     setIsActive(newActive);
     await editMutation
       .mutateAsync({
-        id: assignmentOrLocation.id,
-        name: assignmentOrLocation.name,
+        ...baseUpdate(),
         isActive: newActive,
         isHidden: newActive ? false : isHidden,
-        categoryId: isAssignment
-          ? (assignmentOrLocation as Assignment).categoryId
-          : undefined,
-        categoryIds: isAssignment ? undefined : locationCategoryIds,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -166,17 +249,17 @@ const AdminCard = (props: AdminCardProps) => {
   };
 
   const handleHidden = async () => {
-    setIsHidden(!isHidden);
+    if (!isHidden) {
+      setIsHidden(true);
+      changeNumVisible(-1);
+    } else {
+      setIsHidden(false);
+      changeNumVisible(1);
+    }
     await editMutation
       .mutateAsync({
-        id: assignmentOrLocation.id,
-        name: assignmentOrLocation.name,
-        isActive: assignmentOrLocation.isActive,
+        ...baseUpdate(),
         isHidden: !isHidden,
-        categoryId: isAssignment
-          ? (assignmentOrLocation as Assignment).categoryId
-          : undefined,
-        categoryIds: isAssignment ? undefined : locationCategoryIds,
       })
       .then(() => {
         context.admin.getAllLocations.invalidate();
@@ -198,10 +281,7 @@ const AdminCard = (props: AdminCardProps) => {
     setAssignmentCategoryId(categoryId);
     await editMutation
       .mutateAsync({
-        id: assignmentOrLocation.id,
-        name: assignmentOrLocation.name,
-        isActive: isActive,
-        isHidden: isHidden,
+        ...baseUpdate(),
         categoryId: categoryId,
       })
       .then(() => {
@@ -224,10 +304,7 @@ const AdminCard = (props: AdminCardProps) => {
     setLocationCategoryIds(categoryIds);
     await editMutation
       .mutateAsync({
-        id: assignmentOrLocation.id,
-        name: assignmentOrLocation.name,
-        isActive: isActive,
-        isHidden: isHidden,
+        ...baseUpdate(),
         categoryIds: categoryIds,
       })
       .then(() => {
@@ -260,7 +337,7 @@ const AdminCard = (props: AdminCardProps) => {
       justifyContent="space-between"
     >
       <>
-        <Flex w="50%">
+        <Flex w="70%">
           <Editable
             onSubmit={handleNameChange}
             textAlign="center"
@@ -274,17 +351,9 @@ const AdminCard = (props: AdminCardProps) => {
             <Input as={EditableInput} />
             <EditableControls />
           </Editable>
-          <Text fontSize="large" mt={1.5} ml={5}>
-            Active?
-          </Text>
-          <Switch
-            onChange={handleActiveChange}
-            mt={2.5}
-            ml={3}
-            isChecked={isActive}
-          />
+
           {/*uppercaseFirstLetter(allCategories?.find((category) => category.id === assignmentCategoryId).name)*/}
-          <FormControl w={isAssignment ? "30%" : "50%"} ml={2}>
+          <FormControl w={isAssignment ? "30%" : "50%"} ml={5}>
             {isAssignment ? (
               <Select
                 options={allCategories?.map((category) => ({
@@ -295,7 +364,7 @@ const AdminCard = (props: AdminCardProps) => {
                   assignmentCategoryId !== undefined
                     ? {
                         label: allCategories?.find(
-                          (category) => category.id === assignmentCategoryId,
+                          (category) => category.id === assignmentCategoryId
                         )?.name,
                         value: assignmentCategoryId,
                       }
@@ -305,7 +374,7 @@ const AdminCard = (props: AdminCardProps) => {
                   newValue: SingleValue<{
                     label: string | undefined;
                     value: number;
-                  }>,
+                  }>
                 ) => handleAssignmentCategoryChange(newValue?.value ?? -1)}
               />
             ) : (
@@ -317,7 +386,7 @@ const AdminCard = (props: AdminCardProps) => {
                 }))}
                 value={allCategories
                   ?.filter((category) =>
-                    locationCategoryIds?.includes(category.id),
+                    locationCategoryIds?.includes(category.id)
                   )
                   ?.map((category) => ({
                     value: category.id,
@@ -327,45 +396,96 @@ const AdminCard = (props: AdminCardProps) => {
                   newValue: MultiValue<{
                     label: string;
                     value: number;
-                  }>,
+                  }>
                 ) =>
                   handleLocationCategoriesChange(
-                    newValue.map((item) => item.value),
+                    newValue.map((item) => item.value)
                   )
                 }
               />
             )}
           </FormControl>
+          {isAssignment ? (
+            <>
+              <Button
+                ml={5}
+                onClick={() => setIsTemplateModalOpen(!isTemplateModalOpen)}
+              >
+                Edit Template
+              </Button>
+              <EditTemplateModal
+                isModalOpen={isTemplateModalOpen}
+                setIsModalOpen={setIsTemplateModalOpen}
+                handleConfirm={handleTemplateChange}
+                template={template}
+                assignmentName={name}
+              />
+            </>
+          ) : (
+            <></>
+          )}
+          <Checkbox
+            ml={5}
+            hidden={isAssignment}
+            onChange={() => handleOnlineChange(!isOnline)}
+            colorScheme="telegram"
+            size="lg"
+            isChecked={isOnline}
+          >
+            Online
+          </Checkbox>
+          <Checkbox
+            hidden={!isAssignment}
+            onChange={() => handlePriorityChange(!isPriority)}
+            colorScheme="telegram"
+            size="lg"
+            ml={5}
+            isChecked={isPriority}
+          >
+            Priority
+          </Checkbox>
         </Flex>
-        <Checkbox
-          hidden={!isActive || !isAssignment}
-          onChange={() => handlePriorityChange(!isPriority)}
-          colorScheme="telegram"
-          size="lg"
-          ml={2}
-          isChecked={isPriority}
-        >
-          Priority
-        </Checkbox>
-        {!isActive && (
-          <Flex>
-            {isHidden ? (
-              <FaEyeSlash
-                size="20px"
-                className="hover-cursor"
-                style={{ marginTop: "10px" }}
-                onClick={handleHidden}
-              />
-            ) : (
-              <FaEye
-                size="20px"
-                className="hover-cursor"
-                style={{ marginTop: "10px" }}
-                onClick={handleHidden}
-              />
-            )}
-          </Flex>
-        )}
+
+        <Flex>
+          {!isActive && (
+            <>
+              <Tooltip
+                label={
+                  (isHidden ? "Show" : "Hide") +
+                  " this " +
+                  (isAssignment ? "assignment" : "location")
+                }
+              >
+                <Text as="span">
+                  {isHidden ? (
+                    <FaEyeSlash
+                      size="20px"
+                      className="hover-cursor"
+                      style={{ marginTop: "10px", marginLeft: "10px" }}
+                      onClick={handleHidden}
+                    />
+                  ) : (
+                    <FaEye
+                      size="20px"
+                      className="hover-cursor"
+                      style={{ marginTop: "10px", marginLeft: "10px" }}
+                      onClick={handleHidden}
+                    />
+                  )}
+                </Text>
+              </Tooltip>
+            </>
+          )}
+          <Text fontSize="large" mt={1.5} ml={5}>
+            Active?
+          </Text>
+          <Switch
+            onChange={handleActiveChange}
+            mt={2.5}
+            ml={3}
+            isChecked={isActive}
+          />
+        </Flex>
       </>
     </Flex>
   );

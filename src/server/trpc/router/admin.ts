@@ -58,6 +58,7 @@ export const adminRouter = router({
         isHidden: z.boolean(),
         isPriority: z.boolean().optional(),
         categoryId: z.number(),
+        template: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -73,6 +74,7 @@ export const adminRouter = router({
           ...(input.isPriority !== undefined && {
             isPriority: input.isPriority,
           }),
+          template: input.template,
         },
       });
     }),
@@ -95,6 +97,7 @@ export const adminRouter = router({
         isActive: z.boolean(),
         isHidden: z.boolean(),
         categoryIds: z.array(z.number()),
+        isOnline: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -121,6 +124,7 @@ export const adminRouter = router({
             disconnect: categoriesToDisconnect.map((id) => ({ id })),
             connect: input.categoryIds.map((id) => ({ id })),
           },
+          isOnline: input.isOnline,
         },
       });
     }),
@@ -281,6 +285,42 @@ export const adminRouter = router({
           value: input.domain,
         },
       });
+    }),
+
+  setStudentSupportLink: protectedStaffProcedure
+    .input(
+      z.object({
+        link: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.variableSettings.upsert({
+        where: {
+          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+        },
+        update: {
+          value: input.link,
+        },
+        create: {
+          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+          value: input.link,
+        },
+      });
+    }),
+
+    getStudentSupportLink: protectedStaffProcedure
+    .query(async ({ ctx }) => {
+      const studentSupportLink = await ctx.prisma.variableSettings.upsert({
+        where: {
+          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+        },
+        update: {},
+        create: {
+          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+          value: "",
+        },
+      });
+      return studentSupportLink.value;
     }),
 
   setCooldownTime: protectedStaffProcedure

@@ -10,6 +10,7 @@ export type SessionUser = {
   id: string;
   role: UserRole;
   preferredName: string;
+  preferredPronunciation: string;
 } & User;
 
 export const authOptions: NextAuthOptions = {
@@ -20,6 +21,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
         session.user.role = user.role;
         session.user.preferredName = user.preferredName;
+        session.user.preferredPronunciation = user.preferredPronunciation;
       }
       return session;
     },
