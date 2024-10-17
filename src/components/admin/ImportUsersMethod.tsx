@@ -152,7 +152,7 @@ const ImportUsersMethod = () => {
         hidden={isImportStaffAndStudents}
       >
         <Text mb={1}>
-          Only allow students from from email domain (Leave blank for all
+          Only allow students from email domain (Leave blank for all
           domains)
         </Text>
         <Flex direction="row">

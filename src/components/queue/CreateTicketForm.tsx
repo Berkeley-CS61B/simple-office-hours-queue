@@ -407,7 +407,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           </FormControl>
           <FormControl
             mt={6}
-            isRequired={isPublic}
+            isRequired
             isDisabled={location === undefined}
           >
             <FormLabel>Briefly describe where you are</FormLabel>
