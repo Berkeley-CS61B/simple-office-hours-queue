@@ -200,7 +200,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     changeDescription(assignment, newVal);
   };
 
-  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType) => {
+  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType | undefined) => {
     if (assignment === undefined || assignment?.template === "") {
       if (ticketType == TicketType.DEBUGGING) {
         setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
@@ -228,7 +228,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setLocation(undefined); // todo look at this
     setAssignment(newVal ?? undefined);
     refetch();
-    changeDescription(newVal, ticketType);
+    changeDescription(newVal ?? undefined, ticketType ?? undefined);
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

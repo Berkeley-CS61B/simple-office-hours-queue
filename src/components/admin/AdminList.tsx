@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Assignment, Category, Location } from "@prisma/client";
 import { CreatableSelect } from "chakra-react-select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
 
@@ -26,7 +26,7 @@ interface AdminListProps {
 const AdminList = (props: AdminListProps) => {
   const { assignmentsOrLocationsProps, isAssignment } = props;
   const [assignmentsOrLocations, setAssignmentsOrLocations] = useState<
-    Assignment[] | Location[]
+    (Assignment | Location)[]
   >(assignmentsOrLocationsProps);
   const [createText, setCreateText] = useState<string>("");
   const [isHiddenVisible, setIsHiddenVisible] = useState<boolean>(false);
@@ -43,9 +43,16 @@ const AdminList = (props: AdminListProps) => {
   const editLocationMutation = trpc.admin.editLocation.useMutation();
   const createCategoryMutation = trpc.admin.createCategory.useMutation();
 
-  const [numVisible, setNumVisible] = useState(
-    assignmentsOrLocations.filter((a) => !a?.isHidden).length
-  );
+  const [numVisible, setNumVisible] = useState(0);
+
+  useEffect(() => {
+    const hiddenAssignmentsOrLocations = (assignmentsOrLocations as (Assignment | Location)[]).filter(
+      (a) => !a?.isHidden
+    );
+    setNumVisible(
+      (hiddenAssignmentsOrLocations as (Assignment | Location)[]).length
+    );
+  }, [assignmentsOrLocations]);
 
   const changeNumVisible = (delta: number) => {
     setNumVisible(numVisible + delta);
