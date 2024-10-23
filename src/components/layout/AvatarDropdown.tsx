@@ -65,7 +65,7 @@ const AvatarDropdown = () => {
               <Center>
                 {session?.user?.name || session?.user?.preferredName ? (
                   <NameAndPronunciationPopoverForm
-                    name={name}
+                    name={name ?? ""}
                     setName={setName}
                     pronunciation={pronunciation}
                     setPronunciation={setPronunciation}

@@ -42,7 +42,7 @@ const EditTemplateModal = (props: EditTemplateModalProps) => {
         <ModalCloseButton />
         <ModalBody>
             <Text>
-                Include "[this test]" or "[this concept]" as mandatory placeholders for students to fill.
+                Include &quot;[this test]&quot; or &quot;[this concept]&quot; as mandatory placeholders for students to fill.
             </Text>
           <Textarea
             value={tempTemplate}
@@ -59,7 +59,7 @@ const EditTemplateModal = (props: EditTemplateModalProps) => {
             colorScheme="blue"
             mr={3}
             onClick={() => {
-              handleConfirm(tempTemplate);
+              handleConfirm(tempTemplate ?? "");
               setIsModalOpen(false);
             }}
           >

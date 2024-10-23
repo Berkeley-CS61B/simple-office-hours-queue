@@ -303,7 +303,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       />
 
       <Flex
-        hidden={!isStaff && studentSupportLink !== "" && studentSupportLink !== undefined}
+        hidden={!isStaff || studentSupportLink == "" || studentSupportLink == undefined}
         flexDirection="column"
         justifyContent="center"
         mt={3}
