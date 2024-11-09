@@ -136,6 +136,8 @@ model Assignment {
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int      @default(1)
   template   String   @default("")
+  conceptualTemplate String @default("")
+  debuggingTemplate String @default("")
 
   @@index(id)
   @@index(categoryId)
