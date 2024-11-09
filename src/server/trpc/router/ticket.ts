@@ -10,6 +10,7 @@ import {
   User,
   UserRole,
   VariableSiteSettings,
+  Template,
 } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
 import Ably from "ably/promises";
@@ -1012,5 +1013,5 @@ export interface TicketWithNames extends Ticket {
   locationName: string;
   assignmentCategoryId: number;
   isOnline: boolean;
-  template: string;
+  templates: Template[];
 }

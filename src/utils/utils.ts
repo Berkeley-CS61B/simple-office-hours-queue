@@ -23,6 +23,7 @@ export const settingsToDefault = {
   [SiteSettings.IS_QUEUE_OPEN]: SiteSettingsValues.FALSE,
   [SiteSettings.ARE_PUBLIC_TICKETS_ENABLED]: SiteSettingsValues.TRUE,
   [SiteSettings.IMPORT_USERS_METHOD]: SiteSettingsValues.IMPORT_STAFF,
+  [SiteSettings.IS_AUTO_RESOLVE_ENABLED]: SiteSettingsValues.FALSE,
 };
 
 /** Returns the time difference in minutes between a first and second (first - second) */

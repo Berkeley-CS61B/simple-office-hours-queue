@@ -15,7 +15,7 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import { Category, PersonalQueue, TicketType } from "@prisma/client";
+import { Category, PersonalQueue, TicketType, Template } from "@prisma/client";
 import { Select, SingleValue } from "chakra-react-select";
 import Router from "next/router";
 import { useEffect, useState } from "react";
@@ -37,7 +37,7 @@ interface Assignment {
   label: string;
   value: string;
   categoryId?: number | undefined;
-  template: string;
+  templates: Template[];
 }
 
 interface Location {
@@ -87,7 +87,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           label: existingTicket.assignmentName,
           value: existingTicket.assignmentName,
           categoryId: existingTicket.assignmentCategoryId,
-          template: existingTicket.template,
+          templates: existingTicket.templates,
         }
       : undefined,
   );
@@ -146,7 +146,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 value: assignment.name,
                 id: assignment.id,
                 categoryId: assignment.categoryId,
-                template: assignment.template,
+                templates: assignment.templates,
               }) as Assignment,
           ),
         );
@@ -200,21 +200,16 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     changeDescription(assignment, newVal);
   };
 
-  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType) => {
-    if (assignment === undefined || assignment?.template === "") {
-      if (ticketType == TicketType.DEBUGGING) {
-        setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
-      } else {  
-        setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
+  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType | undefined) => {
+    const templates = assignment?.templates ?? [];
+    for (const template of templates) {
+      if (template.type === ticketType) {
+        setDescription(template.contents);
+        return;
       }
-    } else {
-      setDescription(assignment.template);
     }
+    setDescription("");
   } 
-
-  
-
-  
 
   const handleTogglePublic = () => {
     if (ticketType === TicketType.CONCEPTUAL && isPublic) {
@@ -228,7 +223,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     setLocation(undefined); // todo look at this
     setAssignment(newVal ?? undefined);
     refetch();
-    changeDescription(newVal, ticketType);
+    changeDescription(newVal ?? undefined, ticketType);
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

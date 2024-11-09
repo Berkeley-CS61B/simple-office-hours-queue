@@ -11,22 +11,24 @@ import {
 } from "@chakra-ui/react";
 import { Assignment, Category, Location } from "@prisma/client";
 import { CreatableSelect } from "chakra-react-select";
-import { useState } from "react";
+import { useState} from "react";
 import { trpc } from "../../utils/trpc";
 import AdminCard from "./AdminCard";
+import { AssignmentWithTemplates } from "./AdminView";
 
 interface AdminListProps {
-  assignmentsOrLocationsProps: Assignment[] | Location[];
+  assignmentsOrLocationsProps: AssignmentWithTemplates[] | Location[];
   isAssignment: boolean;
+  refetch: () => void;
 }
 
 /**
  * Component for displaying a list of assignments/location
  */
 const AdminList = (props: AdminListProps) => {
-  const { assignmentsOrLocationsProps, isAssignment } = props;
+  const { assignmentsOrLocationsProps, isAssignment, refetch } = props;
   const [assignmentsOrLocations, setAssignmentsOrLocations] = useState<
-    Assignment[] | Location[]
+    AssignmentWithTemplates[] | Location[]
   >(assignmentsOrLocationsProps);
   const [createText, setCreateText] = useState<string>("");
   const [isHiddenVisible, setIsHiddenVisible] = useState<boolean>(false);
@@ -86,7 +88,7 @@ const AdminList = (props: AdminListProps) => {
       .then((data) => {
         setAssignmentsOrLocations((prev) => [
           ...(prev ?? []),
-          data as Assignment,
+          data as AssignmentWithTemplates,
         ]);
       })
       .catch((err) => {
@@ -292,6 +294,7 @@ const AdminList = (props: AdminListProps) => {
             isHiddenVisible={isHiddenVisible}
             isAssignment={isAssignment}
             changeNumVisible={changeNumVisible}
+            refetch={refetch}
           />
         </Box>
       ))}

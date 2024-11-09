@@ -2,11 +2,17 @@ import {
   SiteSettings,
   SiteSettingsValues,
   VariableSiteSettings,
+  TicketType,
 } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
 import Ably from "ably/promises";
 import { z } from "zod";
-import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from "../../../utils/constants";
+import {
+  EMAIL_DOMAIN_REGEX_OR_EMPTY,
+  STARTER_CONCEPTUAL_TICKET_DESCRIPTION,
+  STARTER_DEBUGGING_TICKET_DESCRIPTION,
+  STARTER_TICKET_DESCRIPTIONS,
+} from "../../../utils/constants";
 import {
   ImportUsersMethodPossiblities,
   settingsToDefault,
@@ -20,9 +26,10 @@ export const adminRouter = router({
         name: z.string(),
         isPriority: z.boolean(),
         categoryId: z.number().optional(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
+      // TODO: change to first create, then use findUnique to get it in a more standard fashion.
       return ctx.prisma.assignment.create({
         data: {
           name: input.name,
@@ -32,6 +39,17 @@ export const adminRouter = router({
               id: input.categoryId,
             },
           },
+          templates: {
+            create: Object.entries(STARTER_TICKET_DESCRIPTIONS).map(
+              ([type, contents]) => ({
+                type,
+                contents,
+              })
+            ),
+          },
+        },
+        include: {
+          templates: true,
         },
       });
     }),
@@ -58,8 +76,8 @@ export const adminRouter = router({
         isHidden: z.boolean(),
         isPriority: z.boolean().optional(),
         categoryId: z.number(),
-        template: z.string(),
-      }),
+        templates: z.array(z.object({ id: z.number(), contents: z.string() })),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       return ctx.prisma.assignment.update({
@@ -74,7 +92,29 @@ export const adminRouter = router({
           ...(input.isPriority !== undefined && {
             isPriority: input.isPriority,
           }),
-          template: input.template,
+          templates:
+            input.templates.length === 0
+              ? {
+                  create: Object.entries(STARTER_TICKET_DESCRIPTIONS).map(
+                    ([type, contents]) => {
+                      return {
+                        type,
+                        contents: "create-test",
+                      };
+                    }
+                  ),
+                }
+              : {
+                  update: input.templates.map((template) => {
+                    return {
+                      where: { id: template.id },
+                      data: { contents: "update-test" },
+                    };
+                  }),
+                },
+        },
+        include: {
+          templates: true,
         },
       });
     }),
@@ -98,7 +138,7 @@ export const adminRouter = router({
         isHidden: z.boolean(),
         categoryIds: z.array(z.number()),
         isOnline: z.boolean(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       const existingLocation = await ctx.prisma.location.findUnique({
@@ -133,7 +173,7 @@ export const adminRouter = router({
     .input(
       z.object({
         shouldBeEnabled: z.boolean(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.settings.upsert({
@@ -158,7 +198,7 @@ export const adminRouter = router({
     .input(
       z.object({
         shouldBeEnabled: z.boolean(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.settings.upsert({
@@ -184,7 +224,7 @@ export const adminRouter = router({
       z.object({
         shouldOpen: z.boolean(),
         personalQueueName: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       // If we're opening/closing a personal queue, do that instead of the site-wide queue
@@ -204,12 +244,12 @@ export const adminRouter = router({
       if (input.personalQueueName) {
         await channel.publish(
           `queue-open-close-${input.personalQueueName}`,
-          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE
         );
       } else {
         await channel.publish(
           "queue-open-close",
-          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE,
+          input.shouldOpen ? SiteSettingsValues.TRUE : SiteSettingsValues.FALSE
         );
       }
 
@@ -239,7 +279,7 @@ export const adminRouter = router({
     .input(
       z.object({
         method: z.nativeEnum(ImportUsersMethodPossiblities),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       if (
@@ -266,7 +306,7 @@ export const adminRouter = router({
     .input(
       z.object({
         domain: z.string(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       if (!EMAIL_DOMAIN_REGEX_OR_EMPTY.test(input.domain)) {
@@ -291,7 +331,7 @@ export const adminRouter = router({
     .input(
       z.object({
         link: z.string(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.variableSettings.upsert({
@@ -308,26 +348,25 @@ export const adminRouter = router({
       });
     }),
 
-    getStudentSupportLink: protectedStaffProcedure
-    .query(async ({ ctx }) => {
-      const studentSupportLink = await ctx.prisma.variableSettings.upsert({
-        where: {
-          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
-        },
-        update: {},
-        create: {
-          setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
-          value: "",
-        },
-      });
-      return studentSupportLink.value;
-    }),
+  getStudentSupportLink: protectedStaffProcedure.query(async ({ ctx }) => {
+    const studentSupportLink = await ctx.prisma.variableSettings.upsert({
+      where: {
+        setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+      },
+      update: {},
+      create: {
+        setting: VariableSiteSettings.STUDENT_SUPPORT_LINK,
+        value: "",
+      },
+    });
+    return studentSupportLink.value;
+  }),
 
   setCooldownTime: protectedStaffProcedure
     .input(
       z.object({
         cooldownTime: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       if (input.cooldownTime < 0) {
@@ -398,7 +437,11 @@ export const adminRouter = router({
   }),
 
   getAllAssignments: protectedStaffProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.assignment.findMany();
+    return ctx.prisma.assignment.findMany({
+      include: {
+        templates: true,
+      },
+    });
   }),
 
   getAllLocations: protectedStaffProcedure.query(async ({ ctx }) => {
@@ -409,13 +452,16 @@ export const adminRouter = router({
     .input(
       z.object({
         categoryId: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       return ctx.prisma.assignment.findMany({
         where: {
           isActive: true,
           categoryId: input.categoryId,
+        },
+        include: {
+          templates: true,
         },
       });
     }),
@@ -424,7 +470,7 @@ export const adminRouter = router({
     .input(
       z.object({
         categoryId: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       return ctx.prisma.location.findMany({
@@ -453,7 +499,7 @@ export const adminRouter = router({
     .input(
       z.object({
         locationId: z.number().optional(),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
       return ctx.prisma.location.findUnique({

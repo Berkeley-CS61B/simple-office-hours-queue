@@ -1,7 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-  output = "../node_modules/.prisma/client"
+  output        = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -58,6 +58,8 @@ model Ticket {
   usersInGroup        User[]         @relation("groupTickets")
   PersonalQueue       PersonalQueue? @relation(fields: [personalQueueName], references: [name])
   ticketType          TicketType     @default(DEBUGGING)
+  templates           Template[]
+  isOnline            Boolean        @default(false)
 
   helpedByUserId    String?
   createdByUserId   String
@@ -125,22 +127,32 @@ model Session {
 }
 
 model Assignment {
-  id         Int      @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   name       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-  isActive   Boolean  @default(true)
-  isHidden   Boolean  @default(false)
-  isPriority Boolean  @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+  isActive   Boolean    @default(true)
+  isHidden   Boolean    @default(false)
+  isPriority Boolean    @default(false)
   Ticket     Ticket[]
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId Int      @default(1)
-  template   String   @default("")
-  conceptualTemplate String @default("")
-  debuggingTemplate String @default("")
+  category   Category   @relation(fields: [categoryId], references: [id])
+  categoryId Int        @default(1)
+  templates  Template[]
 
   @@index(id)
   @@index(categoryId)
+}
+
+model Template {
+  id           Int         @id @default(autoincrement())
+  type         TicketType
+  contents     String      @default("")
+  Ticket       Ticket?     @relation(fields: [ticketId], references: [id])
+  ticketId     Int?
+  Assignment   Assignment? @relation(fields: [assignmentId], references: [id])
+  assignmentId Int?
+
+  @@index(id)
 }
 
 model Category {
@@ -206,6 +218,12 @@ model groupTickets {
   @@map("_groupTickets")
 }
 
+model StaffLink {
+  id   Int    @id @default(autoincrement())
+  name String
+  url  String
+}
+
 enum UserRole {
   STUDENT
   STAFF
@@ -231,6 +249,7 @@ enum SiteSettings {
   ARE_PUBLIC_TICKETS_ENABLED
   IS_QUEUE_OPEN
   IMPORT_USERS_METHOD // IMPORT_STAFF or IMPORT_STAFF_AND_STUDENTS
+  IS_AUTO_RESOLVE_ENABLED
 }
 
 enum SiteSettingsValues {
@@ -244,4 +263,5 @@ enum VariableSiteSettings {
   EMAIL_DOMAIN
   COOLDOWN_TIME // In minutes
   STUDENT_SUPPORT_LINK
+  AUTORESOLVE_TIME
 }

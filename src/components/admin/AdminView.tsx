@@ -13,6 +13,7 @@ import {
   Location,
   SiteSettings,
   SiteSettingsValues,
+  Template,
 } from "@prisma/client";
 import { useEffect, useState } from "react";
 import useSiteSettings from "../../utils/hooks/useSiteSettings";
@@ -20,6 +21,10 @@ import { trpc } from "../../utils/trpc";
 import AdminList from "./AdminList";
 import CoolDownTimer from "./CooldownTimer";
 import ImportUsersMethod from "./ImportUsersMethod";
+
+export interface AssignmentWithTemplates extends Assignment {
+  templates: Template[];
+}
 
 /**
  * Component which allows staff to edit site settings and locations/assignments
@@ -29,7 +34,7 @@ const AdminView = () => {
   const [arePublicTicketsEnabled, setArePublicTicketsEnabled] =
     useState<boolean>();
   const [studentSupportLink, setStudentSupportLink] = useState("");
-  const [assignments, setAssignments] = useState<Assignment[]>();
+  const [assignments, setAssignments] = useState<AssignmentWithTemplates[]>();
   const [locations, setLocations] = useState<Location[]>();
 
   const { siteSettings } = useSiteSettings();
@@ -64,19 +69,25 @@ const AdminView = () => {
     },
   });
 
-  trpc.admin.getAllAssignments.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      setAssignments(data); // Putting this in state to edit the list
-    },
-  });
+  const { refetch: refetchAssignments } = trpc.admin.getAllAssignments.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setAssignments(data); // Putting this in state to edit the list
+      },
+    }
+  );
 
-  trpc.admin.getAllLocations.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      setLocations(data);
-    },
-  });
+  const { refetch: refetchLocations } = trpc.admin.getAllLocations.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        setLocations(data);
+      },
+    }
+  );
 
   // Sets the pending stage to enabled or disabled depending on the current state
   const handleTogglePendingStageEnabled = async () => {
@@ -95,7 +106,7 @@ const AdminView = () => {
     });
   };
 
-  // TODO: validation of link 
+  // TODO: validation of link
   const handleStudentSupportLinkSubmit = () => {
     setStudentSupportLinkMutation
       .mutateAsync({ link: studentSupportLink })
@@ -130,8 +141,13 @@ const AdminView = () => {
       <AdminList
         assignmentsOrLocationsProps={assignments}
         isAssignment={true}
+        refetch={refetchAssignments}
       />
-      <AdminList assignmentsOrLocationsProps={locations} isAssignment={false} />
+      <AdminList
+        assignmentsOrLocationsProps={locations}
+        isAssignment={false}
+        refetch={refetchLocations}
+      />
       <Flex direction="column" mt={10} mb={3}>
         <Text fontSize="3xl" fontWeight="semibold">
           Settings

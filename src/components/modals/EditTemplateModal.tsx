@@ -8,29 +8,39 @@ import {
   ModalHeader,
   useColorModeValue,
   Textarea,
-  Text
+  Text,
+  Heading,
+  Box,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { DARK_GRAY_COLOR, DARK_HOVER_COLOR } from "../../utils/constants";
+import { Template } from "@prisma/client";
+
+import { uppercaseFirstLetter } from "../../utils/utils";
 
 interface EditTemplateModalProps {
-  
   isModalOpen: boolean;
   setIsModalOpen: (value: boolean) => void;
-  handleConfirm: (newTemplate: string) => void;
-  template: string | undefined;
+  handleConfirm: (newTemplates: Template[]) => void;
+  templates: Template[];
   assignmentName: string;
 }
 
 /** Used when a staff wants to edit the template associated with an assignment or lab  */
 const EditTemplateModal = (props: EditTemplateModalProps) => {
-  const { isModalOpen, setIsModalOpen, handleConfirm, template, assignmentName } = props;
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    handleConfirm,
+    templates,
+    assignmentName,
+  } = props;
 
-  const [tempTemplate, setTempTemplate] = useState(template);
+  const [tempContents, setTempContents] = useState<string[]>();
 
   useEffect(() => {
-    setTempTemplate(template);
-  }, [isModalOpen, template]);
+    setTempContents(templates?.map((template) => template.contents));
+  }, [templates]);
 
   return (
     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -41,25 +51,51 @@ const EditTemplateModal = (props: EditTemplateModalProps) => {
         <ModalHeader>Edit Template for {assignmentName}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-            <Text>
-                Include "[this test]" or "[this concept]" as mandatory placeholders for students to fill.
-            </Text>
-          <Textarea
-            value={tempTemplate}
-            onChange={(e) => setTempTemplate(e.target.value)}
-            placeholder="Fill in template here"
-            mt={2}
-          />
+          <Text>
+            Include "[this test]" or "[this concept]" as mandatory placeholders
+            for students to fill.
+          </Text>
+
+          {tempContents?.map((tempContent: string, index: number) => (
+            <Box mt={3} key={index}>
+              <Heading size="sm">
+                {uppercaseFirstLetter(templates?.[index].type ?? "")} template
+              </Heading>
+              <Textarea
+                key={index}
+                value={tempContent}
+                onChange={(e) => {
+                  const updatedContents = [...tempContents];
+                  updatedContents[index] = e.target.value;
+                  setTempContents(updatedContents);
+                }}
+                placeholder="Fill in template here"
+                mt={2}
+              />
+            </Box>
+          ))}
         </ModalBody>
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={() => setIsModalOpen(false)}>
+          <Button
+            variant="ghost"
+            mr={3}
+            onClick={() => {
+              setIsModalOpen(false);
+              setTempContents(templates?.map((template) => template.contents));
+            }}
+          >
             Cancel
           </Button>
           <Button
             colorScheme="blue"
             mr={3}
             onClick={() => {
-              handleConfirm(tempTemplate);
+              const newTemplates: Template[] = templates.map(
+                (template, index) => {
+                  return { ...template, contents: tempContents?.[index] };
+                }
+              );
+              handleConfirm(newTemplates);
               setIsModalOpen(false);
             }}
           >

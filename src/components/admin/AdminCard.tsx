@@ -18,21 +18,23 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 
-import { Assignment, Category, Location } from "@prisma/client";
+import { Assignment, Category, Location, Template } from "@prisma/client";
 import { UseTRPCMutationResult } from "@trpc/react/shared";
 import { MultiValue, Select, SingleValue } from "chakra-react-select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { DARK_GRAY_COLOR } from "../../utils/constants";
 import { trpc } from "../../utils/trpc";
 import EditTemplateModal from "../modals/EditTemplateModal";
+import { AssignmentWithTemplates } from "./AdminView";
 
 interface AdminCardProps {
-  assignmentOrLocation: Assignment | Location;
+  assignmentOrLocation: AssignmentWithTemplates | Location;
   editMutation: UseTRPCMutationResult<any, any, any, any>;
   isHiddenVisible: boolean;
   isAssignment: boolean;
   changeNumVisible: (delta: number) => void;
+  refetch: () => void;
 }
 
 const EditableControls = () => {
@@ -78,10 +80,15 @@ const AdminCard = (props: AdminCardProps) => {
     isHiddenVisible,
     isAssignment,
     changeNumVisible,
+    refetch,
   } = props;
   const boxColor = useColorModeValue("gray.100", DARK_GRAY_COLOR);
 
-  const [name, setName] = useState(assignmentOrLocation.name);
+  // const [assignmentLocation, setAssignmentLocation] = useState<
+  //   AssignmentWithTemplates | Location
+  // >(assignmentOrLocation);
+
+  const [name, setName] = useState<string>(assignmentOrLocation.name);
   const [isActive, setIsActive] = useState(assignmentOrLocation.isActive);
   const [isHidden, setIsHidden] = useState(assignmentOrLocation.isHidden);
   const [isPriority, setIsPriority] = useState(
@@ -93,12 +100,41 @@ const AdminCard = (props: AdminCardProps) => {
   const [assignmentCategoryId, setAssignmentCategoryId] = useState(
     isAssignment ? (assignmentOrLocation as Assignment).categoryId : undefined
   );
-  const [template, setTemplate] = useState(
-    isAssignment ? (assignmentOrLocation as Assignment).template : undefined
+  const [templates, setTemplates] = useState(
+    isAssignment
+      ? (assignmentOrLocation as AssignmentWithTemplates).templates
+      : []
   );
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [locationCategoryIds, setLocationCategoryIds] = useState<number[]>();
   const [allCategories, setAllCategories] = useState<Category[]>();
+  const [isTemplateModalOpen, setIsTemplateModalOpen] =
+    useState<boolean>(false);
+  const [assignmentLocationChanged, setAssignmentLocationChanged] =
+    useState<boolean>(true);
+
+  useEffect(() => {
+    if (refetch) {
+\      refetch(); // right now this is a global refetch of all assignments and locations, but may want to change in future to refetch a single assignment or single location
+    }
+    //refetch(); 
+  }, [assignmentLocationChanged])
+  // useEffect(() => {
+  //   if (assignmentLocationChanged) {
+  //     setName(assignmentLocation?.name ?? "");
+  //     setIsActive(assignmentLocation?.isActive ?? false);
+  //     setIsHidden(assignmentLocation?.isHidden ?? false);
+  //     if (isAssignment && assignmentLocation !== undefined) {
+  //       const assignment = assignmentLocation as AssignmentWithTemplates;
+  //       setIsPriority(assignment?.isPriority ?? false);
+  //       setAssignmentCategoryId(assignment?.categoryId ?? undefined);
+  //       setTemplates(assignment?.templates ?? []);
+  //     } else {
+  //       const location = assignmentLocation as Location;
+  //       setIsOnline(location?.isOnline ?? false);
+  //     }
+  //     setAssignmentLocationChanged(false);
+  //   }
+  // }, [assignmentLocationChanged]);
 
   const context = trpc.useContext();
   const toast = useToast();
@@ -136,7 +172,7 @@ const AdminCard = (props: AdminCardProps) => {
       categoryId: isAssignment ? assignmentCategoryId : undefined,
       categoryIds: isAssignment ? undefined : locationCategoryIds,
       isOnline: isAssignment ? undefined : isOnline,
-      template: isAssignment ? template : undefined,
+      templates: isAssignment ? templates : undefined,
     };
   };
 
@@ -147,6 +183,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -167,9 +204,10 @@ const AdminCard = (props: AdminCardProps) => {
         ...baseUpdate(),
         isPriority: newPriority,
       })
-      .then(() => {
+      .then((data) => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -183,13 +221,21 @@ const AdminCard = (props: AdminCardProps) => {
       });
   };
 
-  const handleTemplateChange = async (newTemplate: string) => {
-    setTemplate(newTemplate);
+  const handleTemplatesChange = async (newTemplates: Template[]) => {
+    setTemplates(newTemplates);
     await editMutation
-      .mutateAsync({ ...baseUpdate(), template: newTemplate })
+      .mutateAsync({ ...baseUpdate(), templates: newTemplates })
       .then(() => {
-        context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        toast({
+          title: "Success",
+          description: `Templates updated for ${name}`,
+          status: "success",
+          duration: 5000,
+          position: "top-right",
+          isClosable: true,
+        });
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -210,6 +256,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -235,6 +282,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -264,6 +312,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -287,6 +336,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -310,6 +360,7 @@ const AdminCard = (props: AdminCardProps) => {
       .then(() => {
         context.admin.getAllLocations.invalidate();
         context.admin.getAllAssignments.invalidate();
+        setAssignmentLocationChanged(true);
       })
       .catch((err) => {
         toast({
@@ -416,8 +467,8 @@ const AdminCard = (props: AdminCardProps) => {
               <EditTemplateModal
                 isModalOpen={isTemplateModalOpen}
                 setIsModalOpen={setIsTemplateModalOpen}
-                handleConfirm={handleTemplateChange}
-                template={template}
+                handleConfirm={handleTemplatesChange}
+                templates={templates}
                 assignmentName={name}
               />
             </>
