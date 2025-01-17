@@ -33,7 +33,7 @@ export const ticketRouter = router({
         locationDescription: z.string().optional(),
         personalQueueName: z.string().optional(),
         ticketType: z.nativeEnum(TicketType),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       // Limits students to 1 ticket at a time per queue
@@ -221,7 +221,7 @@ export const ticketRouter = router({
           isPublic: z.boolean(),
           ticketType: z.nativeEnum(TicketType),
         }),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -258,7 +258,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.updateMany({
@@ -281,7 +281,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       const ticketsToAssign: number[] = [];
@@ -330,7 +330,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketId: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -359,7 +359,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.updateMany({
@@ -383,7 +383,7 @@ export const ticketRouter = router({
       z.object({
         ticketId: z.number(),
         markOrUnmark: z.boolean(), // True for mark, false for unmark
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -408,7 +408,7 @@ export const ticketRouter = router({
       z.object({
         ticketId: z.number(),
         isPriority: z.boolean(), // True for mark, false for unmark
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -435,7 +435,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       const tickets = await ctx.prisma.ticket.findMany({
@@ -451,7 +451,7 @@ export const ticketRouter = router({
           ctx.session?.user?.role !== UserRole.STAFF
         ) {
           throw new TRPCClientError(
-            "You are not authorized to close this ticket",
+            "You are not authorized to close this ticket"
           );
         }
       }
@@ -476,7 +476,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       for (const ticketId of input.ticketIds) {
@@ -501,7 +501,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketIds: z.array(z.number()),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.updateMany({
@@ -524,7 +524,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketId: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -562,7 +562,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketId: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -602,7 +602,7 @@ export const ticketRouter = router({
         ticketId: z.number(),
         message: z.string(),
         visibleToStudents: z.boolean(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       if (
@@ -610,7 +610,7 @@ export const ticketRouter = router({
         ctx.session.user.role === UserRole.STUDENT
       ) {
         throw new TRPCClientError(
-          "You are not authorized to send this message",
+          "You are not authorized to send this message"
         );
       }
 
@@ -647,7 +647,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         personalQueueName: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       // Closes all open, pending, and assigned tickets.
@@ -700,7 +700,7 @@ export const ticketRouter = router({
       z.object({
         ticketId: z.number(),
         isPublic: z.boolean(),
-      }),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.ticket.update({
@@ -721,7 +721,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         id: z.number(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       const ticket: Ticket | null = await ctx.prisma.ticket.findUnique({
@@ -781,7 +781,7 @@ export const ticketRouter = router({
       z.object({
         status: z.nativeEnum(TicketStatus),
         personalQueueName: z.string().optional(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       const tickets = await ctx.prisma.ticket.findMany({
@@ -806,7 +806,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         page: z.number(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       // With page size = 50
@@ -824,13 +824,13 @@ export const ticketRouter = router({
       z.object({
         userId: z.string(),
         shouldSortByCreatedAt: z.boolean().optional(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       return await getUserTicketsFromId(
         input.userId,
         input.shouldSortByCreatedAt,
-        ctx,
+        ctx
       );
     }),
 
@@ -839,7 +839,7 @@ export const ticketRouter = router({
       z.object({
         userEmail: z.string(),
         shouldSortByCreatedAt: z.boolean().optional(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       if (!input.userEmail.match(EMAIL_REGEX)) {
@@ -858,7 +858,7 @@ export const ticketRouter = router({
       return await getUserTicketsFromId(
         user.id,
         input.shouldSortByCreatedAt,
-        ctx,
+        ctx
       );
     }),
 
@@ -866,7 +866,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketId: z.number(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       const users = await ctx.prisma.user.findMany({
@@ -884,7 +884,7 @@ export const ticketRouter = router({
     .input(
       z.object({
         ticketId: z.number(),
-      }),
+      })
     )
     .query(async ({ input, ctx }) => {
       const userRole = ctx.session.user.role;
@@ -908,7 +908,7 @@ export const ticketRouter = router({
             userName: user?.preferredName ?? user?.name!,
             userRole: user?.role!,
           };
-        }),
+        })
       );
 
       messagesWithUser.sort((a, b) => {
@@ -955,8 +955,9 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         createdByEmail: createdBy.email,
         createdByPronunciation: createdBy?.preferredPronunciation ?? "",
         assignmentCategoryId: assignment?.categoryId,
+        locationDescription: ticket.locationDescription,
       };
-    }),
+    })
   );
 
   return ticketsWithNames;
@@ -966,7 +967,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
 const getUserTicketsFromId = async (
   userId: string,
   shouldSortByCreatedAt: boolean | undefined,
-  ctx: any,
+  ctx: any
 ) => {
   const helpedTicketsNoName = await ctx.prisma.ticket.findMany({
     where: {
@@ -984,11 +985,11 @@ const getUserTicketsFromId = async (
 
   const createdTickets = await convertTicketToTicketWithNames(
     createdTicketsNoName,
-    ctx,
+    ctx
   );
   const helpedTickets = await convertTicketToTicketWithNames(
     helpedTicketsNoName,
-    ctx,
+    ctx
   );
 
   return {
@@ -1011,6 +1012,7 @@ export interface TicketWithNames extends Ticket {
   assignmentName: string;
   locationName: string;
   assignmentCategoryId: number;
+  locationDescription: string | null;
   isOnline: boolean;
   template: string;
 }

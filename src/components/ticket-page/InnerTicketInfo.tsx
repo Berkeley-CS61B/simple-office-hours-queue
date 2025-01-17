@@ -9,6 +9,7 @@ import {
   Tag,
   Text,
   Tooltip,
+  VStack,
   Link
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
@@ -22,10 +23,14 @@ import { trpc } from "../../utils/trpc";
 import {
   timeDifferenceInMinutes,
   uppercaseFirstLetter,
+  parseCoordinates,
 } from "../../utils/utils";
 import EditTicketModal from "../modals/EditTicketModal";
 import Countdown from "./Countdown";
 import TicketButtons from "./TicketButtons";
+import LocationPicker from "../location-picker/LocationPicker";
+import { hasLocationPicker } from "../location-picker/locationConfig";
+import { Location } from "../queue/CreateTicketForm";
 
 interface InnerTicketInfoProps {
   ticket: TicketWithNames;
@@ -206,6 +211,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     });
   };
 
+  const location: Location = {
+    id: ticket.locationId,
+    label: ticket.locationName,
+    value: ticket.locationName,
+  };
+
   return (
     <>
       <Text>
@@ -245,19 +256,21 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           {ticket.assignmentName}
         </Tag>
         <Tag p={2.5} size="md" colorScheme="orange" borderRadius={5}>
-          {ticket.locationName}
+          {location.label}
         </Tag>
       </Box>
 
-      <Text hidden={!ticket.locationDescription}>
-        <span className="semibold">Location Description:</span>
-      </Text>
-
-      <Flex justifyContent="center">
-        <Text fontWeight="semibold" mt={2}>
-          {ticket.locationDescription}
+      {/* Default to text based location description if no location picker */}
+      {!hasLocationPicker(location.id) && (
+        <Text hidden={!location.value}>
+          <span className="semibold">Location Description:</span>
+          <Flex justifyContent="center">
+            <Text fontWeight="semibold" mt={2}>
+              {ticket.locationDescription}
+            </Text>
+          </Flex>
         </Text>
-      </Flex>
+      )}
 
       <Text fontWeight="semibold">
         {ticket.isPublic ? "Public" : "Private"} ticket
@@ -364,6 +377,27 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         onSubmit={handleEditTicket}
         ticket={ticket}
       />
+
+      <VStack align="start" spacing={2} width="100%">
+        {
+          <Box width="100%">
+            {hasLocationPicker(location.id) && (
+              <div>
+                <Text fontWeight="bold">Student Location:</Text>
+                <LocationPicker
+                  key={`view-${location.id}-${ticket.locationDescription}`}
+                  location={location}
+                  initialCoordinates={parseCoordinates(
+                    ticket.locationDescription ?? undefined
+                  )}
+                  disabled={true}
+                  onChange={() => {}}
+                />
+              </div>
+            )}
+          </Box>
+        }
+      </VStack>
     </>
   );
 };

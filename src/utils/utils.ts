@@ -28,7 +28,7 @@ export const settingsToDefault = {
 /** Returns the time difference in minutes between a first and second (first - second) */
 export const timeDifferenceInMinutes = (
   first: Date | null,
-  second: Date | null,
+  second: Date | null
 ): number => {
   if (!first || !second) return -1;
   const difference = first.getTime() - second.getTime();
@@ -38,7 +38,7 @@ export const timeDifferenceInMinutes = (
 export const getActivityTableColumns = (
   title: string,
   shouldShowCreatedBy: boolean,
-  shouldShowHelpedBy: boolean,
+  shouldShowHelpedBy: boolean
 ) => {
   const baseTable = [
     {
@@ -149,7 +149,7 @@ export const resolveTime = (t: TicketStats) => {
   }
   return (
     Math.round(
-      ((t.resolvedAt.getTime() - t.createdAt.getTime()) / 60000) * 1000,
+      ((t.resolvedAt.getTime() - t.createdAt.getTime()) / 60000) * 1000
     ) / 1000
   ); // in minutes, 3 decimals
 };
@@ -160,7 +160,7 @@ export const helpTime = (t: TicketStats) => {
   }
   return (
     Math.round(
-      ((t.resolvedAt.getTime() - t.helpedAt.getTime()) / 60000) * 1000,
+      ((t.resolvedAt.getTime() - t.helpedAt.getTime()) / 60000) * 1000
     ) / 1000
   ); // in minutes, 3 decimals
 };
@@ -175,4 +175,34 @@ export const computeMedian = (data: number[]) => {
   return data.length > 0
     ? data.sort((a, b) => a - b)[Math.floor(data.length / 2)]!
     : 0;
+};
+
+// Parse the coordinates from locationDescription
+export const parseCoordinates = (locationDescription: string | undefined) => {
+  if (locationDescription === undefined) return undefined;
+
+  // Match "x: number, y: number" at the end of location description
+  const match = locationDescription.match(
+    /x: (\d+(\.\d+)?), y: (\d+(\.\d+)?)$/
+  );
+
+  if (match && match[1] && match[3]) {
+    const x = parseFloat(match[1]);
+    const y = parseFloat(match[3]);
+    return { x, y };
+  }
+  return undefined;
+};
+
+// Accepts a location description and preprocesses it to remove coordinates if it is present.
+// If no coordinates are present, it returns the original description.
+// Useful when user is considering switching from coordinate-based location to text-based location, but don't want to show coordinates in the location description.
+export const preprocessLocationDescription = (
+  locationDescription: string
+): string => {
+  const coordinates = parseCoordinates(locationDescription);
+  if (coordinates) {
+    return locationDescription.replace(/x: \d+(\.\d+)?, y: \d+(\.\d+)?$/, "");
+  }
+  return locationDescription;
 };
