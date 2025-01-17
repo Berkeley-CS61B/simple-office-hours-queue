@@ -265,7 +265,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       </Box>
 
       {/* Default to text based location description if no location picker */}
-      {!hasLocationPicker(location.id) && (
+      {!hasLocationPicker(ticket.locationId, ticket.locationName) && (
         <Text hidden={!location.value}>
           <span className="semibold">Location Description:</span>
           <Flex justifyContent="center">
@@ -389,7 +389,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
       <VStack align="start" spacing={2} width="100%">
         {
           <Box width="100%">
-            {hasLocationPicker(location.id) && (
+            {hasLocationPicker(ticket.locationId, ticket.locationName) && (
               <div>
                 <Text fontWeight="bold">Student Location:</Text>
                 <LocationPicker

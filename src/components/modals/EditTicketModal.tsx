@@ -54,7 +54,10 @@ const EditTicketModal = (props: EditTicketModalProps) => {
             colorScheme="blue"
             onClick={() => onSubmit(existingTicket)}
             isDisabled={
-              hasLocationPicker(existingTicket.locationId) &&
+              hasLocationPicker(
+                existingTicket.locationId,
+                existingTicket.locationName,
+              ) &&
               !parseCoordinates(existingTicket.locationDescription ?? undefined)
             }
           >

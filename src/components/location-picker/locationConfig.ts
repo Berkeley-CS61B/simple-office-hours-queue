@@ -2,6 +2,7 @@ interface LocationConfig {
   hasLocationPicker: boolean; // Whether this location supports the visual picker
   staffImagePath?: string; // Path to staff view floor plan
   studentImagePath?: string; // Path to student view floor plan
+  name: string; // The name of the location that should match
 }
 
 // Map of location IDs to their configuration
@@ -13,24 +14,38 @@ const locationConfigs: Record<number, LocationConfig> = {
     hasLocationPicker: true,
     staffImagePath: "/location-picker-images/271-staff-v1.png",
     studentImagePath: "/location-picker-images/271-student-v1.png",
+    name: "Soda 271",
   },
   10: {
     // Soda 273
     hasLocationPicker: true,
     staffImagePath: "/location-picker-images/273-staff-v1.png",
     studentImagePath: "/location-picker-images/273-student-v1.png",
+    name: "Soda 273",
   },
   11: {
     // Soda 275
     hasLocationPicker: true,
     staffImagePath: "/location-picker-images/275-staff-v1.png",
     studentImagePath: "/location-picker-images/275-student-v1.png",
+    name: "Soda 275",
   },
 };
 
-// Check if a location supports the visual picker
-export const hasLocationPicker = (locationId: number): boolean => {
-  return !!locationConfigs[locationId]?.hasLocationPicker;
+// Check if a location supports the visual picker and matches the expected name
+export const hasLocationPicker = (
+  locationId: number,
+  locationName?: string,
+): boolean => {
+  const config = locationConfigs[locationId];
+  if (!config?.hasLocationPicker) {
+    return false;
+  }
+  // If locationName is provided, verify it matches the expected name
+  if (locationName && config.name !== locationName) {
+    return false;
+  }
+  return true;
 };
 
 // Get the appropriate floor plan image based on location and user role

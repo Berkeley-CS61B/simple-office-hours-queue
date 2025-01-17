@@ -268,7 +268,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     }
 
     // Add validation for location picker
-    if (hasLocationPicker(location.id)) {
+    if (hasLocationPicker(location.id, location.label)) {
       const coordinates = parseCoordinates(locationDescription);
       if (
         !coordinates ||
@@ -449,7 +449,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           {/* Show either location picker or location description textbox conditionally. */}
           {location && (
             <>
-              {hasLocationPicker(location.id) ? (
+              {hasLocationPicker(location.id, location.label) ? (
                 <div>
                   <FormControl
                     mt={6}
@@ -527,7 +527,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               !location ||
               !ticketType ||
               !description ||
-              (hasLocationPicker(location?.id) &&
+              (hasLocationPicker(location?.id, location?.label) &&
                 !parseCoordinates(locationDescription)) ||
               isButtonLoading
             }
