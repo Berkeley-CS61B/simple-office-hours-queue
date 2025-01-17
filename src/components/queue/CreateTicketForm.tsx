@@ -29,8 +29,12 @@ import {
   getTicketUrl,
   joinArrayAsString,
   uppercaseFirstLetter,
+  parseCoordinates,
+  preprocessLocationDescription,
 } from "../../utils/utils";
+import { hasLocationPicker } from "../location-picker/locationConfig";
 import ConfirmPublicToggleModal from "../modals/ConfirmPublicToggleModal";
+import LocationPicker from "../location-picker/LocationPicker";
 
 interface Assignment {
   id: number;
@@ -40,7 +44,7 @@ interface Assignment {
   template: string;
 }
 
-interface Location {
+export interface Location {
   id: number;
   label: string;
   value: string;
@@ -51,9 +55,8 @@ interface CreateTicketFormProps {
   arePublicTicketsEnabled: boolean;
   personalQueue?: PersonalQueue;
   isEditingTicket?: boolean;
-  // Existing ticket is used to prepopulate the form when editing a ticket
   existingTicket?: TicketWithNames;
-  setExistingTicket?: (ticket: TicketWithNames) => void;
+  setExistingTicket?: React.Dispatch<React.SetStateAction<TicketWithNames>>;
 }
 
 const CreateTicketForm = (props: CreateTicketFormProps) => {
@@ -108,16 +111,28 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
   // When a property of the ticket changes, update the existing ticket if it exists
   useEffect(() => {
     if (existingTicket && setExistingTicket) {
-      setExistingTicket({
-        ...existingTicket,
-        description,
-        locationDescription,
-        assignmentId: assignment?.id ?? existingTicket.assignmentId,
-        assignmentName: assignment?.label ?? existingTicket.assignmentName,
-        locationId: location?.id ?? existingTicket.locationId,
-        locationName: location?.label ?? existingTicket.locationName,
-        ticketType: ticketType ?? existingTicket.ticketType,
-        isPublic,
+      setExistingTicket((prev: TicketWithNames) => {
+        // Only update if there's a change
+        if (
+          prev.description !== description ||
+          prev.locationDescription !== locationDescription ||
+          prev.assignmentId !== (assignment?.id ?? prev.assignmentId) ||
+          // Add other necessary checks
+          prev.isPublic !== isPublic
+        ) {
+          return {
+            ...prev,
+            description,
+            locationDescription,
+            assignmentId: assignment?.id ?? prev.assignmentId,
+            assignmentName: assignment?.label ?? prev.assignmentName,
+            locationId: location?.id ?? prev.locationId,
+            locationName: location?.label ?? prev.locationName,
+            ticketType: ticketType ?? prev.ticketType,
+            isPublic,
+          };
+        }
+        return prev;
       });
     }
   }, [
@@ -127,7 +142,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     location,
     ticketType,
     isPublic,
-    existingTicket,
     setExistingTicket,
   ]);
 
@@ -147,7 +161,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 id: assignment.id,
                 categoryId: assignment.categoryId,
                 template: assignment.template,
-              }) as Assignment,
+              } as Assignment),
           ),
         );
       },
@@ -167,7 +181,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                 value: location.name,
                 id: location.id,
                 online: location.isOnline,
-              }) as Location,
+              } as Location),
           ),
         );
       },
@@ -200,21 +214,20 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     changeDescription(assignment, newVal);
   };
 
-  const changeDescription = (assignment: Assignment | undefined, ticketType: TicketType | undefined) => {
+  const changeDescription = (
+    assignment: Assignment | undefined,
+    ticketType: TicketType | undefined,
+  ) => {
     if (assignment === undefined || assignment?.template === "") {
       if (ticketType == TicketType.DEBUGGING) {
         setDescription(STARTER_DEBUGGING_TICKET_DESCRIPTION);
-      } else {  
+      } else {
         setDescription(STARTER_CONCEPTUAL_TICKET_DESCRIPTION);
       }
     } else {
       setDescription(assignment.template);
     }
-  } 
-
-  
-
-  
+  };
 
   const handleTogglePublic = () => {
     if (ticketType === TicketType.CONCEPTUAL && isPublic) {
@@ -231,10 +244,14 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
     changeDescription(newVal ?? undefined, ticketType ?? undefined);
   };
 
+  const handleLocationChange = (newVal: SingleValue<Location>) => {
+    setLocation(newVal ?? undefined);
+    setLocationDescription(""); // Always clear location description on change
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isEditingTicket) {
-      // Edit ticket has it's own submit handler
       return;
     }
 
@@ -248,6 +265,27 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
         isClosable: true,
       });
       return;
+    }
+
+    // Add validation for location picker
+    if (hasLocationPicker(location.id)) {
+      const coordinates = parseCoordinates(locationDescription);
+      if (
+        !coordinates ||
+        coordinates.x === undefined ||
+        coordinates.y === undefined
+      ) {
+        toast({
+          title: "Error",
+          description:
+            "Please click on the map to indicate where you are sitting",
+          status: "error",
+          position: "top-right",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
     }
 
     // If description has "[this test]" or "[this concept]" in it, toast and return
@@ -347,7 +385,7 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
       <Box my={4} textAlign="left">
         <form onSubmit={onSubmit}>
           <FormControl isRequired>
-            <Flex>  
+            <Flex>
               <FormLabel>Ticket Type</FormLabel>
               <RadioGroup onChange={handleTicketTypeChange} value={ticketType}>
                 {Object.keys(TicketType).map((type) => (
@@ -356,10 +394,10 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
                   </Radio>
                 ))}
               </RadioGroup>
-              
             </Flex>
             <Text hidden={ticketType !== TicketType.CONCEPTUAL} mb={2}>
-              For conceptual questions, staff will not look at code or help with debugging.
+              For conceptual questions, staff will not look at code or help with
+              debugging.
             </Text>
           </FormControl>
           <FormControl mt={2} isRequired isDisabled={ticketType === undefined}>
@@ -370,7 +408,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               options={assignmentOptions}
             />
           </FormControl>
-          <FormControl mt={2} isRequired isDisabled={ticketType === undefined || assignment === undefined}>
+          <FormControl
+            mt={2}
+            isRequired
+            isDisabled={ticketType === undefined || assignment === undefined}
+          >
             <FormLabel>Description</FormLabel>
             <Textarea
               value={description}
@@ -380,7 +422,6 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               maxLength={1000}
             />
           </FormControl>
-          
 
           <FormControl mt={6} isRequired isDisabled={assignment === undefined}>
             <HStack>
@@ -399,30 +440,58 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               <Box width="30%">
                 <Select
                   value={location === undefined ? null : location}
-                  onChange={(val) => setLocation(val ?? undefined)}
+                  onChange={handleLocationChange}
                   options={locationOptions}
                 />
               </Box>
             </HStack>
           </FormControl>
-          <FormControl
-            mt={6}
-            isRequired
-            isDisabled={location === undefined}
-          >
-            <FormLabel>Briefly describe where you are</FormLabel>
-            <Input
-              value={locationDescription}
-              onChange={e => {
-                setLocationDescription(e.target.value);
-              }}
-              type="text"
-              // TODO: make the location options customizable per location
-              placeholder={location?.online ? "Breakout Room 10" : "Back right corner of the room"}
-              name="locationDescription"
-              maxLength={140}
-            />
-          </FormControl>
+          {/* Show either location picker or location description textbox conditionally. */}
+          {location && (
+            <>
+              {hasLocationPicker(location.id) ? (
+                <div>
+                  <FormControl
+                    mt={6}
+                    display="flex"
+                    flexDirection="column"
+                    isRequired
+                    isInvalid={!locationDescription}
+                  >
+                    <FormLabel>Click where you are!</FormLabel>
+                    <Box mb={4}>
+                      <LocationPicker
+                        key={`location-picker-${location.id}`}
+                        onChange={({ x, y }) => {
+                          setLocationDescription(
+                            `x: ${x.toFixed(2)}, y: ${y.toFixed(2)}`,
+                          );
+                        }}
+                        location={location}
+                        initialCoordinates={parseCoordinates(
+                          existingTicket?.locationDescription ?? undefined,
+                        )}
+                      />
+                    </Box>
+                    {!locationDescription && (
+                      <Text color="red.500" fontSize="sm" mt={2}>
+                        Please click on the map to indicate your location
+                      </Text>
+                    )}
+                  </FormControl>
+                </div>
+              ) : (
+                <FormControl mb={4}>
+                  <FormLabel>Location Description</FormLabel>
+                  <Textarea
+                    value={preprocessLocationDescription(locationDescription)} // Remove coordinates, if any.
+                    onChange={(e) => setLocationDescription(e.target.value)}
+                    placeholder="Please provide a description of where you are sitting..."
+                  />
+                </FormControl>
+              )}
+            </>
+          )}
           <FormControl
             mt={6}
             display="flex"
@@ -453,6 +522,15 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
             mt={4}
             colorScheme="whatsapp"
             isLoading={isButtonLoading}
+            isDisabled={
+              !assignment ||
+              !location ||
+              !ticketType ||
+              !description ||
+              (hasLocationPicker(location?.id) &&
+                !parseCoordinates(locationDescription)) ||
+              isButtonLoading
+            }
           >
             Request Help
           </Button>

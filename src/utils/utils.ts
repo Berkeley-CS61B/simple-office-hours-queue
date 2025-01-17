@@ -176,3 +176,33 @@ export const computeMedian = (data: number[]) => {
     ? data.sort((a, b) => a - b)[Math.floor(data.length / 2)]!
     : 0;
 };
+
+// Parse the coordinates from locationDescription
+export const parseCoordinates = (locationDescription: string | undefined) => {
+  if (locationDescription === undefined) return undefined;
+
+  // Match "x: number, y: number" at the end of location description
+  const match = locationDescription.match(
+    /x: (\d+(\.\d+)?), y: (\d+(\.\d+)?)$/,
+  );
+
+  if (match && match[1] && match[3]) {
+    const x = parseFloat(match[1]);
+    const y = parseFloat(match[3]);
+    return { x, y };
+  }
+  return undefined;
+};
+
+// Accepts a location description and preprocesses it to remove coordinates if it is present.
+// If no coordinates are present, it returns the original description.
+// Useful when user is considering switching from coordinate-based location to text-based location, but don't want to show coordinates in the location description.
+export const preprocessLocationDescription = (
+  locationDescription: string,
+): string => {
+  const coordinates = parseCoordinates(locationDescription);
+  if (coordinates) {
+    return locationDescription.replace(/x: \d+(\.\d+)?, y: \d+(\.\d+)?$/, "");
+  }
+  return locationDescription;
+};
