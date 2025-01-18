@@ -12,6 +12,8 @@ import { useState } from "react";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
 import { DARK_GRAY_COLOR } from "../../utils/constants";
 import CreateTicketForm from "../queue/CreateTicketForm";
+import { hasLocationPicker } from "../location-picker/locationConfig";
+import { parseCoordinates } from "../../utils/utils";
 
 interface EditTicketModalProps {
   isModalOpen: boolean;
@@ -31,7 +33,9 @@ const EditTicketModal = (props: EditTicketModalProps) => {
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
     >
-      <ModalContent backgroundColor={useColorModeValue("", DARK_GRAY_COLOR)}>
+      <ModalContent
+        backgroundColor={useColorModeValue("white", DARK_GRAY_COLOR)}
+      >
         <ModalHeader>Edit Ticket</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -46,7 +50,17 @@ const EditTicketModal = (props: EditTicketModalProps) => {
           <Button variant="ghost" mr={3} onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
-          <Button colorScheme="blue" onClick={() => onSubmit(existingTicket)}>
+          <Button
+            colorScheme="blue"
+            onClick={() => onSubmit(existingTicket)}
+            isDisabled={
+              hasLocationPicker(
+                existingTicket.locationId,
+                existingTicket.locationName,
+              ) &&
+              !parseCoordinates(existingTicket.locationDescription ?? undefined)
+            }
+          >
             Confirm
           </Button>
         </ModalFooter>

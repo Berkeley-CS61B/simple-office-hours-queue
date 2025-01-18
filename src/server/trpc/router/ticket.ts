@@ -955,6 +955,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         createdByEmail: createdBy.email,
         createdByPronunciation: createdBy?.preferredPronunciation ?? "",
         assignmentCategoryId: assignment?.categoryId,
+        locationDescription: ticket.locationDescription,
       };
     }),
   );
@@ -1011,6 +1012,7 @@ export interface TicketWithNames extends Ticket {
   assignmentName: string;
   locationName: string;
   assignmentCategoryId: number;
+  locationDescription: string | null;
   isOnline: boolean;
   template: string;
 }
