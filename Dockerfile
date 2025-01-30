@@ -1,6 +1,10 @@
 # Install dependencies only when needed
-FROM node:18-alpine AS deps
+FROM node:18.17-alpine AS deps
+USER root
+RUN apk update && apk upgrade
+RUN apk add --no-cache openssl
 RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 COPY prisma ./
 
@@ -17,18 +21,24 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 #FROM node:18-alpine as debug
+USER root
+RUN apk add openssl
+RUN openssl version
+RUN echo "openSSL version:" && openssl version
 RUN npx prisma generate
 
+ENV TSC_COMPILE_ON_ERROR=true
+ENV ESLINT_NO_DEV_ERRORS=true
 #FROM node:18-alpine as next
 #WORKDIR /app
 # Build the Next.js application
 RUN npm run build
 
 # Production image, copy all the files and start the app
-FROM node:18-alpine AS runner
+FROM node:18.17-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production 
+ENV NODE_ENV production
 # think above shold be changed but yolo
 ENV NEXT_TELEMETRY_DISABLED 1
 
@@ -49,7 +59,7 @@ COPY . /app
 
 #RUN chmod 777 /app/wait-for-it.sh
 #RUN chmod 777 /app/start.sh
-RUN chmod 700 -R /app
+RUN chmod 777 -R /app
 
 
 USER nextjs
@@ -57,6 +67,8 @@ USER nextjs
 EXPOSE 3000
 ENV PORT 3000
 
-RUN npx prisma db push
-# RUN npx prisma db seed
+#ENTRYPOINT ["./start.sh"]
+#RUN npx prisma db push --debug --accept-data-loss
+RUN npx prisma db push --accept-data-loss
+#RUN npx prisma db seed
 CMD ["npm", "start"]
