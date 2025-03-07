@@ -29,7 +29,9 @@ const TicketList = (props: TicketListProps) => {
     useState<TicketWithNames[]>(initialTickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-  const [filterBy, setFilterBy] = useState("-");
+  // const [filterBy, setFilterBy] = useState("-");
+  const [categoryFilterBy, setCategoryFilterBy] = useState("-");
+  const [locationFilterBy, setLocationFilterBy] = useState("-");
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -38,43 +40,66 @@ const TicketList = (props: TicketListProps) => {
     useAutoAnimate();
 
   useEffect(() => {
-    // Change displayed tickets according to current filter
-    if (filterBy === "-") {
-      setDisplayedTickets(initialTickets);
-    } else {
-      const newDisplayedTickets = initialTickets.filter(
-        (ticket) =>
-          ticket.assignmentName === filterBy ||
-          ticket.locationName === filterBy,
+    // Apply both category and location filters
+    let filteredTickets = initialTickets;
+
+    if (categoryFilterBy !== "-") {
+      filteredTickets = filteredTickets.filter(
+        (ticket) => ticket.categoryName === categoryFilterBy,
       );
-      setDisplayedTickets(newDisplayedTickets);
     }
-  }, [initialTickets]);
+
+    if (locationFilterBy !== "-") {
+      filteredTickets = filteredTickets.filter(
+        (ticket) => ticket.locationName === locationFilterBy,
+      );
+    }
+
+    setDisplayedTickets(filteredTickets);
+  }, [initialTickets, categoryFilterBy, locationFilterBy]);
 
   /** Set filterBy if it exists in sessionStorage */
   useEffect(() => {
-    const filterByFromSessionStorage = sessionStorage.getItem("filterBy");
-    handleFilterTickets({
-      value: filterByFromSessionStorage ?? "-",
-      label: filterByFromSessionStorage ?? "-",
-      id: filterByFromSessionStorage ?? "-",
+    const categoryFilterByFromSessionStorage = sessionStorage.getItem("categoryFilterBy");
+    handleCategoryFilter({
+      value: categoryFilterByFromSessionStorage ?? "-",
+      label: categoryFilterByFromSessionStorage ?? "-",
+      id: categoryFilterByFromSessionStorage ?? "-",
     });
+
+    const locationFilterByFromSessionStorage = sessionStorage.getItem("locationFilterBy");
+      handleLocationFilter({
+        value: locationFilterByFromSessionStorage ?? "-",
+        label: locationFilterByFromSessionStorage ?? "-",
+        id: locationFilterByFromSessionStorage ?? "-",
+      })
   }, []);
 
-  const assignmentList = Array.from(
-    new Set(initialTickets.map((ticket) => ticket.assignmentName)),
-  );
+  // TODO: need to fix to grab all locations/categories, not just the ones in the present list of tickets.
+  // const assignmentList = Array.from(
+  //   new Set(initialTickets.map((ticket) => ticket.assignmentName)),
+  // );
   const locationList = Array.from(
     new Set(initialTickets.map((ticket) => ticket.locationName)),
   );
+  const categoryList = Array.from(
+    new Set(initialTickets.map((ticket) => ticket.category))
+  )
 
-  const filterByOptions = ["-", ...assignmentList, ...locationList].map(
+  const categoryFilterOptions = ["-", ...categoryList].map((option) => ({
+    label: option,
+    value: option,
+    id: option
+  }))
+
+  const locationFilterOptions = ["-", ...locationList].map(
     (option) => ({
       label: option,
       value: option,
       id: option,
     }),
   );
+
 
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
@@ -136,32 +161,48 @@ const TicketList = (props: TicketListProps) => {
     }
   };
 
-  const handleFilterTickets = (
-    filterBy: SingleValue<(typeof filterByOptions)[0]>,
+  // const handleFilterTickets = (
+  //   filterBy: SingleValue<(typeof filterByOptions)[0]>,
+  // ) => {
+  //   if (filterBy?.value === "-") {
+  //     setFilterBy("-");
+  //     setDisplayedTickets(initialTickets);
+  //     sessionStorage.setItem("filterBy", "-");
+  //     return;
+  //   }
+
+  //   if (filterBy?.value === undefined) {
+  //     setFilterBy("-");
+  //     sessionStorage.setItem("filterBy", "-");
+  //     return;
+  //   }
+
+  //   sessionStorage.setItem("filterBy", filterBy.value);
+  //   setFilterBy(filterBy.value);
+  //   // Allows filtering by assignmentName or locationName
+  //   const newDisplayedTickets = initialTickets.filter(
+  //     (ticket) =>
+  //       ticket.assignmentName === filterBy.value ||
+  //       ticket.locationName === filterBy.value,
+  //   );
+
+  //   setDisplayedTickets(newDisplayedTickets);
+  // };
+
+  const handleCategoryFilter = (
+    filterBy: SingleValue<(typeof categoryFilterOptions)[0]>,
   ) => {
-    if (filterBy?.value === "-") {
-      setFilterBy("-");
-      setDisplayedTickets(initialTickets);
-      sessionStorage.setItem("filterBy", "-");
-      return;
-    }
+    const filterValue = filterBy?.value ?? "-";
+    setCategoryFilterBy(filterValue);
+    sessionStorage.setItem("categoryFilterBy", filterValue);
+  };
 
-    if (filterBy?.value === undefined) {
-      setFilterBy("-");
-      sessionStorage.setItem("filterBy", "-");
-      return;
-    }
-
-    sessionStorage.setItem("filterBy", filterBy.value);
-    setFilterBy(filterBy.value);
-    // Allows filtering by assignmentName or locationName
-    const newDisplayedTickets = initialTickets.filter(
-      (ticket) =>
-        ticket.assignmentName === filterBy.value ||
-        ticket.locationName === filterBy.value,
-    );
-
-    setDisplayedTickets(newDisplayedTickets);
+  const handleLocationFilter = (
+    filterBy: SingleValue<(typeof locationFilterOptions)[0]>,
+  ) => {
+    const filterValue = filterBy?.value ?? "-";
+    setLocationFilterBy(filterValue);
+    sessionStorage.setItem("locationFilterBy", filterValue);
   };
 
   if (initialTickets.length === 0) {
@@ -178,12 +219,28 @@ const TicketList = (props: TicketListProps) => {
       </Head>
       <Flex flexDir="column">
         <Flex justifyContent="end" mb={4}>
-          <Box width="sm">
+          {/* <Box width="sm">
             <Select
               value={{ label: filterBy, value: filterBy, id: filterBy }}
               options={filterByOptions}
               placeholder="Filter by..."
               onChange={handleFilterTickets}
+            />
+          </Box> */}
+          <Box width="sm" mr={4}>
+          <Select
+            value={{ label: categoryFilterBy, value: categoryFilterBy, id: categoryFilterBy }}
+            options={categoryFilterOptions}
+            placeholder="Filter by Category..."
+            onChange={handleCategoryFilter}
+          />
+        </Box>
+        <Box width="sm">
+            <Select
+              value={{ label: locationFilterBy, value: locationFilterBy, id: locationFilterBy }}
+              options={locationFilterOptions}
+              placeholder="Filter by Location..."
+              onChange={handleLocationFilter}
             />
           </Box>
           <Button

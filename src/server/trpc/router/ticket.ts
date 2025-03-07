@@ -1,5 +1,6 @@
 import {
   Assignment,
+  Category,
   ChatMessage,
   Location,
   SiteSettings,
@@ -932,6 +933,15 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
           id: ticket.assignmentId,
         },
       });
+
+      let category: Category | null = null
+      if (assignment?.categoryId) {
+        category = await ctx.prisma.category.findUnique({
+          where: {
+            id: assignment.categoryId
+          }
+        })
+      }
       let helpedBy: User | undefined = undefined;
       if (ticket.helpedByUserId) {
         helpedBy = await ctx.prisma.user.findUnique({
@@ -956,6 +966,7 @@ const convertTicketToTicketWithNames = async (tickets: Ticket[], ctx: any) => {
         createdByPronunciation: createdBy?.preferredPronunciation ?? "",
         assignmentCategoryId: assignment?.categoryId,
         locationDescription: ticket.locationDescription,
+        categoryName: category?.name,
       };
     }),
   );
@@ -1015,4 +1026,5 @@ export interface TicketWithNames extends Ticket {
   locationDescription: string | null;
   isOnline: boolean;
   template: string;
+  categoryName: string | undefined;
 }
