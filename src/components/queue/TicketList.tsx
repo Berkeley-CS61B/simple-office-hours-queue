@@ -75,8 +75,28 @@ const TicketList = (props: TicketListProps) => {
   }, []);
 
   // Get unique assignments from tickets
-  const assignmentList = Array.from(
+  const ticketAssignmentList = Array.from(
     new Set(initialTickets.map((ticket) => ticket.assignmentName)),
+  );
+
+  // Fetch all active assignments from the server
+  const [allAssignments, setAllAssignments] = useState<string[]>([]);
+
+  // Query to get all active assignments
+  trpc.admin.getActiveAssignments.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        const assignmentNames = data.map((assignment) => assignment.name);
+        setAllAssignments(assignmentNames);
+      },
+    },
+  );
+
+  // Combine ticket assignments with all assignments, removing duplicates by using a Set
+  const assignmentList = Array.from(
+    new Set([...ticketAssignmentList, ...allAssignments]),
   );
 
   const assignmentFilterOptions = ["-", ...assignmentList].map((option) => ({
