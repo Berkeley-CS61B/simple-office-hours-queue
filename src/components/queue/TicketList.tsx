@@ -29,7 +29,8 @@ const TicketList = (props: TicketListProps) => {
     useState<TicketWithNames[]>(initialTickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-  const [filterBy, setFilterBy] = useState("-");
+  const [assignmentFilter, setAssignmentFilter] = useState("-");
+  const [locationFilter, setLocationFilter] = useState("-");
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const assignTicketsMutation = trpc.ticket.assignTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -38,43 +39,102 @@ const TicketList = (props: TicketListProps) => {
     useAutoAnimate();
 
   useEffect(() => {
-    // Change displayed tickets according to current filter
-    if (filterBy === "-") {
-      setDisplayedTickets(initialTickets);
-    } else {
-      const newDisplayedTickets = initialTickets.filter(
-        (ticket) =>
-          ticket.assignmentName === filterBy ||
-          ticket.locationName === filterBy,
-      );
-      setDisplayedTickets(newDisplayedTickets);
-    }
-  }, [initialTickets]);
+    // Filter tickets based on both assignment and location filters
+    let newDisplayedTickets = [...initialTickets];
 
-  /** Set filterBy if it exists in sessionStorage */
+    // Apply assignment filter if not set to "-" (all)
+    if (assignmentFilter !== "-") {
+      newDisplayedTickets = newDisplayedTickets.filter(
+        (ticket) => ticket.assignmentName === assignmentFilter,
+      );
+    }
+
+    // Apply location filter if not set to "-" (all)
+    if (locationFilter !== "-") {
+      newDisplayedTickets = newDisplayedTickets.filter(
+        (ticket) => ticket.locationName === locationFilter,
+      );
+    }
+
+    setDisplayedTickets(newDisplayedTickets);
+  }, [initialTickets, assignmentFilter, locationFilter]);
+
+  /** Set filters if they exist in sessionStorage */
   useEffect(() => {
-    const filterByFromSessionStorage = sessionStorage.getItem("filterBy");
-    handleFilterTickets({
-      value: filterByFromSessionStorage ?? "-",
-      label: filterByFromSessionStorage ?? "-",
-      id: filterByFromSessionStorage ?? "-",
-    });
+    const assignmentFilterFromStorage =
+      sessionStorage.getItem("assignmentFilter");
+    const locationFilterFromStorage = sessionStorage.getItem("locationFilter");
+
+    if (assignmentFilterFromStorage) {
+      setAssignmentFilter(assignmentFilterFromStorage);
+    }
+
+    if (locationFilterFromStorage) {
+      setLocationFilter(locationFilterFromStorage);
+    }
   }, []);
 
-  const assignmentList = Array.from(
+  // Get unique assignments from tickets
+  const ticketAssignmentList = Array.from(
     new Set(initialTickets.map((ticket) => ticket.assignmentName)),
   );
-  const locationList = Array.from(
+
+  // Fetch all active assignments from the server
+  const [allAssignments, setAllAssignments] = useState<string[]>([]);
+
+  // Query to get all active assignments
+  trpc.admin.getActiveAssignments.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        const assignmentNames = data.map((assignment) => assignment.name);
+        setAllAssignments(assignmentNames);
+      },
+    },
+  );
+
+  // Combine ticket assignments with all assignments, removing duplicates by using a Set
+  const assignmentList = Array.from(
+    new Set([...ticketAssignmentList, ...allAssignments]),
+  );
+
+  const assignmentFilterOptions = ["-", ...assignmentList].map((option) => ({
+    label: option === "-" ? "All Assignments" : option,
+    value: option,
+    id: option,
+  }));
+
+  // Get unique locations from tickets
+  const ticketLocationList = Array.from(
     new Set(initialTickets.map((ticket) => ticket.locationName)),
   );
 
-  const filterByOptions = ["-", ...assignmentList, ...locationList].map(
-    (option) => ({
-      label: option,
-      value: option,
-      id: option,
-    }),
+  // Fetch all active locations from the server
+  const [allLocations, setAllLocations] = useState<string[]>([]);
+
+  // Query to get all active locations
+  trpc.admin.getActiveLocations.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        const locationNames = data.map((location) => location.name);
+        setAllLocations(locationNames);
+      },
+    },
   );
+
+  // Combine ticket locations with all locations, removing duplicates by using a Set
+  const locationList = Array.from(
+    new Set([...ticketLocationList, ...allLocations]),
+  );
+
+  const locationFilterOptions = ["-", ...locationList].map((option) => ({
+    label: option === "-" ? "All Locations" : option,
+    value: option,
+    id: option,
+  }));
 
   const handleApproveTickets = async (tickets: TicketWithNames[]) => {
     await approveTicketsMutation.mutateAsync({
@@ -136,36 +196,98 @@ const TicketList = (props: TicketListProps) => {
     }
   };
 
-  const handleFilterTickets = (
-    filterBy: SingleValue<(typeof filterByOptions)[0]>,
+  const handleAssignmentFilter = (
+    selectedFilter: SingleValue<typeof assignmentFilterOptions[0]>,
   ) => {
-    if (filterBy?.value === "-") {
-      setFilterBy("-");
-      setDisplayedTickets(initialTickets);
-      sessionStorage.setItem("filterBy", "-");
-      return;
-    }
-
-    if (filterBy?.value === undefined) {
-      setFilterBy("-");
-      sessionStorage.setItem("filterBy", "-");
-      return;
-    }
-
-    sessionStorage.setItem("filterBy", filterBy.value);
-    setFilterBy(filterBy.value);
-    // Allows filtering by assignmentName or locationName
-    const newDisplayedTickets = initialTickets.filter(
-      (ticket) =>
-        ticket.assignmentName === filterBy.value ||
-        ticket.locationName === filterBy.value,
-    );
-
-    setDisplayedTickets(newDisplayedTickets);
+    const filterValue = selectedFilter?.value ?? "-";
+    setAssignmentFilter(filterValue);
+    sessionStorage.setItem("assignmentFilter", filterValue);
   };
 
-  if (initialTickets.length === 0) {
+  const handleLocationFilter = (
+    selectedFilter: SingleValue<typeof locationFilterOptions[0]>,
+  ) => {
+    const filterValue = selectedFilter?.value ?? "-";
+    setLocationFilter(filterValue);
+    sessionStorage.setItem("locationFilter", filterValue);
+  };
+
+  const clearFilters = () => {
+    setAssignmentFilter("-");
+    setLocationFilter("-");
+    sessionStorage.setItem("assignmentFilter", "-");
+    sessionStorage.setItem("locationFilter", "-");
+  };
+
+  if (
+    initialTickets.length === 0 &&
+    assignmentFilter === "-" &&
+    locationFilter === "-"
+  ) {
     return <Text>No {uppercaseFirstLetter(ticketStatus)} Tickets!</Text>;
+  }
+
+  // Show special message when filtering with no matching tickets
+  if (
+    displayedTickets.length === 0 &&
+    (assignmentFilter !== "-" || locationFilter !== "-")
+  ) {
+    let filterMessage = "";
+
+    if (assignmentFilter !== "-" && locationFilter !== "-") {
+      filterMessage = `${assignmentFilter} in ${locationFilter}`;
+    } else if (assignmentFilter !== "-") {
+      filterMessage = assignmentFilter;
+    } else if (locationFilter !== "-") {
+      filterMessage = locationFilter;
+    }
+
+    return (
+      <>
+        <Head>
+          <title>{SITE_BASE_TITLE}</title>
+        </Head>
+        <Flex flexDir="column">
+          <Flex justifyContent="space-between" mb={4} wrap="wrap" gap={2}>
+            <Box width={{ base: "100%", md: "sm" }}>
+              <Select
+                value={{
+                  label:
+                    locationFilter === "-" ? "All Locations" : locationFilter,
+                  value: locationFilter,
+                  id: locationFilter,
+                }}
+                options={locationFilterOptions}
+                onChange={handleLocationFilter}
+              />
+            </Box>
+
+            <Box width={{ base: "100%", md: "sm" }}>
+              <Select
+                value={{
+                  label:
+                    assignmentFilter === "-"
+                      ? "All Assignments"
+                      : assignmentFilter,
+                  value: assignmentFilter,
+                  id: assignmentFilter,
+                }}
+                options={assignmentFilterOptions}
+                onChange={handleAssignmentFilter}
+              />
+            </Box>
+            {(assignmentFilter !== "-" || locationFilter !== "-") && (
+              <Button size="sm" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </Flex>
+          <Text>
+            No {uppercaseFirstLetter(ticketStatus)} Tickets for {filterMessage}!
+          </Text>
+        </Flex>
+      </>
+    );
   }
 
   return (
@@ -177,15 +299,39 @@ const TicketList = (props: TicketListProps) => {
         </title>
       </Head>
       <Flex flexDir="column">
-        <Flex justifyContent="end" mb={4}>
-          <Box width="sm">
+        <Flex justifyContent="space-between" mb={4} wrap="wrap" gap={2}>
+          <Box width={{ base: "100%", md: "sm" }}>
             <Select
-              value={{ label: filterBy, value: filterBy, id: filterBy }}
-              options={filterByOptions}
-              placeholder="Filter by..."
-              onChange={handleFilterTickets}
+              value={{
+                label:
+                  locationFilter === "-" ? "All Locations" : locationFilter,
+                value: locationFilter,
+                id: locationFilter,
+              }}
+              options={locationFilterOptions}
+              onChange={handleLocationFilter}
             />
           </Box>
+          <Box width={{ base: "100%", md: "sm" }}>
+            <Select
+              value={{
+                label:
+                  assignmentFilter === "-"
+                    ? "All Assignments"
+                    : assignmentFilter,
+                value: assignmentFilter,
+                id: assignmentFilter,
+              }}
+              options={assignmentFilterOptions}
+              onChange={handleAssignmentFilter}
+            />
+          </Box>
+
+          {(assignmentFilter !== "-" || locationFilter !== "-") && (
+            <Button size="sm" onClick={clearFilters}>
+              Clear Filters
+            </Button>
+          )}
           <Button
             hidden={
               userRole !== UserRole.STAFF ||
