@@ -17,13 +17,14 @@ interface TicketListProps {
   ticketStatus: TabType;
   userRole: UserRole;
   userId: string;
+  displayCount: (filteredTicketCount: number) => void;
 }
 
 /**
  * TicketList component that displays the list of tickets for a given status
  */
 const TicketList = (props: TicketListProps) => {
-  const { tickets: initialTickets, ticketStatus, userRole, userId } = props;
+  const { tickets: initialTickets, ticketStatus, userRole, userId, displayCount } = props;
 
   const [displayedTickets, setDisplayedTickets] =
     useState<TicketWithNames[]>(initialTickets);
@@ -57,7 +58,8 @@ const TicketList = (props: TicketListProps) => {
     }
 
     setDisplayedTickets(newDisplayedTickets);
-  }, [initialTickets, assignmentFilter, locationFilter]);
+    displayCount(newDisplayedTickets.length);
+  }, [initialTickets, assignmentFilter, locationFilter, displayCount]);
 
   /** Set filters if they exist in sessionStorage */
   useEffect(() => {
