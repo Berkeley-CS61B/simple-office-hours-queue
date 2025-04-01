@@ -47,6 +47,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   } = props;
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const [tabIndex, setTabIndex] = useState(0);
+  const [openTicketCount, setOpenTicketCount] = useState(0);
 
   const context = trpc.useContext();
 
@@ -230,6 +231,11 @@ const TicketQueue = (props: TicketQueueProps) => {
     return tickets.filter((ticket) => !ticket.isPublic);
   };
 
+  /** Get correct number of Open tickets based on Room/Location filter */
+  const handleDisplayedOpenChange = (filteredTicketCount: number) => {
+    setOpenTicketCount(filteredTicketCount);
+  };
+
   /**
    * Helper method to return the correct ticket list based on the tab index
    */
@@ -361,7 +367,11 @@ const TicketQueue = (props: TicketQueueProps) => {
               color={tab === "Priority" ? "red.300" : undefined}
             >
               {uppercaseFirstLetter(tab) +
-                (isGetTicketsLoading ? "(?)" : ` (${getTickets(tab).length})`)}
+              (tab === TicketStatus.OPEN
+                ? ` (${openTicketCount})`
+                : isGetTicketsLoading
+                  ? "(?)"
+                  : ` (${getTickets(tab).length})`)}
             </Tab>
           ))}
         </TabList>
@@ -390,6 +400,7 @@ const TicketQueue = (props: TicketQueueProps) => {
                     ticketStatus={tab}
                     userRole={userRole}
                     userId={userId}
+                    displayCount={handleDisplayedOpenChange}
                   />
                 </TabPanel>
               </div>

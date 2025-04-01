@@ -396,8 +396,11 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
               </RadioGroup>
             </Flex>
             <Text hidden={ticketType !== TicketType.CONCEPTUAL} mb={2}>
-              For conceptual questions, staff will not look at code or help with
-              debugging.
+              For conceptual questions,{" "}
+              <Box as="span" fontWeight="bold">
+                STAFF WILL NOT LOOK AT YOUR CODE 
+              </Box>{" "}
+              or help with debugging.
             </Text>
           </FormControl>
           <FormControl mt={2} isRequired isDisabled={ticketType === undefined}>
