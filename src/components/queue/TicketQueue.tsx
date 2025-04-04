@@ -47,7 +47,7 @@ const TicketQueue = (props: TicketQueueProps) => {
   } = props;
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const [tabIndex, setTabIndex] = useState(0);
-  const [openTicketCount, setOpenTicketCount] = useState(0);
+  const [tabCounts, setTabCounts] = useState<Partial<Record<TabType, number>>>({});
 
   const context = trpc.useContext();
 
@@ -231,9 +231,12 @@ const TicketQueue = (props: TicketQueueProps) => {
     return tickets.filter((ticket) => !ticket.isPublic);
   };
 
-  /** Get correct number of Open tickets based on Room/Location filter */
-  const handleDisplayedOpenChange = (filteredTicketCount: number) => {
-    setOpenTicketCount(filteredTicketCount);
+  /** Get correct number of tickets based on Room/Location filter to display in tab */
+  const handleDisplayedTabCount = (tab: TabType, count: number) => {
+    setTabCounts((prev) => ({
+      ...prev,
+      [tab]: count,
+    }));
   };
 
   /**
@@ -367,11 +370,10 @@ const TicketQueue = (props: TicketQueueProps) => {
               color={tab === "Priority" ? "red.300" : undefined}
             >
               {uppercaseFirstLetter(tab) +
-              (tab === TicketStatus.OPEN
-                ? ` (${openTicketCount})`
-                : isGetTicketsLoading
-                  ? "(?)"
-                  : ` (${getTickets(tab).length})`)}
+              (isGetTicketsLoading
+                ? "(?)"
+                : ` (${tabCounts[tab] ?? getTickets(tab).length})`)
+              }
             </Tab>
           ))}
         </TabList>
@@ -400,7 +402,7 @@ const TicketQueue = (props: TicketQueueProps) => {
                     ticketStatus={tab}
                     userRole={userRole}
                     userId={userId}
-                    displayCount={handleDisplayedOpenChange}
+                    displayCount={(count) => handleDisplayedTabCount(tab, count)}
                   />
                 </TabPanel>
               </div>
