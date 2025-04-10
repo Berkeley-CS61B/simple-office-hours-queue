@@ -12,7 +12,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { PersonalQueue, TicketStatus, UserRole } from "@prisma/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
 import { DARK_GRAY_COLOR, DARK_MODE_COLOR } from "../../utils/constants";
 import { trpc } from "../../utils/trpc";
@@ -47,7 +47,9 @@ const TicketQueue = (props: TicketQueueProps) => {
   } = props;
   const clearQueueMutation = trpc.ticket.clearQueue.useMutation();
   const [tabIndex, setTabIndex] = useState(0);
-  const [tabCounts, setTabCounts] = useState<Partial<Record<TabType, number>>>({});
+  const [filteredCounts, setFilteredCounts] = useState<Record<TabType, number>>(
+    {} as Record<TabType, number>,
+  );
 
   const context = trpc.useContext();
 
@@ -199,6 +201,20 @@ const TicketQueue = (props: TicketQueueProps) => {
     return () => clearInterval(interval);
   }, [context.ticket.getTicketsWithStatus]);
 
+  // memoizing handleFilteredCountChange to prevent too many recreations of it -> preventing rerenders
+  const handleFilteredCountChange = useCallback((tab: TabType, count: number) => {
+    setFilteredCounts((prevCounts) => {
+      // no need to update state if tab count hasn't changed
+      if (prevCounts[tab] === count) {
+        return prevCounts;
+      }
+      return {
+        ...prevCounts,
+        [tab]: count,
+      };
+    });
+  }, []);
+
   /* Tickets that the current user is assigned to or has created */
   const getMyTickets = () => {
     return [
@@ -229,14 +245,6 @@ const TicketQueue = (props: TicketQueueProps) => {
   /** Don't show public tickets on Open Tab in student view */
   const removePublicTickets = (tickets: TicketWithNames[]) => {
     return tickets.filter((ticket) => !ticket.isPublic);
-  };
-
-  /** Get correct number of tickets based on Room/Location filter to display in tab */
-  const handleDisplayedTabCount = (tab: TabType, count: number) => {
-    setTabCounts((prev) => ({
-      ...prev,
-      [tab]: count,
-    }));
   };
 
   /**
@@ -370,10 +378,10 @@ const TicketQueue = (props: TicketQueueProps) => {
               color={tab === "Priority" ? "red.300" : undefined}
             >
               {uppercaseFirstLetter(tab) +
-              (isGetTicketsLoading
-                ? "(?)"
-                : ` (${tabCounts[tab] ?? getTickets(tab).length})`)
-              }
+                (isGetTicketsLoading
+                  ? " (?)"
+                  : ` (${filteredCounts[tab] ?? getTickets(tab).length})`)}
+
             </Tab>
           ))}
         </TabList>
@@ -402,7 +410,9 @@ const TicketQueue = (props: TicketQueueProps) => {
                     ticketStatus={tab}
                     userRole={userRole}
                     userId={userId}
-                    displayCount={(count) => handleDisplayedTabCount(tab, count)}
+                    onFilteredCountChange={(count) =>
+                      handleFilteredCountChange(tab, count)
+                    }
                   />
                 </TabPanel>
               </div>

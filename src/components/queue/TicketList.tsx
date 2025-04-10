@@ -17,14 +17,20 @@ interface TicketListProps {
   ticketStatus: TabType;
   userRole: UserRole;
   userId: string;
-  displayCount: (filteredTicketCount: number) => void;
+  onFilteredCountChange: (count: number) => void;
 }
 
 /**
  * TicketList component that displays the list of tickets for a given status
  */
 const TicketList = (props: TicketListProps) => {
-  const { tickets: initialTickets, ticketStatus, userRole, userId, displayCount } = props;
+  const {
+    tickets: initialTickets,
+    ticketStatus,
+    userRole,
+    userId,
+    onFilteredCountChange,
+  } = props;
 
   const [displayedTickets, setDisplayedTickets] =
     useState<TicketWithNames[]>(initialTickets);
@@ -58,8 +64,13 @@ const TicketList = (props: TicketListProps) => {
     }
 
     setDisplayedTickets(newDisplayedTickets);
-    displayCount(newDisplayedTickets.length);
-  }, [initialTickets, assignmentFilter, locationFilter, displayCount]);
+    onFilteredCountChange(newDisplayedTickets.length);
+  }, [
+    initialTickets,
+    assignmentFilter,
+    locationFilter,
+    onFilteredCountChange,
+  ]);
 
   /** Set filters if they exist in sessionStorage */
   useEffect(() => {
