@@ -1,4 +1,6 @@
-export const COURSE_ID = "CS61B";
+import { clientEnv } from "../env/schema.mjs";
+
+export const COURSE_ID = clientEnv.NEXT_PUBLIC_COURSE_ID;
 
 export const EMAIL_REGEX =
   /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
