@@ -61,12 +61,25 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
   }, []);
 
+  /** helper method to play notification sound */
+  const playNotificationSound = () => {
+    const audio = new Audio(
+      "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3",
+    );
+    audio.play().catch(console.error);
+  };
+
   /**
    * Ably channel to receive updates on ticket status.
    * This is used to update the ticket queue in real time.
    */
   useChannel("tickets", (ticketData) => {
     const message = ticketData.name;
+
+    if (message === "new-ticket" && userRole !== UserRole.STUDENT) {
+      // Play sound notification for staff/admin when new ticket is created
+      playNotificationSound();
+    }
 
     const shouldInvalidateOpen = [
       "new-ticket",
@@ -380,8 +393,8 @@ const TicketQueue = (props: TicketQueueProps) => {
               {uppercaseFirstLetter(tab) +
                 (isGetTicketsLoading
                   ? " (?)"
-                  : ` (${filteredCounts[tab] ?? getTickets(tab).length})`)}
-
+                  : ` (${filteredCounts[tab] ?? getTickets(tab).length})`)
+                }
             </Tab>
           ))}
         </TabList>

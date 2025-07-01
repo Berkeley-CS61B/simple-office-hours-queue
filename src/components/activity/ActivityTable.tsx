@@ -62,7 +62,7 @@ const ActivityTable = (props: ActivityTableProps) => {
   if (tickets.length === 0) {
     return <Text mt={4}>No tickets found!</Text>;
   }
-
+  
   return (
     <>
       <ActivityTablePagination
