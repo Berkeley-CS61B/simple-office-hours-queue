@@ -1,12 +1,53 @@
 import { TicketStatus } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   protectedProcedure,
   protectedStaffProcedure,
-  publicProcedure,
   router,
 } from "../trpc";
+
+const ensureCanManageQueue = async ({
+  queueName,
+  ctx,
+  ownerOnly,
+}: {
+  queueName: string;
+  ctx: any;
+  ownerOnly: boolean;
+}) => {
+  const queue = await ctx.prisma.personalQueue.findUnique({
+    where: { name: queueName },
+    select: {
+      ownerId: true,
+      allowStaffToOpen: true,
+    },
+  });
+
+  if (!queue) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Queue not found" });
+  }
+
+  if (ownerOnly && queue.ownerId !== ctx.session.user.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Only the queue owner can perform this action",
+    });
+  }
+
+  if (
+    !ownerOnly &&
+    queue.ownerId !== ctx.session.user.id &&
+    !queue.allowStaffToOpen
+  ) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message:
+        "You are not allowed to open or close this queue unless the owner allows it",
+    });
+  }
+};
 
 export const queueRouter = router({
   getQueueByName: protectedProcedure
@@ -34,7 +75,7 @@ export const queueRouter = router({
   }),
 
   // Returns personal queue names mapping to isOpen, and the number of open tickets in each queue
-  getPersonalQueueStats: publicProcedure.query(async ({ ctx }) => {
+  getPersonalQueueStats: protectedProcedure.query(async ({ ctx }) => {
     const personalQueues = await ctx.prisma.personalQueue.findMany({
       select: {
         name: true,
@@ -103,6 +144,12 @@ export const queueRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      await ensureCanManageQueue({
+        queueName: input.queueName,
+        ctx,
+        ownerOnly: false,
+      });
+
       return ctx.prisma.personalQueue.update({
         where: {
           name: input.queueName,
@@ -121,6 +168,12 @@ export const queueRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      await ensureCanManageQueue({
+        queueName: input.queueName,
+        ctx,
+        ownerOnly: true,
+      });
+
       // Dont allow users to create a queue with the same name as an existing queue
       const queueExists = await ctx.prisma.personalQueue.findFirst({
         where: { name: input.newName },
@@ -148,6 +201,12 @@ export const queueRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      await ensureCanManageQueue({
+        queueName: input.queueName,
+        ctx,
+        ownerOnly: true,
+      });
+
       return ctx.prisma.personalQueue.update({
         where: {
           name: input.queueName,
