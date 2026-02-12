@@ -11,9 +11,10 @@ import {
   Tooltip,
   VStack,
   Link,
+  useToast,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
-import { TicketStatus, User, UserRole } from "@prisma/client";
+import { TicketStatus, UserRole } from "@prisma/client";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
@@ -38,6 +39,12 @@ interface InnerTicketInfoProps {
   userId: string;
 }
 
+interface TicketGroupUser {
+  id: string;
+  name: string | null;
+  preferredName: string | null;
+}
+
 /**
  * InnerTicketInfo component that displays the ticket information (left column)
  */
@@ -45,8 +52,9 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const { ticket, userRole, userId } = props;
 
   const [showConfetti, setShowConfetti] = useState(false);
-  const [usersInGroup, setUsersInGroup] = useState<User[]>([]);
+  const [usersInGroup, setUsersInGroup] = useState<TicketGroupUser[]>([]);
   const [showEditTicketModal, setShowEditTicketModal] = useState(false);
+  const toast = useToast();
 
   const isCurrentUserInGroup = usersInGroup.some((user) => user.id === userId);
 
@@ -71,6 +79,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const [studentSupportLink, setStudentSupportLink] = useState("");
 
   trpc.admin.getStudentSupportLink.useQuery(undefined, {
+    enabled: isStaff,
     refetchOnWindowFocus: false,
     onSuccess: (link) => {
       setStudentSupportLink(link);
@@ -146,7 +155,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         let update = message.split("-")[1];
         if (message === "ticket-marked-as-absent") {
           update = `${
-            ticketData.data.isAbsent ? "unmarked" : "marked"
+            ticketData.data?.isAbsent ? "marked" : "unmarked"
           } as absent`;
         }
         if (messageShouldBeUpdate.includes(message)) {
@@ -159,6 +168,55 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
           );
         }
       }
+    }
+  });
+
+  // Use global ticket events as a fallback to keep ticket pages in sync if
+  // per-ticket subscriptions are delayed or unavailable.
+  useChannel("tickets", (ticketData) => {
+    const message = ticketData.name;
+    const shouldRefreshTicket = [
+      "tickets-approved",
+      "tickets-assigned",
+      "tickets-resolved",
+      "tickets-requeued",
+      "tickets-reopened",
+      "tickets-marked-as-absent",
+      "ticket-closed",
+      "all-tickets-closed",
+      "ticket-edited",
+      "ticket-toggle-public",
+      "ticket-joined",
+      "ticket-left",
+    ];
+
+    if (!shouldRefreshTicket.includes(message)) {
+      return;
+    }
+
+    const eventTicketId =
+      typeof ticketData.data?.id === "number" ? ticketData.data.id : undefined;
+    const eventTicketIds = Array.isArray(ticketData.data?.ticketIds)
+      ? ticketData.data.ticketIds
+      : undefined;
+    const isRelevantTicketEvent =
+      (eventTicketId === undefined && eventTicketIds === undefined) ||
+      eventTicketId === ticket.id ||
+      eventTicketIds?.includes(ticket.id);
+
+    if (!isRelevantTicketEvent) {
+      return;
+    }
+
+    void context.ticket.getTicket.invalidate({ id: ticket.id });
+
+    if (
+      (message === "ticket-joined" || message === "ticket-left") &&
+      eventTicketId === ticket.id
+    ) {
+      void context.ticket.getUsersInTicketGroup.invalidate({
+        ticketId: ticket.id,
+      });
     }
   });
 
@@ -208,10 +266,26 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
 
   const handleEditTicket = async (newTicket: TicketWithNames) => {
     setShowEditTicketModal(false);
-    editTicketMutation.mutateAsync({
-      ticketId: ticket.id,
-      ticket: newTicket,
-    });
+    try {
+      await editTicketMutation.mutateAsync({
+        ticketId: ticket.id,
+        ticket: newTicket,
+      });
+      // Do not rely solely on realtime events; refresh local caches immediately.
+      await context.ticket.getTicket.invalidate({ id: ticket.id });
+      await context.ticket.getTicketsWithStatus.invalidate();
+    } catch (err) {
+      const description =
+        err instanceof Error ? err.message : "Please refresh and try again.";
+      toast({
+        title: "Error editing ticket",
+        description,
+        status: "error",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const location: Location = {
@@ -296,13 +370,13 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
             {isGetUsersLoading ? (
               <Spinner />
             ) : (
-              <List>
-                {usersInGroup.map((user) => (
-                  <ListItem key={user.id}>
-                    {user.preferredName ?? user.name}
-                  </ListItem>
-                ))}
-              </List>
+                <List>
+                  {usersInGroup.map((user) => (
+                    <ListItem key={user.id}>
+                      {user.preferredName ?? user.name ?? "Anonymous"}
+                    </ListItem>
+                  ))}
+                </List>
             )}
           </>
         ) : (

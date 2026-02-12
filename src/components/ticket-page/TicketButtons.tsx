@@ -1,4 +1,4 @@
-import { Button, Flex, Spinner } from "@chakra-ui/react";
+import { Button, Flex, Spinner, useToast } from "@chakra-ui/react";
 import { TicketStatus, TicketType, UserRole } from "@prisma/client";
 import { SiteSettings, SiteSettingsValues } from "@prisma/client";
 import { useState } from "react";
@@ -36,6 +36,8 @@ const TicketButtons = (props: TicketCardProps) => {
   const [areButtonsLoading, setAreButtonsLoading] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(false);
   const { siteSettings } = useSiteSettings();
+  const context = trpc.useContext();
+  const toast = useToast();
 
   const approveTicketsMutation = trpc.ticket.approveTickets.useMutation();
   const resolveTicketsMutation = trpc.ticket.resolveTickets.useMutation();
@@ -59,12 +61,34 @@ const TicketButtons = (props: TicketCardProps) => {
   const isAbsent = ticket.status === TicketStatus.ABSENT;
   const isPriority = ticket.isPriority;
 
+  const refreshTicketState = async () => {
+    await context.ticket.getTicket.invalidate({ id: ticket.id });
+    await context.ticket.getTicketsWithStatus.invalidate();
+    await context.ticket.getUsersInTicketGroup.invalidate({ ticketId: ticket.id });
+  };
+
   /** To prevent spamming, use loading and disabled state for buttons */
   const onClickWrapper = (fn: () => Promise<void>) => async () => {
     setAreButtonsLoading(true);
     setAreButtonsDisabled(true);
-    await fn();
-    setAreButtonsLoading(false);
+    try {
+      await fn();
+      // Keep ticket page state in sync even if realtime events are delayed/missed.
+      await refreshTicketState();
+    } catch (err) {
+      const description =
+        err instanceof Error ? err.message : "Please refresh and try again.";
+      toast({
+        title: "Action failed",
+        description,
+        status: "error",
+        duration: 3000,
+        position: "top-right",
+        isClosable: true,
+      });
+    } finally {
+      setAreButtonsLoading(false);
+    }
 
     // Keep buttons disabled for 3 seconds
     setTimeout(() => {

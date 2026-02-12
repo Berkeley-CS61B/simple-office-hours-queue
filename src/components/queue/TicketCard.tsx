@@ -188,7 +188,7 @@ const TicketCard = (props: TicketCardProps) => {
 
   const deleteTicketThenRefresh = async () => {
     await closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
-    context.ticket.getTicketsWithStatus.invalidate({ status: ticket.status });
+    void context.ticket.getTicketsWithStatus.invalidate();
   };
 
   return (

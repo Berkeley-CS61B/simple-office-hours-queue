@@ -26,7 +26,7 @@ Ably is used for real-time communication (i.e. queue updates)
 
 2. Create a new app.
 
-3. Go to the "API Keys" tab. You should have 2 API keys, one for the server (top) and one for the client (bottom). Copy the server API key and paste it into the `ABLY_SERVER_API_KEY` variable in the `.env` file. Copy the client API key and paste it into the `NEXT_PUBLIC_ABLY_CLIENT_API_KEY` variable in the `.env` file. **Your client API key should have the `Subscribe` and `Publish` permission enabled.**
+3. Go to the "API Keys" tab and copy a server API key into the `ABLY_SERVER_API_KEY` variable in the `.env` file. The app issues short-lived client tokens from `/api/ably/token`, so no client API key should be embedded in the frontend bundle.
 ![Ably API Keys](/readme-assets/ably-config.jpg)
 
 </details>

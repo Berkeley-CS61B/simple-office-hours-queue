@@ -11,11 +11,7 @@ import {
 import { UserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ChatMessageWithUserName,
-  TicketWithNames,
-} from "../../server/trpc/router/ticket";
-import useNotification from "../../utils/hooks/useNotification";
+import { TicketWithNames } from "../../server/trpc/router/ticket";
 import { trpc } from "../../utils/trpc";
 import ChatMessage from "./ChatMessage";
 
@@ -50,11 +46,11 @@ const Chat = (props: ChatProps) => {
   const [sentToStaff, setSentToStaff] = useState<boolean>(false);
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
-  const { showNotification } = useNotification();
   const toast = useToast();
 
   const isStaff = session?.user?.role === "STAFF";
   const isIntern = session?.user?.role === "INTERN";
+  const isStudent = session?.user?.role === "STUDENT";
   const isAssigned = ticketStatus === "ASSIGNED";
   const isResolved = ticketStatus === "RESOLVED";
   const isClosed = ticketStatus === "CLOSED";
@@ -69,11 +65,13 @@ const Chat = (props: ChatProps) => {
 
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
 
-  trpc.ticket.getChatMessages.useQuery(
+  const { refetch: refetchMessages } = trpc.ticket.getChatMessages.useQuery(
     { ticketId },
     {
       enabled: ticketId !== undefined,
       refetchOnWindowFocus: false,
+      // Fallback polling in case realtime events are delayed/missed.
+      refetchInterval: isStudent ? 4000 : false,
       onSuccess: (data) => {
         const messages: Message[] = data.map((message) => {
           return {
@@ -87,40 +85,23 @@ const Chat = (props: ChatProps) => {
         setMessages(messages);
         setIsChatLoaded(true);
       },
+      onError: () => {
+        // Preserve existing messages on transient refetch failures.
+        setIsChatLoaded(true);
+      },
     },
   );
 
   let inputBox: any = null;
   let messageEnd: any = null;
 
-  useChannel(`ticket-${ticketId}`, "chat-message", (ablyMsg) => {
-    const { message, userName, userId, userRole, visibleToStudents } =
-      ablyMsg.data as ChatMessageWithUserName;
+  useChannel(`ticket-${ticketId}`, "chat-message", () => {
+    void refetchMessages();
+  });
 
-    // The chat message is from the current user, and it was optimisticly added to the chat
-    if (userId === session?.user?.id) {
-      return;
-    }
-
-    // The chat message is not visible to students, and the current user is a student
-    if (!visibleToStudents && session?.user?.role === UserRole.STUDENT) {
-      return;
-    }
-
-    const newMessage: Message = {
-      content: message,
-      sentByName: userName,
-      sentByUserId: userId,
-      sentByUserRole: userRole,
-      visibleToStudents,
-    };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-    if (userId !== session?.user?.id) {
-      showNotification(
-        `New message from ${canSeeName ? userName : "Anonymous"}`,
-        message,
-      );
+  useChannel("tickets", "ticket-chat-message", (msg) => {
+    if (!msg.data || msg.data.ticketId === ticketId) {
+      void refetchMessages();
     }
   });
 
@@ -184,7 +165,7 @@ const Chat = (props: ChatProps) => {
 
   useEffect(() => {
     if (messageEnd) {
-      messageEnd.scrollIntoView({ behaviour: "smooth" });
+      messageEnd.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, messageEnd]);
 

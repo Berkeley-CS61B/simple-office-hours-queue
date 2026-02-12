@@ -117,6 +117,9 @@ const CreateTicketForm = (props: CreateTicketFormProps) => {
           prev.description !== description ||
           prev.locationDescription !== locationDescription ||
           prev.assignmentId !== (assignment?.id ?? prev.assignmentId) ||
+          prev.locationId !== (location?.id ?? prev.locationId) ||
+          prev.locationName !== (location?.label ?? prev.locationName) ||
+          prev.ticketType !== (ticketType ?? prev.ticketType) ||
           // Add other necessary checks
           prev.isPublic !== isPublic
         ) {

@@ -53,6 +53,16 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   const context = trpc.useContext();
 
+  const invalidateTicketsForStatus = useCallback(
+    (status: TicketStatus) => {
+      void context.ticket.getTicketsWithStatus.invalidate({
+        status,
+        personalQueueName: personalQueue?.name,
+      });
+    },
+    [context.ticket.getTicketsWithStatus, personalQueue?.name],
+  );
+
   /** Sets tabIndex if it exists in sessionStorage */
   useEffect(() => {
     const tabIndex = sessionStorage.getItem("tabIndex");
@@ -63,10 +73,14 @@ const TicketQueue = (props: TicketQueueProps) => {
 
   /** helper method to play notification sound */
   const playNotificationSound = () => {
-    const audio = new Audio(
-      "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3",
-    );
-    audio.play().catch(console.error);
+    try {
+      const audio = new Audio(
+        "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3",
+      );
+      void audio.play();
+    } catch (_err) {
+      // Ignore audio errors so queue updates still render.
+    }
   };
 
   /**
@@ -127,24 +141,16 @@ const TicketQueue = (props: TicketQueueProps) => {
     }
 
     if (shouldInvalidateOpen.includes(message)) {
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.OPEN,
-      });
+      invalidateTicketsForStatus(TicketStatus.OPEN);
     }
     if (shouldInvalidateAssigned.includes(message)) {
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.ASSIGNED,
-      });
+      invalidateTicketsForStatus(TicketStatus.ASSIGNED);
     }
     if (shouldInvalidatePending.includes(message)) {
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.PENDING,
-      });
+      invalidateTicketsForStatus(TicketStatus.PENDING);
     }
     if (shouldInvalidateAbsent.includes(message)) {
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.ABSENT,
-      });
+      invalidateTicketsForStatus(TicketStatus.ABSENT);
     }
   });
 
@@ -201,18 +207,12 @@ const TicketQueue = (props: TicketQueueProps) => {
   // Refresh the assigned tickets every minute so the timer updates
   useEffect(() => {
     const interval = setInterval(() => {
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.ASSIGNED,
-      });
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.OPEN,
-      });
-      context.ticket.getTicketsWithStatus.invalidate({
-        status: TicketStatus.ABSENT,
-      });
+      invalidateTicketsForStatus(TicketStatus.ASSIGNED);
+      invalidateTicketsForStatus(TicketStatus.OPEN);
+      invalidateTicketsForStatus(TicketStatus.ABSENT);
     }, 60000);
     return () => clearInterval(interval);
-  }, [context.ticket.getTicketsWithStatus]);
+  }, [invalidateTicketsForStatus]);
 
   // memoizing handleFilteredCountChange to prevent too many recreations of it -> preventing rerenders
   const handleFilteredCountChange = useCallback((tab: TabType, count: number) => {
