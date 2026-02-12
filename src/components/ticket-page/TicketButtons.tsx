@@ -56,6 +56,7 @@ const TicketButtons = (props: TicketCardProps) => {
   const isClosed = ticket.status === TicketStatus.CLOSED;
   const isStaff = userRole === UserRole.STAFF;
   const isIntern = userRole === UserRole.INTERN;
+  const canCloseTicket = isStaff || ticket.createdByUserId === userId;
   const isResolved = ticket.status === TicketStatus.RESOLVED;
   const isAssigned = ticket.status === TicketStatus.ASSIGNED;
   const isAbsent = ticket.status === TicketStatus.ABSENT;
@@ -316,7 +317,7 @@ const TicketButtons = (props: TicketCardProps) => {
         m={4}
         mt={[1, 1, 1, 4]}
         onClick={handleCloseTicket}
-        hidden={isResolved || isClosed || isAssigned}
+        hidden={!canCloseTicket || isResolved || isClosed || isAssigned}
         colorScheme="red"
       >
         Delete

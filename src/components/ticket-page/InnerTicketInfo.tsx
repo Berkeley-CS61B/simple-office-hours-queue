@@ -74,6 +74,12 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   const isStudent = userRole === UserRole.STUDENT;
 
   const isIntern = userRole === UserRole.INTERN;
+  const isPrivileged = isStaff || isIntern;
+  const isOwner = userId === ticket.createdByUserId;
+  const isParticipant = isPrivileged || isOwner || isCurrentUserInGroup;
+  const canEditTicket = isPrivileged || isOwner;
+  const canCloseTicket = isStaff || isOwner;
+  const canUnmarkAsAbsent = isStudent && isAbsent && isParticipant;
   const helpOrJoin = isStaff || isIntern ? "Help" : "Join";
 
   const [studentSupportLink, setStudentSupportLink] = useState("");
@@ -105,6 +111,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
     );
 
   const context = trpc.useContext();
+  const ticketRealtimeChannel = isPrivileged ? `ticket-${ticket.id}` : "settings";
 
   // Refresh the ticket every minute so the timer updates
   useEffect(() => {
@@ -117,7 +124,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   }, [context.ticket.getTicket, ticket.id, ticket.status]);
 
   // Listens for updates on the ticket status
-  useChannel(`ticket-${ticket.id}`, (ticketData) => {
+  useChannel(ticketRealtimeChannel, (ticketData) => {
     const message = ticketData.name;
     const shouldUpdateTicketMessages: string[] = [
       "ticket-approved",
@@ -228,9 +235,10 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
   };
 
   const handleCloseTicket = async () => {
-    if (!isClosed) {
-      await closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
+    if (!canCloseTicket || isClosed) {
+      return;
     }
+    await closeTicketsMutation.mutateAsync({ ticketIds: [ticket.id] });
   };
 
   /** Name with an email hover */
@@ -359,6 +367,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         mb={2}
         colorScheme="cyan"
         onClick={() => setShowEditTicketModal(true)}
+        hidden={!canEditTicket}
       >
         Edit Ticket
       </Button>
@@ -441,7 +450,7 @@ const InnerTicketInfo = (props: InnerTicketInfoProps) => {
         colorScheme="whatsapp"
         m={4}
         onClick={handleMarkAsAbsent}
-        hidden={!isStudent || !isAbsent}
+        hidden={!canUnmarkAsAbsent}
       >
         I am here
       </Button>
