@@ -1,9 +1,7 @@
 # Install dependencies only when needed
 FROM node:18.17-alpine AS deps
 USER root
-RUN apk update && apk upgrade
-RUN apk add --no-cache openssl
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
 COPY prisma ./
@@ -22,9 +20,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 #FROM node:18-alpine as debug
 USER root
-RUN apk add openssl
-RUN openssl version
-RUN echo "openSSL version:" && openssl version
+RUN apk add --no-cache openssl
 RUN npx prisma generate
 
 ENV TSC_COMPILE_ON_ERROR=true
@@ -48,7 +44,7 @@ RUN adduser --system --uid 1001 nextjs
 # Copy only the necessary files for production
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/package.json ./package.json
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 
 
 #COPY prisma /app/prisma/
@@ -59,7 +55,7 @@ COPY . /app
 
 #RUN chmod 777 /app/wait-for-it.sh
 #RUN chmod 777 /app/start.sh
-RUN chmod 777 -R /app
+RUN chmod 755 /app/start.sh
 
 
 USER nextjs
@@ -67,8 +63,7 @@ USER nextjs
 EXPOSE 3000
 ENV PORT 3000
 
-#ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["./start.sh"]
 #RUN npx prisma db push --debug --accept-data-loss
-RUN npx prisma db push --accept-data-loss
 #RUN npx prisma db seed
 CMD ["npm", "start"]
