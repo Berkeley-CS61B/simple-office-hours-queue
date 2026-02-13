@@ -4,6 +4,7 @@ import {
   VariableSiteSettings,
 } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
+import { TRPCError } from "@trpc/server";
 import Ably from "ably/promises";
 import { z } from "zod";
 import { EMAIL_DOMAIN_REGEX_OR_EMPTY } from "../../../utils/constants";
@@ -189,6 +190,31 @@ export const adminRouter = router({
     .mutation(async ({ input, ctx }) => {
       // If we're opening/closing a personal queue, do that instead of the site-wide queue
       if (input.personalQueueName) {
+        const queue = await ctx.prisma.personalQueue.findUnique({
+          where: {
+            name: input.personalQueueName,
+          },
+          select: {
+            ownerId: true,
+            allowStaffToOpen: true,
+          },
+        });
+
+        if (!queue) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Queue not found" });
+        }
+
+        if (
+          queue.ownerId !== ctx.session.user.id &&
+          !queue.allowStaffToOpen
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message:
+              "You are not allowed to open or close this queue unless the owner allows it",
+          });
+        }
+
         await ctx.prisma.personalQueue.update({
           where: {
             name: input.personalQueueName,

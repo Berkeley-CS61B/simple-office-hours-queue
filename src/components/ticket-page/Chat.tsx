@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   Spinner,
+  Text,
   Textarea,
   Tooltip,
   useToast,
@@ -11,11 +12,7 @@ import {
 import { UserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ChatMessageWithUserName,
-  TicketWithNames,
-} from "../../server/trpc/router/ticket";
-import useNotification from "../../utils/hooks/useNotification";
+import { TicketWithNames } from "../../server/trpc/router/ticket";
 import { trpc } from "../../utils/trpc";
 import ChatMessage from "./ChatMessage";
 
@@ -50,30 +47,51 @@ const Chat = (props: ChatProps) => {
   const [sentToStaff, setSentToStaff] = useState<boolean>(false);
   const sendChatMessageMutation = trpc.ticket.sendChatMessage.useMutation();
   const { data: session } = useSession();
-  const { showNotification } = useNotification();
   const toast = useToast();
 
   const isStaff = session?.user?.role === "STAFF";
   const isIntern = session?.user?.role === "INTERN";
+  const isStudent = session?.user?.role === "STUDENT";
+  const isPrivileged = isStaff || isIntern;
   const isAssigned = ticketStatus === "ASSIGNED";
   const isResolved = ticketStatus === "RESOLVED";
   const isClosed = ticketStatus === "CLOSED";
   const isAbsent = ticketStatus === "ABSENT";
-  const isCurrentUserInGroup = false;
   const userId = session?.user?.id;
+  const isOwner = userId === ticket.createdByUserId;
+  const shouldCheckGroupMembership =
+    isStudent && ticket.isPublic && Boolean(userId) && !isOwner;
+
+  const { data: usersInGroup, isLoading: isUsersInGroupLoading } =
+    trpc.ticket.getUsersInTicketGroup.useQuery(
+      { ticketId },
+      {
+        enabled: shouldCheckGroupMembership,
+        refetchOnWindowFocus: false,
+      },
+    );
+
+  const isCurrentUserInGroup =
+    usersInGroup?.some((user) => user.id === userId) ?? false;
+  const canParticipateInChat = isPrivileged || isOwner || isCurrentUserInGroup;
+  const isChatAccessResolved =
+    !shouldCheckGroupMembership || !isUsersInGroupLoading;
+  const canLoadChatMessages = canParticipateInChat && isChatAccessResolved;
+
   const canSeeName =
-    userId === ticket.createdByUserId ||
+    isOwner ||
     isCurrentUserInGroup ||
-    ((isStaff || isIntern) &&
-      (isAssigned || isResolved || isClosed || isAbsent));
+    (isPrivileged && (isAssigned || isResolved || isClosed || isAbsent));
 
   const messageTextIsEmpty: boolean = messageText.trim().length === 0;
 
-  trpc.ticket.getChatMessages.useQuery(
+  const { refetch: refetchMessages } = trpc.ticket.getChatMessages.useQuery(
     { ticketId },
     {
-      enabled: ticketId !== undefined,
+      enabled: ticketId !== undefined && canLoadChatMessages,
       refetchOnWindowFocus: false,
+      // Fallback polling in case realtime events are delayed/missed.
+      refetchInterval: isStudent && canLoadChatMessages ? 4000 : false,
       onSuccess: (data) => {
         const messages: Message[] = data.map((message) => {
           return {
@@ -87,62 +105,54 @@ const Chat = (props: ChatProps) => {
         setMessages(messages);
         setIsChatLoaded(true);
       },
+      onError: () => {
+        // Preserve existing messages on transient refetch failures.
+        setIsChatLoaded(true);
+      },
     },
   );
 
   let inputBox: any = null;
   let messageEnd: any = null;
 
-  useChannel(`ticket-${ticketId}`, "chat-message", (ablyMsg) => {
-    const { message, userName, userId, userRole, visibleToStudents } =
-      ablyMsg.data as ChatMessageWithUserName;
+  const perTicketChatChannel = isPrivileged ? `ticket-${ticketId}` : "settings";
 
-    // The chat message is from the current user, and it was optimisticly added to the chat
-    if (userId === session?.user?.id) {
+  useChannel(perTicketChatChannel, "chat-message", () => {
+    if (!canLoadChatMessages) {
       return;
     }
+    void refetchMessages();
+  });
 
-    // The chat message is not visible to students, and the current user is a student
-    if (!visibleToStudents && session?.user?.role === UserRole.STUDENT) {
+  useChannel("tickets", "ticket-chat-message", (msg) => {
+    if (!canLoadChatMessages) {
       return;
     }
-
-    const newMessage: Message = {
-      content: message,
-      sentByName: userName,
-      sentByUserId: userId,
-      sentByUserRole: userRole,
-      visibleToStudents,
-    };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-    if (userId !== session?.user?.id) {
-      showNotification(
-        `New message from ${canSeeName ? userName : "Anonymous"}`,
-        message,
-      );
+    if (!msg.data || msg.data.ticketId === ticketId) {
+      void refetchMessages();
     }
   });
+
+  useEffect(() => {
+    if (canLoadChatMessages) {
+      setIsChatLoaded(false);
+    }
+  }, [canLoadChatMessages, ticketId]);
+
+  useEffect(() => {
+    if (!canLoadChatMessages && isChatAccessResolved) {
+      setMessages([]);
+      setIsChatLoaded(true);
+    }
+  }, [canLoadChatMessages, isChatAccessResolved]);
 
   const handleFormSubmission = async (
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
-    if (messageTextIsEmpty) {
+    if (messageTextIsEmpty || !canParticipateInChat) {
       return;
     }
-
-    // Note: The 'Unknown' should never happen, it's just to make Typescript happy
-    const newMessage: Message = {
-      content: messageText,
-      sentByName:
-        session?.user?.preferredName ?? session?.user?.name ?? "Unknown",
-      sentByUserId: session?.user?.id ?? "Unknown",
-      sentByUserRole: session?.user?.role ?? "STUDENT",
-      visibleToStudents: sentToStaff ? false : true,
-    };
-    // Optimistic update on chat message
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
 
     setMessageText("");
     if (inputBox) {
@@ -155,8 +165,7 @@ const Chat = (props: ChatProps) => {
         message: messageText,
         visibleToStudents: sentToStaff ? false : true,
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         toast({
           title: "Error",
           description:
@@ -184,7 +193,7 @@ const Chat = (props: ChatProps) => {
 
   useEffect(() => {
     if (messageEnd) {
-      messageEnd.scrollIntoView({ behaviour: "smooth" });
+      messageEnd.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, messageEnd]);
 
@@ -216,53 +225,60 @@ const Chat = (props: ChatProps) => {
             />
           </Flex>
 
-          <form onSubmit={handleFormSubmission}>
-            <Flex>
-              <Textarea
-                ref={(element) => {
-                  inputBox = element;
-                }}
-                value={messageText}
-                placeholder="Type a message..."
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={handleKeyPress}
-                mr={4}
-                maxLength={1000}
-              />
-              <Flex flexDirection="column" gap={0.5}>
-                <Tooltip hasArrow label="Send to everyone (enter)">
-                  <Button
-                    backgroundColor={chatMessageColors.visibleToStudents}
-                    _hover={{
-                      backgroundColor: chatMessageColors.visibleToStudentsHover,
-                    }}
-                    color="white"
-                    type="submit"
-                    disabled={messageTextIsEmpty}
-                    onClick={() => setSentToStaff(false)}
-                  >
-                    Send
-                  </Button>
-                </Tooltip>
-                <Tooltip hasArrow label="Send to staff only">
-                  <Button
-                    backgroundColor={chatMessageColors.notVisibleToStudents}
-                    _hover={{
-                      backgroundColor:
-                        chatMessageColors.notVisibleToStudentsHover,
-                    }}
-                    color={"white"}
-                    type="submit"
-                    hidden={session?.user?.role === UserRole.STUDENT}
-                    disabled={messageTextIsEmpty}
-                    onClick={() => setSentToStaff(true)}
-                  >
-                    Staff Send
-                  </Button>
-                </Tooltip>
+          {canParticipateInChat ? (
+            <form onSubmit={handleFormSubmission}>
+              <Flex>
+                <Textarea
+                  ref={(element) => {
+                    inputBox = element;
+                  }}
+                  value={messageText}
+                  placeholder="Type a message..."
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  mr={4}
+                  maxLength={1000}
+                />
+                <Flex flexDirection="column" gap={0.5}>
+                  <Tooltip hasArrow label="Send to everyone (enter)">
+                    <Button
+                      backgroundColor={chatMessageColors.visibleToStudents}
+                      _hover={{
+                        backgroundColor:
+                          chatMessageColors.visibleToStudentsHover,
+                      }}
+                      color="white"
+                      type="submit"
+                      disabled={messageTextIsEmpty}
+                      onClick={() => setSentToStaff(false)}
+                    >
+                      Send
+                    </Button>
+                  </Tooltip>
+                  <Tooltip hasArrow label="Send to staff only">
+                    <Button
+                      backgroundColor={chatMessageColors.notVisibleToStudents}
+                      _hover={{
+                        backgroundColor:
+                          chatMessageColors.notVisibleToStudentsHover,
+                      }}
+                      color={"white"}
+                      type="submit"
+                      hidden={session?.user?.role === UserRole.STUDENT}
+                      disabled={messageTextIsEmpty}
+                      onClick={() => setSentToStaff(true)}
+                    >
+                      Staff Send
+                    </Button>
+                  </Tooltip>
+                </Flex>
               </Flex>
-            </Flex>
-          </form>
+            </form>
+          ) : (
+            <Text color="gray.600">
+              Join this public ticket group to access chat.
+            </Text>
+          )}
         </Box>
       )}
     </>

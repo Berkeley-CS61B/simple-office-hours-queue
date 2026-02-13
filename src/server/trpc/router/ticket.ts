@@ -12,6 +12,7 @@ import {
   VariableSiteSettings,
 } from "@prisma/client";
 import { TRPCClientError } from "@trpc/client";
+import { TRPCError } from "@trpc/server";
 import Ably from "ably/promises";
 import { z } from "zod";
 import { EMAIL_REGEX } from "../../../utils/constants";
@@ -21,6 +22,117 @@ import {
   protectedStaffProcedure,
   router,
 } from "../trpc";
+
+const isPrivilegedRole = (role: UserRole) => {
+  return role === UserRole.STAFF || role === UserRole.INTERN;
+};
+
+const isUserInTicketGroup = async (
+  ticketId: number,
+  userId: string,
+  ctx: any,
+) => {
+  const userInGroup = await ctx.prisma.ticket.findFirst({
+    where: {
+      id: ticketId,
+      usersInGroup: {
+        some: {
+          id: userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !!userInGroup;
+};
+
+const getTicketAccessContext = async (ticket: Ticket, ctx: any) => {
+  const isPrivileged = isPrivilegedRole(ctx.session.user.role);
+  const isOwner = ticket.createdByUserId === ctx.session.user.id;
+  const isInGroup =
+    !isPrivileged && !isOwner
+      ? await isUserInTicketGroup(ticket.id, ctx.session.user.id, ctx)
+      : false;
+
+  return {
+    isPrivileged,
+    isOwner,
+    isInGroup,
+  };
+};
+
+const ensureTicketAccess = async ({
+  ticketId,
+  ctx,
+  allowPublic = true,
+  requireParticipant = false,
+}: {
+  ticketId: number;
+  ctx: any;
+  allowPublic?: boolean;
+  requireParticipant?: boolean;
+}) => {
+  const ticket = await ctx.prisma.ticket.findUnique({
+    where: { id: ticketId },
+  });
+
+  if (!ticket) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
+  }
+
+  const { isPrivileged, isOwner, isInGroup } = await getTicketAccessContext(
+    ticket,
+    ctx,
+  );
+  const canAccess =
+    isPrivileged || isOwner || isInGroup || (allowPublic && ticket.isPublic);
+  const isParticipant = isPrivileged || isOwner || isInGroup;
+
+  if (!canAccess || (requireParticipant && !isParticipant)) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this ticket",
+    });
+  }
+
+  return {
+    ticket,
+    isPrivileged,
+    isOwner,
+    isInGroup,
+    isParticipant,
+  };
+};
+
+const sanitizeTicketForStudent = ({
+  ticket,
+  userId,
+  joinedTicketIds,
+}: {
+  ticket: TicketWithNames;
+  userId: string;
+  joinedTicketIds: Set<number>;
+}) => {
+  const isOwner = ticket.createdByUserId === userId;
+  const isInGroup = joinedTicketIds.has(ticket.id);
+  const canViewPrivateDetails = isOwner || isInGroup;
+  const canViewTicketDetails = canViewPrivateDetails || ticket.isPublic;
+
+  return {
+    ...ticket,
+    createdByUserId: isOwner ? ticket.createdByUserId : "",
+    createdByName: canViewPrivateDetails ? ticket.createdByName : null,
+    createdByEmail: null,
+    createdByPronunciation: null,
+    helpedByUserId: canViewPrivateDetails ? ticket.helpedByUserId : null,
+    helpedByName: canViewPrivateDetails ? ticket.helpedByName : null,
+    description: canViewTicketDetails ? ticket.description : null,
+    locationDescription: canViewTicketDetails ? ticket.locationDescription : null,
+    staffNotes: null,
+  };
+};
 
 export const ticketRouter = router({
   createTicket: protectedProcedure
@@ -224,6 +336,19 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const { isPrivileged, isOwner } = await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: false,
+      });
+
+      if (!isPrivileged && !isOwner) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to edit this ticket",
+        });
+      }
+
       await ctx.prisma.ticket.update({
         where: {
           id: input.ticketId,
@@ -248,10 +373,10 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await ticketChannel.publish("ticket-edited", undefined);
+      await ticketChannel.publish("ticket-edited", { id: input.ticketId });
 
       const channel = ably.channels.get("tickets");
-      await channel.publish("ticket-edited", undefined);
+      await channel.publish("ticket-edited", { id: input.ticketId });
     }),
 
   approveTickets: protectedStaffProcedure
@@ -348,11 +473,11 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get("tickets");
-      channel.publish("tickets-assigned", undefined);
+      await channel.publish("tickets-assigned", undefined);
 
       // Uses ticket inner page channel
       const ticketChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      ticketChannel.publish("ticket-assigned", undefined);
+      await ticketChannel.publish("ticket-assigned", undefined);
     }),
 
   resolveTickets: protectedNotStudentProcedure
@@ -386,11 +511,31 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const { isPrivileged } = await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: false,
+      });
+
+      if (ctx.session.user.role === UserRole.STUDENT) {
+        if (input.markOrUnmark) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Students cannot mark tickets as absent",
+          });
+        }
+      } else if (!isPrivileged) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Only staff and interns can mark tickets as absent",
+        });
+      }
+
       await ctx.prisma.ticket.update({
         where: { id: input.ticketId },
         data: {
           status: input.markOrUnmark ? TicketStatus.ABSENT : TicketStatus.OPEN,
-          markedAbsentAt: new Date(),
+          markedAbsentAt: input.markOrUnmark ? new Date() : null,
         },
       });
 
@@ -400,7 +545,9 @@ export const ticketRouter = router({
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish("ticket-marked-as-absent", undefined);
+      await innerChannel.publish("ticket-marked-as-absent", {
+        isAbsent: input.markOrUnmark,
+      });
     }),
 
   markAsPriority: protectedNotStudentProcedure
@@ -463,12 +610,12 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get("tickets");
-      await channel.publish("ticket-closed", undefined);
+      await channel.publish("ticket-closed", { ticketIds: input.ticketIds });
 
       // Uses ticket inner page channel
       for (const id of input.ticketIds) {
         const innerChannel = ably.channels.get(`ticket-${id}`);
-        await innerChannel.publish("ticket-closed", undefined);
+        await innerChannel.publish("ticket-closed", { id });
       }
     }),
 
@@ -527,6 +674,21 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const ticket = await ctx.prisma.ticket.findUnique({
+        where: { id: input.ticketId },
+      });
+      if (!ticket) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
+      }
+
+      const isPrivileged = isPrivilegedRole(ctx.session.user.role);
+      if (!ticket.isPublic && !isPrivileged) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You can only join public tickets",
+        });
+      }
+
       await ctx.prisma.ticket.update({
         where: { id: input.ticketId },
         data: {
@@ -605,6 +767,13 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: true,
+        requireParticipant: true,
+      });
+
       if (
         !input.visibleToStudents &&
         ctx.session.user.role === UserRole.STUDENT
@@ -631,15 +800,16 @@ export const ticketRouter = router({
         },
       });
 
-      const chatMessageWithUserName: ChatMessageWithUserName = {
-        ...chatMessage,
-        userName: ctx.session.user.preferredName ?? ctx.session.user.name,
-        userRole: ctx.session.user.role,
-      };
-
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get(`ticket-${input.ticketId}`);
-      await channel.publish("chat-message", chatMessageWithUserName);
+      await channel.publish("chat-message", undefined);
+
+      // Students cannot subscribe to ticket-* channels; notify through a
+      // student-accessible channel so ticket chat can refresh in real time.
+      const ticketsChannel = ably.channels.get("tickets");
+      await ticketsChannel.publish("ticket-chat-message", {
+        ticketId: input.ticketId,
+      });
       return chatMessage;
     }),
 
@@ -703,6 +873,19 @@ export const ticketRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const { isPrivileged, isOwner } = await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: false,
+      });
+
+      if (!isPrivileged && !isOwner) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to update ticket visibility",
+        });
+      }
+
       await ctx.prisma.ticket.update({
         where: { id: input.ticketId },
         data: { isPublic: input.isPublic },
@@ -710,11 +893,11 @@ export const ticketRouter = router({
 
       const ably = new Ably.Rest(process.env.ABLY_SERVER_API_KEY!);
       const channel = ably.channels.get("tickets");
-      await channel.publish("ticket-toggle-public", undefined);
+      await channel.publish("ticket-toggle-public", { id: input.ticketId });
 
       // Uses ticket inner page channel
       const innerChannel = ably.channels.get(`ticket-${input.ticketId}`);
-      await innerChannel.publish("ticket-toggle-public", undefined);
+      await innerChannel.publish("ticket-toggle-public", { id: input.ticketId });
     }),
 
   getTicket: protectedProcedure
@@ -724,20 +907,32 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const ticket: Ticket | null = await ctx.prisma.ticket.findUnique({
-        where: {
-          id: input.id,
-        },
-      });
-
-      if (!ticket) {
-        return null;
-      }
+      const { ticket, isPrivileged, isOwner, isInGroup } =
+        await ensureTicketAccess({
+          ticketId: input.id,
+          ctx,
+          allowPublic: true,
+        });
 
       const ticketsWithNames: TicketWithNames[] =
         await convertTicketToTicketWithNames([ticket], ctx);
+      const ticketWithNames = ticketsWithNames[0];
 
-      return ticketsWithNames[0];
+      if (!ticketWithNames) {
+        return null;
+      }
+
+      if (!isPrivileged && !isOwner && !isInGroup) {
+        return sanitizeTicketForStudent({
+          ticket: ticketWithNames,
+          userId: ctx.session.user.id,
+          joinedTicketIds: new Set<number>(
+            isInGroup ? [ticketWithNames.id] : [],
+          ),
+        });
+      }
+
+      return ticketWithNames;
     }),
 
   getUserCooldownTime: protectedProcedure.query(async ({ ctx }) => {
@@ -784,6 +979,28 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const isStudent = ctx.session.user.role === UserRole.STUDENT;
+      const isOpenOrAssigned =
+        input.status === TicketStatus.OPEN ||
+        input.status === TicketStatus.ASSIGNED;
+
+      const studentVisibilityFilter = isStudent
+        ? isOpenOrAssigned
+          ? {
+              OR: [
+                { isPublic: true },
+                { createdByUserId: ctx.session.user.id },
+                { usersInGroup: { some: { id: ctx.session.user.id } } },
+              ],
+            }
+          : {
+              OR: [
+                { createdByUserId: ctx.session.user.id },
+                { usersInGroup: { some: { id: ctx.session.user.id } } },
+              ],
+            }
+        : {};
+
       const tickets = await ctx.prisma.ticket.findMany({
         where: {
           status: input.status,
@@ -792,13 +1009,40 @@ export const ticketRouter = router({
           ...(input.personalQueueName
             ? { personalQueueName: input.personalQueueName }
             : { personalQueueName: null }),
+          ...studentVisibilityFilter,
         },
       });
 
       const ticketsWithNames: TicketWithNames[] =
         await convertTicketToTicketWithNames(tickets, ctx);
 
-      return ticketsWithNames;
+      if (ctx.session.user.role !== UserRole.STUDENT) {
+        return ticketsWithNames;
+      }
+
+      const joinedTickets = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.session.user.id,
+        },
+        select: {
+          ticketsJoined: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+      const joinedTicketIds = new Set<number>(
+        joinedTickets?.ticketsJoined.map((ticket) => ticket.id) ?? [],
+      );
+
+      return ticketsWithNames.map((ticket) =>
+        sanitizeTicketForStudent({
+          ticket,
+          userId: ctx.session.user.id,
+          joinedTicketIds,
+        }),
+      );
     }),
 
   /* For global log */
@@ -827,6 +1071,16 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      if (
+        ctx.session.user.role === UserRole.STUDENT &&
+        input.userId !== ctx.session.user.id
+      ) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to view these tickets",
+        });
+      }
+
       return await getUserTicketsFromId(
         input.userId,
         input.shouldSortByCreatedAt,
@@ -842,6 +1096,17 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const currentUserEmail = ctx.session.user.email?.toLowerCase();
+      if (
+        ctx.session.user.role === UserRole.STUDENT &&
+        input.userEmail.toLowerCase() !== currentUserEmail
+      ) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to view these tickets",
+        });
+      }
+
       if (!input.userEmail.match(EMAIL_REGEX)) {
         return null;
       }
@@ -869,15 +1134,34 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const { isPrivileged, isOwner, isInGroup } = await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: true,
+      });
+
       const users = await ctx.prisma.user.findMany({
         where: {
           ticketsJoined: {
             some: { id: input.ticketId },
           },
         },
+        select: {
+          id: true,
+          name: true,
+          preferredName: true,
+        },
       });
 
-      return users;
+      const canViewNames = isPrivileged || isOwner || isInGroup;
+      return users.map((user) => ({
+        id:
+          canViewNames || user.id === ctx.session.user.id
+            ? user.id
+            : "",
+        name: canViewNames ? user.name : null,
+        preferredName: canViewNames ? user.preferredName : null,
+      }));
     }),
 
   getChatMessages: protectedProcedure
@@ -887,6 +1171,13 @@ export const ticketRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
+      await ensureTicketAccess({
+        ticketId: input.ticketId,
+        ctx,
+        allowPublic: true,
+        requireParticipant: true,
+      });
+
       const userRole = ctx.session.user.role;
       const messages: ChatMessage[] = await ctx.prisma.chatMessage.findMany({
         where: {

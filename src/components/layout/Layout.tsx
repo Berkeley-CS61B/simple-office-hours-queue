@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Router from "next/router";
 import { ReactNode, useEffect, useState } from "react";
-import { clientEnv } from "../../env/schema.mjs";
 import { SITE_BASE_TITLE } from "../../utils/constants";
 import ReceiveBroadcast from "../queue/ReceiveBroadcast";
 import Landing from "./Landing";
@@ -70,13 +69,15 @@ const Layout = (props: LayoutProps) => {
         setIsAuthorized(true);
       }
 
-      new Promise((resolve) => {
+      try {
         configureAbly({
-          key: clientEnv.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
+          authUrl: "/api/ably/token",
           clientId: session?.user?.id,
         });
-        resolve(setIsAblyConnected(true));
-      }).catch((err) => console.error(err));
+        setIsAblyConnected(true);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }, [session, props.restrictedTo, toast]);
 

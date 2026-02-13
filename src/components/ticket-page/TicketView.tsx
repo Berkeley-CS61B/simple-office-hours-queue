@@ -1,5 +1,4 @@
 import { useToast } from "@chakra-ui/react";
-import { UserRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -32,17 +31,14 @@ const TicketView = () => {
           setIsInvalidTicket(true);
         }
       },
+      onError: () => {
+        setIsInvalidTicket(true);
+      },
     },
   );
 
-  const userRole = session?.user?.role;
   const userId = session?.user?.id;
-
-  const authorized =
-    userRole === UserRole.STAFF ||
-    userRole === UserRole.INTERN ||
-    ticket?.createdByUserId === userId ||
-    ticket?.isPublic;
+  const userRole = session?.user?.role;
 
   /**
    * If the ticket doesn't exist or user doesn't have correct access,
@@ -53,7 +49,9 @@ const TicketView = () => {
       return;
     }
 
-    if (isInvalidTicket || !authorized) {
+    // Access control is enforced server-side in ticket.getTicket.
+    // If this query errors or returns null, treat it as invalid here.
+    if (isInvalidTicket) {
       toast({
         title: "Invalid ticket",
         description: "The ticket you are trying to access is invalid.",
@@ -64,12 +62,12 @@ const TicketView = () => {
       });
       Router.push("/");
     }
-  }, [userRole, isInvalidTicket, authorized, toast]);
+  }, [userRole, isInvalidTicket, toast]);
 
   return (
     <>
-      {ticket && (
-        <InnerTicket ticket={ticket} userId={userId!} userRole={userRole!} />
+      {ticket && userId && userRole && (
+        <InnerTicket ticket={ticket} userId={userId} userRole={userRole} />
       )}
     </>
   );

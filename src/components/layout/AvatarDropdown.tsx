@@ -17,7 +17,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { DARK_MODE_COLOR } from "../../utils/constants";
 import { uppercaseFirstLetter } from "../../utils/utils";
 import NameAndPronunciationPopoverForm from "./NameAndPronunciationPopoverForm";
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 
 const AvatarDropdown = () => {
@@ -36,7 +36,6 @@ const AvatarDropdown = () => {
   const [pronunciation, setPronunciation] = useState(session?.user?.preferredPronunciation ?? "");
   
   useEffect(() => {
-    console.log(session?.user);
     setName(session?.user?.preferredName ?? session?.user?.name);
     setPronunciation(session?.user?.preferredPronunciation ?? "");
   }, [session]);

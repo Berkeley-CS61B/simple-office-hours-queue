@@ -8,6 +8,7 @@ import { z } from "zod";
 export const serverSchema = z.object({
   DATABASE_URL: z.string().url(),
   NODE_ENV: z.enum(["development", "test", "production"]),
+  ABLY_SERVER_API_KEY: z.string(),
   NEXTAUTH_SECRET: z.string(),
   NEXTAUTH_URL: z.string().url().optional(),
   GOOGLE_CLIENT_ID: z.string(),
@@ -20,7 +21,7 @@ export const serverSchema = z.object({
  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
  */
 export const clientSchema = z.object({
-  NEXT_PUBLIC_ABLY_CLIENT_API_KEY: z.string(),
+  // Client-side env vars are currently not required.
 });
 
 /**
@@ -30,5 +31,5 @@ export const clientSchema = z.object({
  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
  */
 export const clientEnv = {
-  NEXT_PUBLIC_ABLY_CLIENT_API_KEY: process.env.NEXT_PUBLIC_ABLY_CLIENT_API_KEY,
+  // Client-side env vars are currently not required.
 };

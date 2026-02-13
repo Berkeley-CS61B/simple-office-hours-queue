@@ -8,7 +8,7 @@ import {
   ModalHeader,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TicketWithNames } from "../../server/trpc/router/ticket";
 import { DARK_GRAY_COLOR } from "../../utils/constants";
 import CreateTicketForm from "../queue/CreateTicketForm";
@@ -26,6 +26,12 @@ interface EditTicketModalProps {
 const EditTicketModal = (props: EditTicketModalProps) => {
   const { isModalOpen, setIsModalOpen, onSubmit, ticket } = props;
   const [existingTicket, setExistingTicket] = useState<TicketWithNames>(ticket);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setExistingTicket(ticket);
+    }
+  }, [isModalOpen, ticket]);
 
   return (
     <Modal

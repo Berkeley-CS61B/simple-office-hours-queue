@@ -26,7 +26,6 @@ const CoolDownTimer = () => {
   });
 
   const handleSetCooldownTime = async () => {
-    console.log(cooldownTime);
     await setCooldownTimeMutation.mutateAsync({
       cooldownTime,
     });

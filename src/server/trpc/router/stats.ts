@@ -1,9 +1,9 @@
 import { TicketStatus, TicketType } from "@prisma/client";
 import { z } from "zod";
-import { protectedNotStudentProcedure, publicProcedure, router } from "../trpc";
+import { protectedNotStudentProcedure, router } from "../trpc";
 
 export const statsRouter = router({
-  getTicketStats: publicProcedure.query(async ({ ctx }) => {
+  getTicketStats: protectedNotStudentProcedure.query(async ({ ctx }) => {
     return ctx.prisma.ticket.findMany({
       select: {
         createdAt: true,
@@ -18,7 +18,7 @@ export const statsRouter = router({
       },
     });
   }),
-  getInfiniteTicketStats: publicProcedure
+  getInfiniteTicketStats: protectedNotStudentProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(10000).nullish(),
@@ -77,7 +77,7 @@ export const statsRouter = router({
       });
     },
   ),
-  getInfiniteTicketStatsHelpedByUser: publicProcedure
+  getInfiniteTicketStatsHelpedByUser: protectedNotStudentProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(10000).nullish(),
