@@ -7,7 +7,7 @@ WORKDIR /app
 COPY prisma ./
 
 COPY package.json package-lock.json ./
-RUN npm ci --production
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM node:18-alpine AS builder
@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 #FROM node:18-alpine as debug
 USER root
@@ -25,6 +25,8 @@ RUN npx prisma generate
 
 ENV TSC_COMPILE_ON_ERROR=true
 ENV ESLINT_NO_DEV_ERRORS=true
+ENV SKIP_ENV_VALIDATION=1
+ENV NODE_ENV=production
 #FROM node:18-alpine as next
 #WORKDIR /app
 # Build the Next.js application
@@ -34,9 +36,9 @@ RUN npm run build
 FROM node:18.17-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # think above shold be changed but yolo
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -61,7 +63,7 @@ RUN chmod 755 /app/start.sh
 USER nextjs
 
 EXPOSE 3000
-ENV PORT 3000
+ENV PORT=3000
 
 ENTRYPOINT ["./start.sh"]
 #RUN npx prisma db push --debug --accept-data-loss

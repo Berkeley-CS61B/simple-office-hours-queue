@@ -6,9 +6,15 @@ import { env as clientEnv, formatErrors } from "./client.mjs";
  */
 import { serverSchema } from "./schema.mjs";
 
-const _serverEnv = serverSchema.safeParse(process.env);
+const skipEnvValidation =
+  process.env.SKIP_ENV_VALIDATION === "1" ||
+  process.env.SKIP_ENV_VALIDATION === "true";
 
-if (_serverEnv.success === false) {
+const _serverEnv = skipEnvValidation
+  ? { success: true, data: process.env }
+  : serverSchema.safeParse(process.env);
+
+if (!skipEnvValidation && _serverEnv.success === false) {
   console.error(
     "❌ Invalid environment variables:\n",
     ...formatErrors(_serverEnv.error.format()),
@@ -19,11 +25,13 @@ if (_serverEnv.success === false) {
 /**
  * Validate that server-side environment variables are not exposed to the client.
  */
-for (const key of Object.keys(_serverEnv.data)) {
-  if (key.startsWith("NEXT_PUBLIC_")) {
-    console.warn("❌ You are exposing a server-side env-variable:", key);
+if (!skipEnvValidation) {
+  for (const key of Object.keys(_serverEnv.data)) {
+    if (key.startsWith("NEXT_PUBLIC_")) {
+      console.warn("❌ You are exposing a server-side env-variable:", key);
 
-    throw new Error("You are exposing a server-side env-variable");
+      throw new Error("You are exposing a server-side env-variable");
+    }
   }
 }
 
