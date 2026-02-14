@@ -17,6 +17,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_COURSE_ID=CS61B
+ENV NEXT_PUBLIC_COURSE_ID=${NEXT_PUBLIC_COURSE_ID}
 
 #FROM node:18-alpine as debug
 USER root
