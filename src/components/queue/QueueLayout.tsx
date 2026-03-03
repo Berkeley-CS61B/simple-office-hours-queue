@@ -22,6 +22,7 @@ import Broadcast from "./Broadcast";
 import CreateTicket from "./CreateTicket";
 import OpenOrCloseQueue from "./OpenOrCloseQueue";
 import TicketQueue from "./TicketQueue";
+import React from "react";
 
 interface QueueLayoutProps {
   personalQueue?: PersonalQueue;
@@ -30,7 +31,7 @@ interface QueueLayoutProps {
 /**
  * Intermediate component to guarantee that Ably is initialized
  */
-const QueueLayout = (props: QueueLayoutProps) => {
+const QueueLayout: React.FC<QueueLayoutProps> = (props) => {
   const { personalQueue } = props;
   const { data: session } = useSession();
   const userRole = session?.user?.role!;
@@ -43,19 +44,15 @@ const QueueLayout = (props: QueueLayoutProps) => {
   const changeUserRoleMutation = trpc.user.updateUserRole.useMutation();
   const { siteSettings } = useSiteSettings();
 
-  // If the user was added as STAFF, change their role
+  // If the user was added as STAFF/INTERN, change their role
   useEffect(() => {
     (async () => {
-      const roleVerified = sessionStorage.getItem("roleVerified");
-      if (!roleVerified || roleVerified === "false") {
-        await changeUserRoleMutation.mutateAsync().then((res) => {
-          sessionStorage.setItem("roleVerified", "true");
-          if (res) {
-            alert("Your role has been updated. Press OK to continue.");
-            window.location.reload();
-          }
-        });
-      }
+      await changeUserRoleMutation.mutateAsync().then((res) => {
+        if (res) {
+          alert("Your role has been updated. Press OK to continue.");
+          window.location.reload();
+        }
+      });
     })();
   }, []);
 
@@ -78,7 +75,7 @@ const QueueLayout = (props: QueueLayoutProps) => {
           SiteSettingsValues.TRUE,
       );
     }
-  }, [siteSettings]);
+  }, [personalQueue, siteSettings]);
 
   // Listens for queue open/close events
   useChannel("settings", (ablyMsg) => {
@@ -96,12 +93,14 @@ const QueueLayout = (props: QueueLayoutProps) => {
     }
   });
 
-  if (
+  const isSettingsLoading =
     isQueueOpen === undefined ||
     isPendingStageEnabled === undefined ||
-    arePublicTicketsEnabled === undefined
-  ) {
-    return <Spinner />;
+    arePublicTicketsEnabled === undefined;
+
+  if (isSettingsLoading) {
+    // @ts-ignore TS2590: Expression produces a union type that is too complex to represent.
+    return React.createElement(Spinner);
   }
 
   return (
