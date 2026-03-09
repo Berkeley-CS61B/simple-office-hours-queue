@@ -374,7 +374,7 @@ const TicketQueue = (props: TicketQueueProps) => {
         variant="enclosed"
         isLazy
         onChange={handleTabChange}
-      >
+        >
         <TabList
           overflowY="hidden"
           sx={{
@@ -384,19 +384,25 @@ const TicketQueue = (props: TicketQueueProps) => {
             },
           }}
         >
-          {tabs.map((tab) => (
-            <Tab
-              key={tab}
-              flexShrink={0}
-              color={tab === "Priority" ? "red.300" : undefined}
-            >
-              {uppercaseFirstLetter(tab) +
-                (isGetTicketsLoading
-                  ? " (?)"
-                  : ` (${filteredCounts[tab] ?? getTickets(tab).length})`)
-                }
-            </Tab>
-          ))}
+          {tabs.map((tab, index) => {
+            const isActiveTab = index === tabIndex;
+            const baseCount = getTickets(tab).length;
+            const filteredCount = filteredCounts[tab];
+            const count = (isActiveTab && filteredCount !== undefined) 
+              ? filteredCount 
+              : baseCount; 
+
+            return (
+              <Tab
+                key={tab}
+                flexShrink={0}
+                color={tab === "Priority" ? "red.300" : undefined}
+              >
+                {uppercaseFirstLetter(tab) +
+                  (isGetTicketsLoading ? " (?)" : ` (${count})`)}
+              </Tab>
+            );
+          })}
         </TabList>
         <TabPanels>
           {tabs.map((tab) => {
